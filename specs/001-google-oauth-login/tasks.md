@@ -73,17 +73,17 @@ flowchart TD
 - [X] T021 [UC1] **Git Commit (Controller)**: `git add backend/src/auth/ && git commit -m "feat(UC1): implement controller services and encryption for OAuth"`
 
 ### Step 3.3: Boundary Layer (FastAPI API Router & Next.js Frontend)
-- [ ] T022 [UC1] Implement FastAPI Router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) with `httpOnly`, `Secure`, `SameSite=Lax` cookies in `backend/src/auth/router.py`
-- [ ] T023 [P] [UC1] Implement Landing/Login View (`SCR-01`) with "Login with Google" button in `frontend/src/app/page.tsx`
-- [ ] T024 [P] [UC1] Implement Main Workspace Dashboard (`SCR-03`) displaying researcher profile and Drive connection status in `frontend/src/app/dashboard/page.tsx`
-- [ ] T025 [P] [UC1] Implement Drive Access Warning & Consent Recovery Modal (`SCR-04`) for scope denial or expired token re-prompt in `frontend/src/components/DriveWarningModal.tsx`
-- [ ] T026 [UC1] Implement API client fetch wrapper in `frontend/src/lib/api/auth.ts`
-- [ ] T027 [UC1] Wire Next.js page components to backend API client and handle loading/error states
+- [X] T022 [UC1] Implement FastAPI Router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) with `httpOnly`, `Secure`, `SameSite=Lax` cookies in `backend/src/auth/router.py`
+- [X] T023 [P] [UC1] Implement Landing/Login View (`SCR-01`) with "Login with Google" button in `frontend/src/app/page.tsx`
+- [X] T024 [P] [UC1] Implement Main Workspace Dashboard (`SCR-03`) displaying researcher profile and Drive connection status in `frontend/src/app/dashboard/page.tsx`
+- [X] T025 [P] [UC1] Implement Drive Access Warning & Consent Recovery Modal (`SCR-04`) for scope denial or expired token re-prompt in `frontend/src/components/DriveWarningModal.tsx`
+- [X] T026 [UC1] Implement API client fetch wrapper in `frontend/src/lib/api/auth.ts`
+- [X] T027 [UC1] Wire Next.js page components to backend API client and handle loading/error states
 
 ### Step 3.4: BCE Audit & Major Milestone Checkpoint
-- [ ] T028 [UC1] **BCE Audit**: Confirm Next.js components & FastAPI Routers (Boundary) never query PostgreSQL tables (Entity) directly
-- [ ] T029 [UC1] Run integration tests and confirm sunny-day login and rainy-day scope denial flows pass
-- [ ] T030 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete google-oauth-login use case end-to-end [MVP Milestone]"`
+- [X] T028 [UC1] **BCE Audit**: Confirm Next.js components & FastAPI Routers (Boundary) never query PostgreSQL tables (Entity) directly
+- [X] T029 [UC1] Run integration tests and confirm sunny-day login and rainy-day scope denial flows pass
+- [X] T030 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete google-oauth-login use case end-to-end [MVP Milestone]"`
 
 **Checkpoint**: Use Case 1 is fully functional and delivers an independently testable MVP.
 

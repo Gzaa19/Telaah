@@ -36,7 +36,10 @@ def test_session_service_create_and_validate(db_session):
 
     assert user_session.session_token is not None
     assert user_session.is_active is True
-    assert user_session.expires_at > datetime.now(timezone.utc)
+    expires_at = user_session.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    assert expires_at > datetime.now(timezone.utc)
 
     # Validate session
     validated = session_service.validate_session(user_session.session_token)
