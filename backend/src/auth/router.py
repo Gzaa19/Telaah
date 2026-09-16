@@ -44,6 +44,16 @@ def google_login(prompt: str = "consent"):
         401: {"model": ErrorResponse, "description": "Token exchange failed"},
     },
 )
+@router.get(
+    "/callback/google",
+    summary="Handle Google OAuth Callback (Console Alias)",
+    include_in_schema=True,
+    responses={
+        302: {"description": "Redirect to frontend dashboard with session cookie"},
+        400: {"model": ErrorResponse, "description": "Invalid state or missing code"},
+        401: {"model": ErrorResponse, "description": "Token exchange failed"},
+    },
+)
 def google_callback(
     code: Optional[str] = None,
     state: Optional[str] = None,

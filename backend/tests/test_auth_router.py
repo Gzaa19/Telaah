@@ -64,6 +64,32 @@ def test_google_callback_success(mock_profile, mock_exchange, client: TestClient
     assert "paper_gen_session" in response.cookies
 
 
+@patch("backend.src.auth.oauth_service.GoogleOAuthService.exchange_code")
+@patch("backend.src.auth.oauth_service.GoogleOAuthService.fetch_user_profile")
+def test_google_callback_alias_success(mock_profile, mock_exchange, client: TestClient):
+    mock_exchange.return_value = OAuthTokenDTO(
+        access_token="mock_access_token_alias",
+        refresh_token="mock_refresh_token_alias",
+        expires_in=3600,
+        scope="openid email profile https://www.googleapis.com/auth/drive.readonly"
+    )
+    mock_profile.return_value = GoogleProfileDTO(
+        email="peneliti.alias@kampus.ac.id",
+        full_name="Dr. Sukses Alias",
+        avatar_url="https://avatar.google.com/photo.jpg"
+    )
+
+    client.cookies.set("oauth_state", "valid_state_456")
+    response = client.get(
+        "/auth/callback/google?code=mock_code_alias&state=valid_state_456",
+        follow_redirects=False
+    )
+
+    assert response.status_code == 302
+    assert response.headers["location"].endswith("/dashboard")
+    assert "paper_gen_session" in response.cookies
+
+
 def test_get_me_unauthorized(client: TestClient):
     response = client.get("/auth/me")
     assert response.status_code == 401

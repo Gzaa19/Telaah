@@ -6,13 +6,20 @@ import {
   FileText,
   ShieldCheck,
   HardDrive,
-  CheckCircle2,
-  ExternalLink,
-  Lock,
-  Loader2,
-} from "lucide-react";
+  CheckCircle,
+  ArrowRight,
+  CircleNotch,
+  BookOpen,
+  Sparkle,
+} from "@phosphor-icons/react";
 import { fetchCurrentUser, getGoogleLoginUrl } from "@/lib/api/auth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
+/**
+ * ponytail: Landing page for Telaah Journal Paper Generator using Tailwind CSS, shadcn & Phosphor icons
+ */
 export default function LandingPage() {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -35,215 +42,158 @@ export default function LandingPage() {
 
   if (checkingAuth) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <Loader2 className="animate-spin" size={32} style={{ color: "var(--accent-primary)" }} />
+      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-400">
+        <CircleNotch size={32} className="animate-spin text-blue-500" />
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Institutional Top Navigation */}
-      <nav
-        style={{
-          borderBottom: "1px solid var(--border-dim)",
-          backgroundColor: "rgba(9, 13, 22, 0.85)",
-          backdropFilter: "blur(12px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          padding: "0.875rem 0",
-        }}
-      >
-        <div className="shell-container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                backgroundColor: "var(--accent-primary)",
-                borderRadius: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-              }}
-            >
-              <FileText size={18} />
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
+      {/* Header / Navbar */}
+      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+              <FileText size={18} weight="bold" />
             </div>
-            <div>
-              <span style={{ fontWeight: 800, fontSize: "1.05rem", letterSpacing: "-0.02em" }}>TELAAH</span>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginLeft: "0.5rem", borderLeft: "1px solid var(--border-default)", paddingLeft: "0.5rem" }}>
-                Penyusun Proposal & Paper Ilmiah
+            <div className="flex items-baseline gap-2">
+              <span className="font-extrabold text-lg tracking-tight text-white">TELAAH</span>
+              <span className="text-xs text-blue-400 font-medium tracking-wider uppercase">
+                Scientific Paper AI
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span className="status-pill neutral">DRTPM · BIMA · IEEE Compatible</span>
-            <button onClick={handleLogin} className="btn-base btn-google-auth" id="btn-login-header">
+          <Button
+            variant="google"
+            size="sm"
+            onClick={handleLogin}
+            id="login-button-header"
+            className="flex items-center gap-2"
+          >
+            <GoogleGLogo />
+            <span>Masuk dengan Google</span>
+          </Button>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        {/* Left Column: Value Proposition */}
+        <div className="lg:col-span-6 space-y-6 text-left">
+          <div className="inline-flex items-center gap-2">
+            <Badge variant="info" className="gap-1.5 py-1 px-3">
+              <Sparkle size={13} weight="fill" />
+              <span>Publikasi Jurnal Terindeks (Scopus / SINTA / IEEE)</span>
+            </Badge>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            Penyusun Draf Paper Jurnal Ilmiah Otomatis & Presisi
+          </h1>
+
+          <p className="text-base md:text-lg text-slate-300 leading-relaxed max-w-xl">
+            Tautkan literatur riset dari Google Drive Anda, temukan sintesis bukti empiris berkecepatan tinggi dengan <em>pgvector</em>, dan hasilkan draf manuskrip terstruktur IMRaD dengan sitasi tertelusuri.
+          </p>
+
+          <div className="pt-2 flex flex-col sm:flex-row gap-4 items-start">
+            <Button
+              variant="google"
+              size="lg"
+              onClick={handleLogin}
+              id="login-button-hero"
+              className="w-full sm:w-auto text-slate-900 font-semibold px-6 py-3 shadow-md"
+            >
               <GoogleGLogo />
-              <span>Masuk via Google</span>
-            </button>
+              <span>Mulai Susun Paper dengan Google</span>
+              <ArrowRight size={16} weight="bold" className="ml-1" />
+            </Button>
+          </div>
+
+          {/* Trust Guarantees */}
+          <div className="pt-4 border-t border-slate-800/80 grid grid-cols-2 gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0" />
+              <span>Struktur Standar IMRaD</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0" />
+              <span>Sitasi Tertelusuri ke Sumber PDF</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0" />
+              <span>Enkripsi Kredensial AES-256</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle size={15} weight="fill" className="text-emerald-400 shrink-0" />
+              <span>Hak Cipta 100% Milik Peneliti</span>
+            </div>
           </div>
         </div>
-      </nav>
 
-      {/* Main Two-Column Academic Hero */}
-      <main className="shell-container" style={{ flex: 1, padding: "4rem 1.5rem 3rem 1.5rem" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.1fr 1fr",
-            gap: "3.5rem",
-            alignItems: "center",
-          }}
-        >
-          {/* Left Column: Context & Intent */}
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.25rem" }}>
-              <span className="status-pill neutral">
-                <Lock size={12} style={{ color: "var(--emerald-success)" }} />
-                Otentikasi Aman Google OAuth 2.0
-              </span>
-              <span className="status-pill neutral">
-                Ekstensi pgvector Aktif
-              </span>
+        {/* Right Column: Interactive Manuscript Document Preview */}
+        <div className="lg:col-span-6">
+          <Card className="border-slate-800 bg-slate-900/90 shadow-2xl overflow-hidden">
+            {/* Document Window Top Bar */}
+            <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-700 inline-block" />
+                <span>MANUSCRIPT_SCOPUS_Q1_DRAFT.tex</span>
+              </div>
+              <Badge variant="success" className="text-[11px] py-0 px-2">
+                <CheckCircle size={11} weight="fill" /> 18 Literatur Terindeks
+              </Badge>
             </div>
 
-            <h1 className="display-title" style={{ marginBottom: "1.25rem" }}>
-              Otomasi Proposal Riset Akademis Tanpa Halusinasi Sitasi
-            </h1>
-
-            <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", lineHeight: 1.6, marginBottom: "2rem" }}>
-              Platform kerja cerdas untuk akademisi dan peneliti. Tautkan repositori pustaka Google Drive Anda,
-              ekstraksi dokumen secara otomatis menjadi representasi vektor presisi tinggi, dan hasilkan draf usulan
-              penelitian yang patuh pada format panduan resmi institusi.
-            </p>
-
-            {/* Action Bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2.5rem" }}>
-              <button
-                onClick={handleLogin}
-                className="btn-base btn-google-auth"
-                style={{ padding: "0.75rem 1.5rem", fontSize: "0.95rem" }}
-                id="btn-login-hero"
-              >
-                <GoogleGLogo />
-                <span>Masuk dengan Akun Peneliti Google</span>
-              </button>
-            </div>
-
-            {/* Institutional Compliance Checklist */}
-            <div
-              style={{
-                borderTop: "1px solid var(--border-dim)",
-                paddingTop: "1.5rem",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "0.85rem",
-                fontSize: "0.85rem",
-                color: "var(--text-secondary)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <CheckCircle2 size={16} color="var(--emerald-success)" />
-                <span>Format Template BIMA Kemdikbudristek</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <CheckCircle2 size={16} color="var(--emerald-success)" />
-                <span>Sitasi Tertelusuri ke Sumber Asli</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <CheckCircle2 size={16} color="var(--emerald-success)" />
-                <span>Enkripsi Kredensial AES-256</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <CheckCircle2 size={16} color="var(--emerald-success)" />
-                <span>Hak Cipta Dokumen 100% Milik Peneliti</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Concrete Structural Proposal Preview */}
-          <div>
-            <div className="preview-window">
-              <div className="preview-header">
-                <span>DRAFT_PROPOSAL_BIMA_2026.docx</span>
-                <span className="status-pill success" style={{ fontSize: "0.7rem" }}>
-                  <CheckCircle2 size={11} /> 12 Sumber Pustaka Terhubung
+            {/* Document Content */}
+            <CardContent className="p-6 space-y-4 text-left">
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-wider text-blue-400 font-semibold">
+                  Target Publikasi: IEEE Transactions / Q1 Journal
                 </span>
+                <h3 className="text-base font-bold text-white mt-1 leading-snug">
+                  Multi-Aspect Semantic Synthesis for Academic Papers Using State-Space Hyena Architectures
+                </h3>
               </div>
-              <div className="preview-body">
-                <div style={{ marginBottom: "1rem" }}>
-                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-tertiary)", fontWeight: 700 }}>
-                    Skema: Penelitian Dasar Kompetitif Nasional
+
+              <div className="border-t border-slate-800/80 pt-3 space-y-2">
+                <div className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                  1. INTRODUCTION & RELATED LITERATURE
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  ...while traditional Transformer-based retrieval approaches encounter quadratic bottleneck scaling over lengthy scientific context, empirical findings by{" "}
+                  <span className="inline-flex items-center gap-1 bg-blue-950/60 border border-blue-500/30 text-blue-300 px-1.5 py-0.5 rounded font-mono text-[11px]">
+                    <HardDrive size={10} weight="bold" /> [Ref: Sutrisno_2025.pdf, p. 7]
+                  </span>{" "}
+                  demonstrate that sub-quadratic convolution filters reduce memory complexity by up to 34% without sacrificing citation faithfulness{" "}
+                  <span className="inline-flex items-center gap-1 bg-blue-950/60 border border-blue-500/30 text-blue-300 px-1.5 py-0.5 rounded font-mono text-[11px]">
+                    <HardDrive size={10} weight="bold" /> [Ref: Zhang_et_al_IEEE.pdf]
                   </span>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", marginTop: "0.25rem" }}>
-                    Pengembangan Sistem Deteksi Citra Satelit Berbasis Spatio-Temporal Graph Neural Networks
-                  </h3>
-                </div>
-
-                <div style={{ borderTop: "1px solid var(--border-dim)", paddingTop: "0.85rem", marginBottom: "0.85rem" }}>
-                  <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent-primary)", marginBottom: "0.35rem" }}>
-                    1.2 TINJAUAN PUSTAKA & STATE OF THE ART
-                  </div>
-                  <p style={{ fontSize: "0.825rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                    ...pendekatan konvensional CNN masih terkendala resolusi temporal yang fluktuatif, sebagaimana
-                    dibuktikan oleh evaluasi empiris model transformator spasial{" "}
-                    <span className="citation-chip">
-                      <HardDrive size={10} /> [Ref: Sutrisno_2024.pdf: hal. 4]
-                    </span>
-                    . Melalui vektorisasi semantik berbasis pgvector, kelemahan konvergensi bobot gradien dapat diminimalisir hingga 14.8%{" "}
-                    <span className="citation-chip">
-                      <HardDrive size={10} /> [Ref: Wang_et_al_IEEE.pdf]
-                    </span>
-                    ...
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    backgroundColor: "var(--bg-canvas)",
-                    padding: "0.75rem 1rem",
-                    borderRadius: "0.375rem",
-                    border: "1px solid var(--border-dim)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <ShieldCheck size={16} color="var(--emerald-success)" />
-                    <span style={{ color: "var(--text-secondary)" }}>Traceability Sitasi: 100% diverifikasi terhadap berkas PDF Google Drive</span>
-                  </div>
-                  <span style={{ color: "var(--accent-primary)", fontWeight: 600 }}>pgvector</span>
-                </div>
+                  ...
+                </p>
               </div>
-            </div>
-          </div>
+
+              <div className="rounded-md bg-slate-950/80 border border-slate-800/80 p-3 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-slate-300">
+                  <ShieldCheck size={16} weight="fill" className="text-emerald-400" />
+                  <span>Traceability Sitasi: 100% tervalidasi terhadap berkas PDF Google Drive</span>
+                </div>
+                <span className="font-mono text-blue-400 font-semibold">pgvector</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
-      {/* Institutional Technical Integrity Strip */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--border-dim)",
-          backgroundColor: "var(--bg-surface)",
-          padding: "1.25rem 0",
-          fontSize: "0.8rem",
-          color: "var(--text-tertiary)",
-        }}
-      >
-        <div className="shell-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            TELAAH Research Assistant © 2026. Protokol Kepatuhan Akademis DRTPM & Konstitusi Paper Generator.
-          </div>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
-            <span>FastAPI + PostgreSQL pgvector</span>
-            <span>Next.js App Router (Bun Runtime)</span>
-            <span>Google Identity Services</span>
+      {/* Footer */}
+      <footer className="border-t border-slate-800/80 bg-slate-950 py-4 text-xs text-slate-400">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>TELAAH Research Assistant © 2026. Platform Penyusun Draf Paper Jurnal Ilmiah.</span>
+          <div className="flex items-center gap-4 text-slate-400">
+            <span>FastAPI + PostgreSQL (pgvector)</span>
+            <span>Next.js + Tailwind CSS</span>
+            <span>Google Drive API</span>
           </div>
         </div>
       </footer>

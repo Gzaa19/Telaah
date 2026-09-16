@@ -4,49 +4,54 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
-  LogOut,
   HardDrive,
-  CheckCircle2,
-  AlertTriangle,
+  CheckCircle,
+  Warning,
   Clock,
   User,
+  SignOut,
   Plus,
-  RefreshCw,
-  Search,
-  BookOpen,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
+  ArrowsClockwise,
+  CaretRight,
+  CircleNotch,
+} from "@phosphor-icons/react";
 import { fetchCurrentUser, logout, ResearcherProfile, getGoogleLoginUrl } from "@/lib/api/auth";
 import { DriveWarningModal } from "@/components/DriveWarningModal";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
+/**
+ * ponytail: Dashboard page for Telaah Journal Paper Workspace using Tailwind CSS, shadcn & Phosphor icons
+ */
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDriveWarning, setShowDriveWarning] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
-      const data = await fetchCurrentUser();
-      if (!data) {
+      const user = await fetchCurrentUser();
+      if (!user) {
         router.push("/");
-      } else {
-        setProfile(data);
-        if (!data.is_drive_granted) {
-          setShowDriveWarning(true);
-        }
-        setLoading(false);
+        return;
+      }
+      setProfile(user);
+      setLoading(false);
+
+      if (!user.is_drive_granted) {
+        setShowDriveWarning(true);
       }
     }
     loadUser();
   }, [router]);
 
   const handleLogout = async () => {
-    const success = await logout();
-    if (success) {
-      router.push("/");
-    }
+    setIsLoggingOut(true);
+    await logout();
+    router.push("/");
   };
 
   const handleReconnectDrive = () => {
@@ -55,123 +60,93 @@ export default function DashboardPage() {
 
   if (loading || !profile) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <Loader2 className="animate-spin" size={32} style={{ color: "var(--accent-primary)" }} />
+      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-400">
+        <CircleNotch size={32} className="animate-spin text-blue-500" />
       </div>
     );
   }
 
-  const sessionExpiry = new Date(profile.session_expires_at).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const sessionExpiry = profile.session_expires_at
+    ? new Date(profile.session_expires_at).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "24 jam";
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
       {/* Workspace Header */}
-      <header
-        style={{
-          borderBottom: "1px solid var(--border-dim)",
-          backgroundColor: "var(--bg-surface)",
-          padding: "0.75rem 0",
-        }}
-      >
-        <div className="shell-container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                backgroundColor: "var(--accent-primary)",
-                borderRadius: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-              }}
-            >
-              <FileText size={16} />
+      <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+              <FileText size={16} weight="bold" />
             </div>
-            <div>
-              <span style={{ fontWeight: 800, fontSize: "0.95rem" }}>TELAAH</span>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginLeft: "0.5rem" }}>
-                Workspace Peneliti
-              </span>
+            <div className="flex items-baseline gap-2">
+              <span className="font-extrabold text-base tracking-tight text-white">TELAAH</span>
+              <span className="text-xs text-slate-400">Workspace Paper Jurnal</span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.full_name}
-                  style={{ width: 30, height: 30, borderRadius: "50%", border: "1px solid var(--border-default)" }}
+                  className="w-8 h-8 rounded-full border border-slate-700 object-cover"
                 />
               ) : (
-                <div
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: "50%",
-                    backgroundColor: "var(--bg-subtle)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <User size={16} color="var(--text-secondary)" />
+                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+                  <User size={16} weight="bold" />
                 </div>
               )}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{profile.full_name}</span>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>{profile.email}</span>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-semibold text-slate-200">{profile.full_name}</span>
+                <span className="text-[11px] text-slate-400 font-mono">{profile.email}</span>
               </div>
             </div>
 
-            <button onClick={handleLogout} className="btn-base btn-ghost" style={{ padding: "0.4rem 0.75rem", fontSize: "0.8rem" }}>
-              <LogOut size={14} />
-              <span>Keluar</span>
-            </button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="text-xs text-slate-300 border-slate-700 hover:text-red-400 hover:border-red-500/50"
+            >
+              <SignOut size={14} weight="bold" />
+              <span>{isLoggingOut ? "Keluar..." : "Logout"}</span>
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Main Workspace Surface */}
-      <main className="shell-container" style={{ flex: 1, padding: "2rem 1.5rem" }}>
-        {/* Status Metrics Bar */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "1rem",
-            marginBottom: "2rem",
-          }}
-        >
-          {/* Drive Status Panel */}
-          <div className="academic-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-8 w-full space-y-6">
+        {/* Metrics & Status Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Google Drive Connection Card */}
+          <Card className="p-4 flex items-center justify-between border-slate-800 bg-slate-900/60">
+            <div className="flex items-center gap-3">
               <div
-                style={{
-                  padding: "0.5rem",
-                  borderRadius: "0.375rem",
-                  backgroundColor: profile.is_drive_granted ? "var(--emerald-bg)" : "var(--amber-bg)",
-                  color: profile.is_drive_granted ? "var(--emerald-success)" : "var(--amber-warning)",
-                  display: "flex",
-                }}
+                className={`p-2.5 rounded-lg ${
+                  profile.is_drive_granted
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                }`}
               >
-                <HardDrive size={20} />
+                <HardDrive size={20} weight="duotone" />
               </div>
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>Koneksi Google Drive</div>
-                <div style={{ fontSize: "0.9rem", fontWeight: 700, marginTop: 2 }}>
+              <div className="text-left">
+                <div className="text-xs text-slate-400 font-medium">Pustaka Literatur Google Drive</div>
+                <div className="text-sm font-semibold text-slate-200 mt-0.5">
                   {profile.is_drive_granted ? (
-                    <span style={{ color: "var(--emerald-success)", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-                      <CheckCircle2 size={13} /> Terhubung (Drive Readonly)
+                    <span className="inline-flex items-center gap-1.5 text-emerald-400">
+                      <CheckCircle size={14} weight="fill" /> Terhubung & Siap Sinkron
                     </span>
                   ) : (
-                    <span style={{ color: "var(--amber-warning)", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-                      <AlertTriangle size={13} /> Otorisasi Belum Lengkap
+                    <span className="inline-flex items-center gap-1.5 text-amber-400">
+                      <Warning size={14} weight="fill" /> Izin Akses Terbatas
                     </span>
                   )}
                 </div>
@@ -179,147 +154,114 @@ export default function DashboardPage() {
             </div>
 
             {!profile.is_drive_granted && (
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleReconnectDrive}
-                className="btn-base btn-brand"
-                style={{ fontSize: "0.75rem", padding: "0.35rem 0.65rem" }}
+                className="text-xs border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
               >
-                Izinkan Drive
-              </button>
+                Beri Izin Drive
+              </Button>
             )}
-          </div>
+          </Card>
 
-          {/* Session Expiry Status Panel */}
-          <div className="academic-card" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div
-              style={{
-                padding: "0.5rem",
-                borderRadius: "0.375rem",
-                backgroundColor: "var(--accent-soft)",
-                color: "var(--accent-primary)",
-                display: "flex",
-              }}
-            >
-              <Clock size={20} />
+          {/* 24h Session Expiry Card */}
+          <Card className="p-4 flex items-center gap-3 border-slate-800 bg-slate-900/60 text-left">
+            <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <Clock size={20} weight="duotone" />
             </div>
             <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>Masa Aktif Sesi 24 Jam</div>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, marginTop: 2 }}>
-                Berlaku hingga pukul {sessionExpiry} WIB
+              <div className="text-xs text-slate-400 font-medium">Masa Aktif Sesi Terautentikasi</div>
+              <div className="text-sm font-semibold text-slate-200 mt-0.5">
+                Aktif hingga pukul {sessionExpiry} WIB
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Proposals Management Section */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <div>
-            <h2 className="section-title">Daftar Usulan Proposal Penelitian</h2>
-            <p className="meta-subtext">Kelola usulan hibah riset dan draf artikel jurnal terakreditasi</p>
+        {/* Action Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div className="text-left">
+            <h2 className="text-xl font-bold tracking-tight text-white">Daftar Draf Paper Jurnal</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Kelola manuskrip paper riset untuk publikasi jurnal internasional & nasional (Scopus/SINTA)
+            </p>
           </div>
 
-          <div style={{ display: "flex", gap: "0.6rem" }}>
-            <button
-              className="btn-base btn-ghost"
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 if (!profile.is_drive_granted) setShowDriveWarning(true);
               }}
+              className="text-xs border-slate-700"
             >
-              <RefreshCw size={14} />
-              <span>Sinkronkan Dokumen Drive</span>
-            </button>
-            <button
-              className="btn-base btn-brand"
+              <ArrowsClockwise size={14} weight="bold" />
+              <span>Sinkronkan Literatur</span>
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
               onClick={() => {
                 if (!profile.is_drive_granted) setShowDriveWarning(true);
               }}
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus size={15} />
-              <span>Buat Usulan Baru</span>
-            </button>
+              <Plus size={14} weight="bold" />
+              <span>Tulis Paper Baru</span>
+            </Button>
           </div>
         </div>
 
-        {/* Proposal Table / Academic List */}
-        <div className="academic-card" style={{ padding: 0, overflow: "hidden" }}>
-          <div
-            style={{
-              padding: "0.85rem 1.25rem",
-              borderBottom: "1px solid var(--border-dim)",
-              backgroundColor: "var(--bg-canvas)",
-              display: "grid",
-              gridTemplateColumns: "2.5fr 1.5fr 1fr 1fr 40px",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              color: "var(--text-tertiary)",
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
-            <span>Judul Penelitian</span>
-            <span>Skema Pendanaan</span>
-            <span>Pustaka Drive</span>
-            <span>Status Draf</span>
-            <span></span>
+        {/* Paper Table List */}
+        <Card className="border-slate-800 bg-slate-900/80 overflow-hidden text-left">
+          <div className="px-5 py-3 border-b border-slate-800/80 bg-slate-950/60 grid grid-cols-12 text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="col-span-6">Judul Manuskrip Paper</span>
+            <span className="col-span-3">Target Jurnal</span>
+            <span className="col-span-2">Pustaka Drive</span>
+            <span className="col-span-1 text-right">Status</span>
           </div>
 
-          {/* Sample Active Proposal Row */}
-          <div
-            style={{
-              padding: "1rem 1.25rem",
-              borderBottom: "1px solid var(--border-dim)",
-              display: "grid",
-              gridTemplateColumns: "2.5fr 1.5fr 1fr 1fr 40px",
-              alignItems: "center",
-              fontSize: "0.875rem",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                Analisis Sentimen Multi-Aspek pada Ulasan Akademik Menggunakan Arsitektur Hyena
+          {/* Sample Active Journal Paper Row */}
+          <div className="px-5 py-4 border-b border-slate-800/60 grid grid-cols-12 items-center text-sm hover:bg-slate-800/30 transition-colors">
+            <div className="col-span-6 pr-4">
+              <div className="font-semibold text-slate-100 line-clamp-1">
+                Multi-Aspect Semantic Synthesis for Academic Papers Using State-Space Hyena Architectures
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: 2 }}>
-                Dibuat 16 September 2026 · Terakhir diperbarui hari ini
+              <div className="text-xs text-slate-400 mt-0.5">
+                Dibuat 16 September 2026 · Terakhir disinkronkan hari ini
               </div>
             </div>
 
-            <div style={{ fontSize: "0.825rem", color: "var(--text-secondary)" }}>
-              Penelitian Dasar (BIMA 2026)
+            <div className="col-span-3 text-xs text-slate-300">
+              IEEE Transactions (Q1 Scopus)
             </div>
 
-            <div>
-              <span className="status-pill neutral" style={{ fontSize: "0.75rem" }}>
-                <HardDrive size={11} /> 14 Dokumen
-              </span>
+            <div className="col-span-2">
+              <Badge variant="outline" className="text-xs gap-1 py-0.5">
+                <HardDrive size={12} weight="fill" className="text-blue-400" />
+                <span>18 Berkas PDF</span>
+              </Badge>
             </div>
 
-            <div>
-              <span className="status-pill success">Draf Siap Ekspor</span>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <ChevronRight size={16} color="var(--text-tertiary)" />
+            <div className="col-span-1 flex items-center justify-end gap-1">
+              <Badge variant="success" className="text-[11px]">
+                Draf IMRaD
+              </Badge>
+              <CaretRight size={14} className="text-slate-500" />
             </div>
           </div>
 
-          {/* Info Footer */}
-          <div
-            style={{
-              padding: "0.85rem 1.25rem",
-              backgroundColor: "var(--bg-canvas)",
-              fontSize: "0.8rem",
-              color: "var(--text-tertiary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>Menampilkan 1 usulan penelitian aktif</span>
-            <span>Penyimpanan vektor: PostgreSQL (pgvector)</span>
+          {/* Table Footer Summary */}
+          <div className="px-5 py-3 bg-slate-950/40 flex items-center justify-between text-xs text-slate-400">
+            <span>Menampilkan 1 manuskrip paper aktif</span>
+            <span className="font-mono text-slate-500">Penyimpanan vektor: PostgreSQL (pgvector)</span>
           </div>
-        </div>
+        </Card>
       </main>
 
+      {/* Drive Scope Warning Modal */}
       <DriveWarningModal
         isOpen={showDriveWarning}
         onClose={() => setShowDriveWarning(false)}

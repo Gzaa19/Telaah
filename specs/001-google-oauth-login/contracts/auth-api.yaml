@@ -60,6 +60,42 @@ paths:
         '401':
           description: Google token exchange failed or user cancelled consent.
 
+  /auth/callback/google:
+    get:
+      summary: Handle Google OAuth Callback (Console Alias)
+      description: Alias path for Google OAuth redirect callback matching standard Google Cloud Console redirect URI.
+      tags:
+        - Authentication
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code returned by Google.
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: CSRF state string matched against the state cookie.
+      responses:
+        '302':
+          description: Successful authentication. Redirects to `/dashboard` (SCR-03).
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie (`paper_gen_session=...; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`).
+            Location:
+              schema:
+                type: string
+              description: Target frontend route (`/dashboard`).
+        '400':
+          description: Invalid state parameter or missing authorization code.
+        '401':
+          description: Google token exchange failed or user cancelled consent.
+
   /auth/me:
     get:
       summary: Get Current Researcher Session & Profile

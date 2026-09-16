@@ -1,14 +1,19 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, HardDrive, ArrowRight, X, ShieldCheck } from "lucide-react";
+import { Warning, ArrowRight, X, ShieldCheck } from "@phosphor-icons/react";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface DriveWarningModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/**
+ * ponytail: Modal dialog for Google Drive scope re-consent using Tailwind & Phosphor icons
+ */
 export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
   if (!isOpen) return null;
 
@@ -17,99 +22,50 @@ export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(5, 8, 15, 0.8)",
-        backdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 100,
-        padding: "1rem",
-      }}
-    >
-      <div
-        className="academic-card"
-        style={{
-          maxWidth: "480px",
-          width: "100%",
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
-          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.5)",
-          position: "relative",
-        }}
-      >
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-in fade-in duration-200">
         <button
           onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            background: "transparent",
-            color: "var(--text-tertiary)",
-          }}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors p-1 rounded-md"
           aria-label="Tutup"
         >
-          <X size={18} />
+          <X size={18} weight="bold" />
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-          <div
-            style={{
-              backgroundColor: "var(--amber-bg)",
-              color: "var(--amber-warning)",
-              padding: "0.6rem",
-              borderRadius: "0.375rem",
-              display: "flex",
-            }}
-          >
-            <AlertTriangle size={22} />
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Warning size={24} weight="duotone" />
           </div>
           <div>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>
+            <h3 className="text-lg font-bold text-slate-100">
               Otorisasi Google Drive Diperlukan
             </h3>
-            <span className="status-pill warning" style={{ marginTop: "0.2rem" }}>
+            <Badge variant="warning" className="mt-1">
               Izin Baca Terbatas
-            </span>
+            </Badge>
           </div>
         </div>
 
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
-          Platform membutuhkan akses baca (<em>read-only</em>) ke Google Drive Anda untuk mengekstrak teks jurnal,
-          membuat indeks semantik vektor (<em>pgvector</em>), dan menjamin keakuratan sitasi otomatis dalam proposal.
+        <p className="text-sm text-slate-300 leading-relaxed mb-4">
+          Platform membutuhkan akses baca (<em>read-only</em>) ke Google Drive Anda untuk mengekstrak literatur referensi,
+          membuat indeks semantik vektor (<em>pgvector</em>), dan memvalidasi sitasi draf paper jurnal secara presisi.
         </p>
 
-        <div
-          style={{
-            backgroundColor: "var(--bg-canvas)",
-            padding: "0.75rem 1rem",
-            borderRadius: "0.375rem",
-            border: "1px solid var(--border-dim)",
-            marginBottom: "1.5rem",
-            fontSize: "0.8rem",
-            color: "var(--text-tertiary)",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "0.6rem",
-          }}
-        >
-          <ShieldCheck size={18} color="var(--emerald-success)" style={{ flexShrink: 0, marginTop: 2 }} />
+        <div className="rounded-lg bg-slate-950 border border-slate-800/80 p-3.5 mb-6 flex items-start gap-2.5 text-xs text-slate-400">
+          <ShieldCheck size={20} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
           <span>
-            Scope <code>drive.readonly</code>: Aplikasi <strong>tidak dapat</strong> mengedit, menghapus, atau membagikan berkas Drive Anda.
+            Scope <code className="text-blue-400 bg-slate-900 px-1 py-0.5 rounded">drive.readonly</code>: Platform <strong>hanya membaca</strong> dokumen yang Anda tentukan dan tidak dapat memodifikasi atau menghapus file Anda.
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-          <button onClick={onClose} className="btn-base btn-ghost">
+        <div className="flex items-center justify-end gap-3">
+          <Button variant="ghost" onClick={onClose}>
             Nanti Saja
-          </button>
-          <button onClick={handleGrantAccess} className="btn-base btn-brand">
+          </Button>
+          <Button variant="default" onClick={handleGrantAccess} className="bg-blue-600 hover:bg-blue-700 text-white">
             <span>Beri Izin Akses Drive</span>
-            <ArrowRight size={15} />
-          </button>
+            <ArrowRight size={16} weight="bold" />
+          </Button>
         </div>
       </div>
     </div>
