@@ -57,11 +57,11 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_auth_router.py -k "test_google_login"`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T010 [P] [UC1] Write unit tests for TokenEncryptionService (`encrypt_token` and `decrypt_token`) in `backend/tests/test_crypto_service.py`
-- [ ] T011 [P] [UC1] Write unit tests for GoogleOAuthService and SessionService in `backend/tests/test_auth_service.py`
-- [ ] T012 [P] [UC1] Write contract/integration tests for FastAPI auth router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) in `backend/tests/test_auth_router.py`
-- [ ] T013 [UC1] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Google OAuth login"`
+- [X] T010 [P] [UC1] Write unit tests for TokenEncryptionService (`encrypt_token` and `decrypt_token`) in `backend/tests/test_crypto_service.py`
+- [X] T011 [P] [UC1] Write unit tests for GoogleOAuthService and SessionService in `backend/tests/test_auth_service.py`
+- [X] T012 [P] [UC1] Write contract/integration tests for FastAPI auth router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) in `backend/tests/test_auth_router.py`
+- [X] T013 [UC1] Verify tests FAIL prior to implementation (Red stage)
+- [X] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Google OAuth login"`
 
 ### Step 3.2: Controller Layer (Business Logic & Encryption)
 - [ ] T015 [P] [UC1] Implement Pydantic DTO schemas (`GoogleProfileDTO`, `OAuthTokenDTO`, `ResearcherProfileResponse`, `ErrorResponse`) in `backend/src/auth/schemas.py`
