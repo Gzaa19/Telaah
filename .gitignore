@@ -1,0 +1,97 @@
+# ==========================================
+# Python Virtual Environments & Dependencies
+# ==========================================
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+**/venv/
+**/.venv/
+
+# Python Byte-compiled / Cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Python Packaging & Distribution
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+sdist/
+wheels/
+pip-wheel-metadata/
+*.whl
+share/python-wheels/
+manifest
+
+# Heavy AI / ML Models & Datasets
+*.onnx
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.h5
+*.pkl
+*.pickle
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# ==========================================
+# Node / Frontend Dependencies & Builds
+# ==========================================
+node_modules/
+**/node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.template
+
+# ==========================================
+# Databases, Logs & Heavy Storage
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+*.log
+uploads/
+storage/
+tmp/
+temp/
+downloads/
+
+# ==========================================
+# OS & Editor Files
+# ==========================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.env_backup/

@@ -1,0 +1,38 @@
+schema_version: "1.0"
+
+preset:
+  id: "iconix-preset"
+  name: "ICONIX Process (Doug Rosenberg Canonical)"
+  version: "1.0.0"
+  description: "Strict Doug Rosenberg ICONIX Process preset covering the entire lifecycle: GUI Storyboarding, Two-Column Use Cases, Domain Modeling, BCE Robustness Analysis, PDR Gate, Sequence Diagrams, Class Models, CDR Gate, and Git Version Control"
+  author: "gzaaa19"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=1.0.0"
+
+provides:
+  templates:
+    - type: "template"
+      name: "spec-template"
+      file: "templates/spec-template.md"
+      description: "ICONIX Requirements Phase template: GUI Storyboards, Canonical Two-Column Use Cases (Sunny & Rainy Days), Domain Modeling, and Git Strategy"
+
+    - type: "template"
+      name: "plan-template"
+      file: "templates/plan-template.md"
+      description: "ICONIX Analysis & Detailed Design Phase template: Domain Model, BCE Robustness Diagrams, PDR Checkpoint, Sequence Diagrams, Class Models, CDR Checkpoint, and Git Milestones"
+
+    - type: "template"
+      name: "tasks-template"
+      file: "templates/tasks-template.md"
+      description: "ICONIX Implementation & Testing Phase template: BCE-layered tasks (Tests -> Entity -> Controller -> Boundary), PDR/CDR verification, and atomic/major Git commits"
+
+tags:
+  - "iconix"
+  - "rosenberg"
+  - "uml"
+  - "robustness-analysis"
+  - "pdr"
+  - "cdr"
+  - "git"

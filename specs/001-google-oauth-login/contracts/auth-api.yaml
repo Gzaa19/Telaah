@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: Paper Generator Authentication API
+  description: REST API contract for Google OAuth 2.0 authentication and session management.
+  version: 1.0.0
+
+paths:
+  /auth/google/login:
+    get:
+      summary: Initiate Google OAuth Authorization Flow
+      description: Redirects browser to Google's OAuth 2.0 consent screen requesting profile and drive.readonly scope.
+      tags:
+        - Authentication
+      responses:
+        '302':
+          description: Redirect to Google OAuth 2.0 consent endpoint.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: CSRF OAuth state cookie (`oauth_state=...; HttpOnly; Secure; SameSite=Lax`).
+            Location:
+              schema:
+                type: string
+              description: Google OAuth authorization URL.
+
+  /auth/google/callback:
+    get:
+      summary: Handle Google OAuth Callback
+      description: Receives authorization code from Google, exchanges it for tokens, stores encrypted credentials in DB, creates a 24-hour session, and sets the session cookie.
+      tags:
+        - Authentication
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code returned by Google.
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: CSRF state string matched against the state cookie.
+      responses:
+        '302':
+          description: Successful authentication. Redirects to `/dashboard` (SCR-03).
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie (`paper_gen_session=...; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`).
+            Location:
+              schema:
+                type: string
+              description: Target frontend route (`/dashboard`).
+        '400':
+          description: Invalid state parameter or missing authorization code.
+        '401':
+          description: Google token exchange failed or user cancelled consent.
+
+  /auth/me:
+    get:
+      summary: Get Current Researcher Session & Profile
+      description: Returns active researcher profile and Google Drive authorization status.
+      tags:
+        - Session
+      responses:
+        '200':
+          description: Active session valid. Returns researcher profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearcherProfileResponse'
+        '401':
+          description: Session invalid or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      summary: Logout & Invalidate Session
+      description: Clears local session cookie and deactivates session record in database.
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Logout successful.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Clears `paper_gen_session` cookie (`Max-Age=0`).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout successful"
+
+components:
+  schemas:
+    ResearcherProfileResponse:
+      type: object
+      required:
+        - researcher_id
+        - email
+        - full_name
+        - is_drive_granted
+        - session_expires_at
+      properties:
+        researcher_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+        is_drive_granted:
+          type: boolean
+          description: Indicates whether Google Drive scope is active and granted.
+        session_expires_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          example: "Session expired or invalid"

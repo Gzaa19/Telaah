@@ -1,0 +1,50 @@
+# Python Virtual Environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / Cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.cache/
+
+# Packaging & Distribution
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+sdist/
+wheels/
+*.whl
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Databases, Logs & Heavy Storage
+*.db
+*.sqlite
+*.sqlite3
+*.log
+uploads/
+storage/
+tmp/
+temp/
