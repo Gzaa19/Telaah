@@ -107,9 +107,16 @@ class AuthRepository:
         statement = select(UserSession).where(
             UserSession.session_token == session_token,
             UserSession.is_active == True,
-            UserSession.expires_at > datetime.now(timezone.utc)
         )
-        return self.db.exec(statement).first()
+        session = self.db.exec(statement).first()
+        if not session:
+            return None
+        expires_at = session.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= datetime.now(timezone.utc):
+            return None
+        return session
 
     def deactivate_session(self, session_token: str) -> bool:
         statement = select(UserSession).where(UserSession.session_token == session_token)

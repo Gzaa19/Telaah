@@ -64,13 +64,13 @@ flowchart TD
 - [X] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Google OAuth login"`
 
 ### Step 3.2: Controller Layer (Business Logic & Encryption)
-- [ ] T015 [P] [UC1] Implement Pydantic DTO schemas (`GoogleProfileDTO`, `OAuthTokenDTO`, `ResearcherProfileResponse`, `ErrorResponse`) in `backend/src/auth/schemas.py`
-- [ ] T016 [P] [UC1] Implement `TokenEncryptionService` using Fernet/AES-256 symmetric encryption in `backend/src/auth/crypto_service.py`
-- [ ] T017 [UC1] Implement `GoogleOAuthService` for PKCE authorization URL generation and token exchange in `backend/src/auth/oauth_service.py`
-- [ ] T018 [UC1] Implement `SessionService` for issuing 24-hour session tokens in `backend/src/auth/session_service.py`
-- [ ] T019 [UC1] Implement `ResearcherService` for upserting researcher accounts and saving encrypted credentials in `backend/src/auth/researcher_service.py`
-- [ ] T020 [UC1] Verify unit tests pass (Green stage)
-- [ ] T021 [UC1] **Git Commit (Controller)**: `git add backend/src/auth/ && git commit -m "feat(UC1): implement controller services and encryption for OAuth"`
+- [X] T015 [P] [UC1] Implement Pydantic DTO schemas (`GoogleProfileDTO`, `OAuthTokenDTO`, `ResearcherProfileResponse`, `ErrorResponse`) in `backend/src/auth/schemas.py`
+- [X] T016 [P] [UC1] Implement `TokenEncryptionService` using Fernet/AES-256 symmetric encryption in `backend/src/auth/crypto_service.py`
+- [X] T017 [UC1] Implement `GoogleOAuthService` for PKCE authorization URL generation and token exchange in `backend/src/auth/oauth_service.py`
+- [X] T018 [UC1] Implement `SessionService` for issuing 24-hour session tokens in `backend/src/auth/session_service.py`
+- [X] T019 [UC1] Implement `ResearcherService` for upserting researcher accounts and saving encrypted credentials in `backend/src/auth/researcher_service.py`
+- [X] T020 [UC1] Verify unit tests pass (Green stage)
+- [X] T021 [UC1] **Git Commit (Controller)**: `git add backend/src/auth/ && git commit -m "feat(UC1): implement controller services and encryption for OAuth"`
 
 ### Step 3.3: Boundary Layer (FastAPI API Router & Next.js Frontend)
 - [ ] T022 [UC1] Implement FastAPI Router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) with `httpOnly`, `Secure`, `SameSite=Lax` cookies in `backend/src/auth/router.py`
