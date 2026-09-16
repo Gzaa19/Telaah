@@ -95,15 +95,15 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_auth_router.py -k "test_logout"`
 
 ### Step 4.1: Tests (TDD)
-- [ ] T031 [P] [UC2] Write unit and integration tests for logout flow and session invalidation in `backend/tests/test_logout.py`
-- [ ] T032 [UC2] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add test suite for session logout"`
+- [X] T031 [P] [UC2] Write unit and integration tests for logout flow and session invalidation in `backend/tests/test_logout.py`
+- [X] T032 [UC2] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add test suite for session logout"`
 
 ### Step 4.2: Controller & Boundary Implementation
-- [ ] T033 [UC2] Implement `invalidate_session` method in `backend/src/auth/session_service.py`
-- [ ] T034 [UC2] Implement `POST /auth/logout` endpoint in `backend/src/auth/router.py` clearing `paper_gen_session` cookie (`Max-Age=0`)
-- [ ] T035 [P] [UC2] Wire "Logout" button on dashboard header in `frontend/src/app/dashboard/page.tsx` to `POST /auth/logout`
-- [ ] T036 [UC2] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation for logout flow
-- [ ] T037 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete logout use case end-to-end"`
+- [X] T033 [UC2] Implement `invalidate_session` method in `backend/src/auth/session_service.py`
+- [X] T034 [UC2] Implement `POST /auth/logout` endpoint in `backend/src/auth/router.py` clearing `paper_gen_session` cookie (`Max-Age=0`)
+- [X] T035 [P] [UC2] Wire "Logout" button on dashboard header in `frontend/src/app/dashboard/page.tsx` to `POST /auth/logout`
+- [X] T036 [UC2] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation for logout flow
+- [X] T037 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete logout use case end-to-end"`
 
 ---
 
