@@ -1,1 +1,1 @@
-# Research-Proposal-Generator
+# Telaah - AI Scientific Journal Paper & Manuscript Generator

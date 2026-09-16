@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Paper Generator - Scientific Proposal Assistant",
-  description: "AI-powered Research Proposal and Scientific Paper Generator with Google Drive & pgvector",
+  title: "Telaah - AI Scientific Journal Paper & Manuscript Generator",
+  description: "Asisten cerdas penyusun draf paper jurnal penelitian ilmiah berstandar publikasi (IEEE, Elsevier, Scopus, SINTA) berbasis RAG Google Drive & pgvector",
 };
 
 export default function RootLayout({
