@@ -111,8 +111,8 @@ flowchart TD
 
 **Purpose**: Cross-cutting audit, full regression test, and release milestone.
 
-- [ ] T038 Run complete backend `pytest` test suite and frontend `bun run build` check
-- [ ] T039 Verify zero plaintext tokens in PostgreSQL database via query audit
-- [ ] T040 [P] Update API documentation and OpenAPI spec in `specs/001-google-oauth-login/contracts/auth-api.yaml`
-- [ ] T041 Code formatting (`black`/`ruff` for backend, `prettier` for frontend)
-- [ ] T042 **Git Major Commit (Release)**: `git add . && git commit -m "chore(release): finalize google-oauth-login implementation, verification, and documentation"`
+- [X] T038 Run complete backend `pytest` test suite and frontend `bun run build` check
+- [X] T039 Verify zero plaintext tokens in PostgreSQL database via query audit
+- [X] T040 [P] Update API documentation and OpenAPI spec in `specs/001-google-oauth-login/contracts/auth-api.yaml`
+- [X] T041 Code formatting (`black`/`ruff` for backend, `prettier` for frontend)
+- [X] T042 **Git Major Commit (Release)**: `git add . && git commit -m "chore(release): finalize google-oauth-login implementation, verification, and documentation"`
