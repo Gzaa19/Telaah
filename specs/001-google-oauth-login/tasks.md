@@ -41,11 +41,11 @@ flowchart TD
 
 **Purpose**: Establish database schemas, entity models, and migration scripts required before use case controllers can run.
 
-- [ ] T005 Create Alembic migration script `backend/alembic/versions/001_auth_schema.py` enabling `vector` extension and creating `researchers`, `user_sessions`, and `oauth_credentials` tables with indexes
-- [ ] T006 Implement Entity SQLModel classes (`ResearcherAccount`, `UserSession`, `OAuthCredential`) in `backend/src/auth/models.py`
-- [ ] T007 [P] Implement base Repository database query methods in `backend/src/auth/repository.py`
-- [ ] T008 Run migration in test database environment (`alembic upgrade head`) and verify table creation
-- [ ] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): implement database migrations and foundational entity models"`
+- [X] T005 Create Alembic migration script `backend/alembic/versions/001_auth_schema.py` enabling `vector` extension and creating `researchers`, `user_sessions`, and `oauth_credentials` tables with indexes
+- [X] T006 Implement Entity SQLModel classes (`ResearcherAccount`, `UserSession`, `OAuthCredential`) in `backend/src/auth/models.py`
+- [X] T007 [P] Implement base Repository database query methods in `backend/src/auth/repository.py`
+- [X] T008 Run migration in test database environment (`alembic upgrade head`) and verify table creation
+- [X] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): implement database migrations and foundational entity models"`
 
 **PDR Verification Checkpoint**: Entity models conform to Updated Domain Model in `plan.md`.
 
