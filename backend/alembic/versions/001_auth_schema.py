@@ -22,59 +22,59 @@ def upgrade() -> None:
     op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
     op.execute('CREATE EXTENSION IF NOT EXISTS "vector";')
 
-    # 2. Table: peneliti
+    # 2. Table: researchers
     op.create_table(
-        'peneliti',
+        'researchers',
         sa.Column('id', sa.UUID(), primary_key=True, server_default=sa.text('gen_random_uuid()')),
         sa.Column('email', sa.String(length=255), nullable=False),
-        sa.Column('nama_lengkap', sa.String(length=255), nullable=False),
-        sa.Column('url_avatar', sa.Text(), nullable=True),
-        sa.Column('apakah_aktif', sa.Boolean(), nullable=False, server_default=sa.text('TRUE')),
-        sa.Column('login_terakhir_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.Column('dibuat_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.Column('diperbarui_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.UniqueConstraint('email', name='uq_peneliti_email')
+        sa.Column('full_name', sa.String(length=255), nullable=False),
+        sa.Column('avatar_url', sa.Text(), nullable=True),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('TRUE')),
+        sa.Column('last_login_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.UniqueConstraint('email', name='uq_researchers_email')
     )
-    op.create_index('idx_peneliti_email', 'peneliti', ['email'], unique=False)
+    op.create_index('idx_researchers_email', 'researchers', ['email'], unique=False)
 
-    # 3. Table: sesi_pengguna
+    # 3. Table: user_sessions
     op.create_table(
-        'sesi_pengguna',
+        'user_sessions',
         sa.Column('id', sa.UUID(), primary_key=True, server_default=sa.text('gen_random_uuid()')),
-        sa.Column('peneliti_id', sa.UUID(), sa.ForeignKey('peneliti.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('token_sesi', sa.String(length=512), nullable=False),
-        sa.Column('kedaluwarsa_pada', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('apakah_aktif', sa.Boolean(), nullable=False, server_default=sa.text('TRUE')),
-        sa.Column('dibuat_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.UniqueConstraint('token_sesi', name='uq_sesi_pengguna_token_sesi')
+        sa.Column('researcher_id', sa.UUID(), sa.ForeignKey('researchers.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('session_token', sa.String(length=512), nullable=False),
+        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('TRUE')),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.UniqueConstraint('session_token', name='uq_user_sessions_session_token')
     )
-    op.create_index('idx_sesi_pengguna_token', 'sesi_pengguna', ['token_sesi'], unique=False)
-    op.create_index('idx_sesi_pengguna_peneliti', 'sesi_pengguna', ['peneliti_id'], unique=False)
+    op.create_index('idx_user_sessions_token', 'user_sessions', ['session_token'], unique=False)
+    op.create_index('idx_user_sessions_researcher', 'user_sessions', ['researcher_id'], unique=False)
 
-    # 4. Table: kredensial_oauth
+    # 4. Table: oauth_credentials
     op.create_table(
-        'kredensial_oauth',
+        'oauth_credentials',
         sa.Column('id', sa.UUID(), primary_key=True, server_default=sa.text('gen_random_uuid()')),
-        sa.Column('peneliti_id', sa.UUID(), sa.ForeignKey('peneliti.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('penyedia', sa.String(length=50), nullable=False, server_default='google'),
-        sa.Column('token_akses_terenkripsi', sa.Text(), nullable=False),
-        sa.Column('token_penyegaran_terenkripsi', sa.Text(), nullable=True),
-        sa.Column('token_kedaluwarsa_pada', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('apakah_drive_diizinkan', sa.Boolean(), nullable=False, server_default=sa.text('FALSE')),
-        sa.Column('dibuat_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.Column('diperbarui_pada', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
-        sa.UniqueConstraint('peneliti_id', name='uq_kredensial_oauth_peneliti_id')
+        sa.Column('researcher_id', sa.UUID(), sa.ForeignKey('researchers.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('provider', sa.String(length=50), nullable=False, server_default='google'),
+        sa.Column('encrypted_access_token', sa.Text(), nullable=False),
+        sa.Column('encrypted_refresh_token', sa.Text(), nullable=True),
+        sa.Column('token_expires_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('is_drive_granted', sa.Boolean(), nullable=False, server_default=sa.text('FALSE')),
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.UniqueConstraint('researcher_id', name='uq_oauth_credentials_researcher_id')
     )
-    op.create_index('idx_kredensial_oauth_peneliti', 'kredensial_oauth', ['peneliti_id'], unique=False)
+    op.create_index('idx_oauth_credentials_researcher', 'oauth_credentials', ['researcher_id'], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index('idx_kredensial_oauth_peneliti', table_name='kredensial_oauth')
-    op.drop_table('kredensial_oauth')
+    op.drop_index('idx_oauth_credentials_researcher', table_name='oauth_credentials')
+    op.drop_table('oauth_credentials')
 
-    op.drop_index('idx_sesi_pengguna_peneliti', table_name='sesi_pengguna')
-    op.drop_index('idx_sesi_pengguna_token', table_name='sesi_pengguna')
-    op.drop_table('sesi_pengguna')
+    op.drop_index('idx_user_sessions_researcher', table_name='user_sessions')
+    op.drop_index('idx_user_sessions_token', table_name='user_sessions')
+    op.drop_table('user_sessions')
 
-    op.drop_index('idx_peneliti_email', table_name='peneliti')
-    op.drop_table('peneliti')
+    op.drop_index('idx_researchers_email', table_name='researchers')
+    op.drop_table('researchers')

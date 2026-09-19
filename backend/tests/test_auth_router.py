@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from backend.src.main import app
 from backend.src.core.database import get_session
-from backend.src.auth.models import Peneliti, SesiPengguna
+from backend.src.auth.models import ResearcherAccount, UserSession
 from backend.src.auth.repository import AuthRepository
 from backend.src.auth.schemas import GoogleProfileDTO, OAuthTokenDTO
 

@@ -29,18 +29,18 @@ def test_session_service_invalidate_session(db_session: Session):
 
     session_service = SessionService(db=db_session)
     user_session = session_service.create_24h_session(researcher_id=researcher.id)
-    assert user_session.apakah_aktif is True
+    assert user_session.is_active is True
 
     # Validate session initially works
-    validated = session_service.validate_session(user_session.token_sesi)
+    validated = session_service.validate_session(user_session.session_token)
     assert validated is not None
 
     # Invalidate session
-    success = session_service.invalidate_session(user_session.token_sesi)
+    success = session_service.invalidate_session(user_session.session_token)
     assert success is True
 
     # Validate session now returns None
-    assert session_service.validate_session(user_session.token_sesi) is None
+    assert session_service.validate_session(user_session.session_token) is None
 
 
 def test_logout_endpoint_clears_cookie_and_invalidates(client: TestClient, db_session: Session):
@@ -52,7 +52,7 @@ def test_logout_endpoint_clears_cookie_and_invalidates(client: TestClient, db_se
     session_service = SessionService(db=db_session)
     user_session = session_service.create_24h_session(researcher_id=researcher.id)
 
-    client.cookies.set("paper_gen_session", user_session.token_sesi)
+    client.cookies.set("paper_gen_session", user_session.session_token)
     response = client.post("/auth/logout")
 
     assert response.status_code == 200
@@ -60,7 +60,7 @@ def test_logout_endpoint_clears_cookie_and_invalidates(client: TestClient, db_se
 
     # Verify session is deactivated in DB
     db_session.refresh(user_session)
-    assert user_session.apakah_aktif is False
+    assert user_session.is_active is False
 
     # Verify cookie was instructed to delete (set-cookie header with max-age=0 or expires in past)
     set_cookie_header = response.headers.get("set-cookie", "")

@@ -22,7 +22,7 @@
 | `failure_reason` | `TEXT` | NULLABLE | Human-readable error message if failed |
 | `imported_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Timestamp when import was initiated |
 | `extracted_at` | `TIMESTAMPTZ` | NULLABLE | Timestamp when text extraction succeeded |
-| `researcher_id` | `UUID` | NOT NULL, FK → `peneliti.id` | Document owner (references `peneliti` table from UC-01) |
+| `researcher_id` | `UUID` | NOT NULL, FK → `researchers.id` | Document owner (references `researchers` table from UC-01) |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Audit timestamp |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Auto-update on write |
 
@@ -128,7 +128,7 @@ def upgrade():
         sa.Column('researcher_id', sa.UUID(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.ForeignKeyConstraint(['researcher_id'], ['peneliti.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['researcher_id'], ['researchers.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
     )
 

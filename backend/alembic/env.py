@@ -10,7 +10,7 @@ from sqlmodel import SQLModel
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from backend.src.core.config import settings
-from backend.src.auth.models import Peneliti, SesiPengguna, KredensialOAuth
+from backend.src.auth.models import ResearcherAccount, UserSession, OAuthCredential
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

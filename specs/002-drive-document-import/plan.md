@@ -83,7 +83,7 @@ classDiagram
 - **ExtractedText**: Complete text extraction result, decoupled from document metadata for re-extraction flexibility. Directly consumed by UC-03 pipeline.
 - **ExtractedPage**: Page-level (PDF) or section-level (DOCX) text chunks, preserving `page_number` for academic citation traceability needed in UC-03.
 - **OAuthCredential**: Existing auth entity — used for silent token refresh during Drive download.
-- **Associations**: `Document.researcher_id` → FK to `peneliti.id`. `ExtractedText.document_id` → FK to `documents.id` (UNIQUE constraint — one active extraction per document). `ExtractedPage.extracted_text_id` → FK to `extracted_texts.id`.
+- **Associations**: `Document.researcher_id` → FK to `researchers.id`. `ExtractedText.document_id` → FK to `documents.id` (UNIQUE constraint — one active extraction per document). `ExtractedPage.extracted_text_id` → FK to `extracted_texts.id`.
 - **Database Migrations**: Alembic migration for `documents`, `extracted_texts`, and `extracted_pages` tables with indexes on `google_drive_id`, `researcher_id`, and `import_status`.
 
 ---
