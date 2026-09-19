@@ -20,47 +20,47 @@
 
 ```mermaid
 classDiagram
-    class ResearcherAccount {
+    class Peneliti {
         +UUID id
         +String email
-        +String full_name
-        +String avatar_url
-        +Boolean is_active
-        +DateTime last_login_at
-        +DateTime created_at
-        +DateTime updated_at
+        +String nama_lengkap
+        +String url_avatar
+        +Boolean apakah_aktif
+        +DateTime login_terakhir_pada
+        +DateTime dibuat_pada
+        +DateTime diperbarui_pada
     }
 
-    class UserSession {
+    class SesiPengguna {
         +UUID id
-        +UUID researcher_id
-        +String session_token
-        +DateTime expires_at
-        +Boolean is_active
-        +DateTime created_at
+        +UUID peneliti_id
+        +String token_sesi
+        +DateTime kedaluwarsa_pada
+        +Boolean apakah_aktif
+        +DateTime dibuat_pada
     }
 
-    class OAuthCredential {
+    class KredensialOAuth {
         +UUID id
-        +UUID researcher_id
-        +String provider
-        +Text encrypted_access_token
-        +Text encrypted_refresh_token
-        +DateTime token_expires_at
-        +Boolean is_drive_granted
-        +DateTime created_at
-        +DateTime updated_at
+        +UUID peneliti_id
+        +String penyedia
+        +Text token_akses_terenkripsi
+        +Text token_penyegaran_terenkripsi
+        +DateTime token_kedaluwarsa_pada
+        +Boolean apakah_drive_diizinkan
+        +DateTime dibuat_pada
+        +DateTime diperbarui_pada
     }
 
-    ResearcherAccount "1" --> "1..*" UserSession : maintains
-    ResearcherAccount "1" --> "1" OAuthCredential : owns
+    Peneliti "1" --> "1..*" SesiPengguna : memiliki
+    Peneliti "1" --> "1" KredensialOAuth : memiliki
 ```
 
 - **Entities**:
-  - `ResearcherAccount`: Menyimpan profil identitas peneliti berbasis email unik Google.
-  - `UserSession`: Menyimpan token sesi lokal terautentikasi (berlaku 24 jam).
-  - `OAuthCredential`: Menyimpan ciphertext token otorisasi Google OAuth hasil enkripsi Fernet/AES-256.
-- **Database Schema Migrations**: `alembic` script `001_auth_schema.py` membuat tabel `researchers`, `user_sessions`, `oauth_credentials`, indeks, serta mengaktifkan ekstensi `vector` (pgvector).
+  - `Peneliti`: Menyimpan profil identitas peneliti berbasis email unik Google.
+  - `SesiPengguna`: Menyimpan token sesi lokal terautentikasi (berlaku 24 jam).
+  - `KredensialOAuth`: Menyimpan ciphertext token otorisasi Google OAuth hasil enkripsi Fernet/AES-256.
+- **Database Schema Migrations**: `alembic` script `001_auth_schema.py` membuat tabel `peneliti`, `sesi_pengguna`, `kredensial_oauth`, indeks, serta mengaktifkan ekstensi `vector` (pgvector).
 
 ---
 
@@ -93,13 +93,13 @@ flowchart TD
     C_BuildAuthUrl(["Controller: Generate Google Auth URL"]):::controller
     C_ExchangeTokens(["Controller: Verify State & Exchange Code"]):::controller
     C_EncryptTokens(["Controller: Encrypt OAuth Tokens"]):::controller
-    C_UpsertProfile(["Controller: Upsert Researcher Record"]):::controller
+    C_UpsertProfile(["Controller: Upsert Peneliti Record"]):::controller
     C_IssueSession(["Controller: Create 24h User Session"]):::controller
     C_EvaluateDriveScope{"Controller: Evaluate Drive Scope"}:::controller
 
-    E_Researcher[("Entity: ResearcherAccount")]:::entity
-    E_OAuthCred[("Entity: OAuthCredential")]:::entity
-    E_Session[("Entity: UserSession")]:::entity
+    E_Peneliti[("Entity: Peneliti")]:::entity
+    E_OAuthCred[("Entity: KredensialOAuth")]:::entity
+    E_Session[("Entity: SesiPengguna")]:::entity
 
     Actor_Peneliti -->|"1. Clicks Login with Google"| B_Landing
     B_Landing -->|"2. Initiates OAuth Flow"| B_LoginAPI
@@ -110,8 +110,8 @@ flowchart TD
     B_CallbackAPI -->|"7. Passes Code & State"| C_ExchangeTokens
     C_ExchangeTokens -->|"8. Encrypts Raw Tokens"| C_EncryptTokens
     C_EncryptTokens -->|"9. Passes Ciphertext"| C_UpsertProfile
-    C_UpsertProfile -->|"10. Persists Researcher"| E_Researcher
-    C_UpsertProfile -->|"11. Persists Credentials"| E_OAuthCred
+    C_UpsertProfile -->|"10. Persists Peneliti"| E_Peneliti
+    C_UpsertProfile -->|"11. Persists KredensialOAuth"| E_OAuthCred
     C_UpsertProfile -->|"12. Requests Session Creation"| C_IssueSession
     C_IssueSession -->|"13. Persists Active Session"| E_Session
     C_IssueSession -->|"14. Evaluates Granted Scopes"| C_EvaluateDriveScope
@@ -136,13 +136,13 @@ flowchart TD
     B_LogoutAPI[/"Boundary: POST /auth/logout"/]:::boundary
     B_Landing[/"Boundary: Landing Page (SCR-01)"/]:::boundary
 
-    C_InvalidateSession(["Controller: Invalidate User Session"]):::controller
-    E_Session[("Entity: UserSession")]:::entity
+    C_InvalidateSession(["Controller: Invalidate Sesi Pengguna"]):::controller
+    E_Session[("Entity: SesiPengguna")]:::entity
 
     Actor_Peneliti -->|"1. Clicks Logout Button"| B_Dashboard
     B_Dashboard -->|"2. Sends Logout Request with Session Cookie"| B_LogoutAPI
     B_LogoutAPI -->|"3. Dispatches Invalidation"| C_InvalidateSession
-    C_InvalidateSession -->|"4. Sets is_active = FALSE"| E_Session
+    C_InvalidateSession -->|"4. Sets apakah_aktif = FALSE"| E_Session
     C_InvalidateSession -->|"5. Clears Cookie & 302 Redirects"| B_Landing
     B_Landing -->|"6. Renders Public Landing View"| Actor_Peneliti
 ```
@@ -162,18 +162,18 @@ Sesuai kaidah Doug Rosenberg, *Controller* pada Robustness Diagram adalah logika
 | **Controller** | `Generate Google Auth URL` | `GoogleOAuthService.generate_authorization_url()` |
 | **Controller** | `Verify State & Exchange Code` | `GoogleOAuthService.verify_state_and_exchange_code()` |
 | **Controller** | `Encrypt OAuth Tokens` | `TokenEncryptionService.encrypt_token()` |
-| **Controller** | `Upsert Researcher Record` | `ResearcherService.upsert_researcher_with_credentials()` |
+| **Controller** | `Upsert Peneliti Record` | `ResearcherService.upsert_researcher_with_credentials()` |
 | **Controller** | `Create 24h User Session` | `SessionService.create_24h_session()` |
 | **Controller** | `Evaluate Drive Scope` | `GoogleOAuthService.check_drive_scope_granted()` |
-| **Controller** | `Invalidate User Session` | `SessionService.invalidate_session()` |
-| **Entity** | `ResearcherAccount` | Model persisten data peneliti (`backend/src/auth/models.py`). |
-| **Entity** | `OAuthCredential` | Model persisten token OAuth terenkripsi (`backend/src/auth/models.py`). |
-| **Entity** | `UserSession` | Model persisten sesi pengguna aktif (`backend/src/auth/models.py`). |
+| **Controller** | `Invalidate Sesi Pengguna` | `SessionService.invalidate_session()` |
+| **Entity** | `Peneliti` | Model persisten data peneliti (`backend/src/auth/models.py`). |
+| **Entity** | `KredensialOAuth` | Model persisten token OAuth terenkripsi (`backend/src/auth/models.py`). |
+| **Entity** | `SesiPengguna` | Model persisten sesi pengguna aktif (`backend/src/auth/models.py`). |
 
 ### 3.4 Strict BCE Rule Compliance Audit (Doug Rosenberg Rules)
 - [x] **Rule 1 (Actors can only talk to Boundaries)**: Peneliti hanya berinteraksi dengan antarmuka UI (`SCR-01`, `SCR-02`, `SCR-03`, `SCR-04`).
 - [x] **Rule 2 (Boundaries can only talk to Controllers and Actors)**: UI dan Endpoint API memicu Controller (verb) dan tidak pernah menyentuh Database Entity langsung.
-- [x] **Rule 3 (Entities can only talk to Controllers)**: Entitas `ResearcherAccount`, `OAuthCredential`, dan `UserSession` hanya diakses dan dimutasi melalui Controllers.
+- [x] **Rule 3 (Entities can only talk to Controllers)**: Entitas `Peneliti`, `KredensialOAuth`, dan `SesiPengguna` hanya diakses dan dimutasi melalui Controllers.
 - [x] **Rule 4 (Controllers can talk to Boundaries, Controllers, and Entities, but NOT directly to Actors)**: Logika proses berkomunikasi dengan Boundaries untuk navigasi/rendering ke aktor.
 - [x] **Zero Direct Boundary-to-Entity Links**: Terverifikasi 100% tidak ada jalan pintas dari Boundary langsung ke Entity.
 
@@ -185,7 +185,7 @@ Sesuai kaidah Doug Rosenberg, *Controller* pada Robustness Diagram adalah logika
 |---|:---:|---|
 | **1. Use Case Coverage** | PASS | Diagram robustness mencakup alur lengkap UC-01 (Login) dan UC-02 (Logout). |
 | **2. Alternate Courses Handled** | PASS | Alur penolakan scope Drive, token expired, dan pembatalan diarahkan melalui `C1` ke `B5` (SCR-04). |
-| **3. Domain Model Updated** | PASS | Tabel `researchers`, `user_sessions`, dan `oauth_credentials` terdefinisi presisi. |
+| **3. Domain Model Updated** | PASS | Tabel `peneliti`, `sesi_pengguna`, dan `kredensial_oauth` terdefinisi presisi. |
 | **4. Strict BCE Adherence** | PASS | Terverifikasi TIDAK ADA hubungan langsung Boundary-ke-Entity. |
 
 *GATE STATUS*: **[APPROVED TO PROCEED TO DETAILED DESIGN]**
@@ -222,11 +222,11 @@ sequenceDiagram
     FastAPI->>CryptoSvc: encrypt_token(raw_access_token), encrypt_token(raw_refresh_token)
     CryptoSvc-->>FastAPI: enc_access_token, enc_refresh_token
     FastAPI->>ResSvc: upsert_researcher_with_credentials(profile, enc_tokens)
-    ResSvc->>DB: INSERT / UPDATE researchers & oauth_credentials
-    DB-->>ResSvc: ResearcherAccount Entity
-    FastAPI->>SessSvc: create_24h_session(researcher_id)
-    SessSvc->>DB: INSERT INTO user_sessions (session_token, expires_at)
-    DB-->>SessSvc: UserSession Entity
+    ResSvc->>DB: INSERT / UPDATE peneliti & kredensial_oauth
+    DB-->>ResSvc: Peneliti Entity
+    FastAPI->>SessSvc: create_24h_session(peneliti_id)
+    SessSvc->>DB: INSERT INTO sesi_pengguna (token_sesi, kedaluwarsa_pada)
+    DB-->>SessSvc: SesiPengguna Entity
     FastAPI-->>NextJS: 302 Redirect to /dashboard (Set-Cookie: paper_gen_session=..., HttpOnly, Secure)
     NextJS-->>User: Render Main Workspace Dashboard (SCR-03)
 ```
@@ -244,7 +244,7 @@ sequenceDiagram
     User->>NextJS: Click "Logout" (SCR-03)
     NextJS->>FastAPI: POST /auth/logout (Cookie: paper_gen_session=...)
     FastAPI->>SessSvc: invalidate_session(session_token)
-    SessSvc->>DB: UPDATE user_sessions SET is_active = FALSE WHERE token = ...
+    SessSvc->>DB: UPDATE sesi_pengguna SET apakah_aktif = FALSE WHERE token_sesi = ...
     DB-->>SessSvc: SessionDeactivated
     FastAPI-->>NextJS: 200 OK (Set-Cookie: paper_gen_session=, Max-Age=0)
     NextJS-->>User: Redirect to Landing Page (SCR-01)
@@ -280,14 +280,14 @@ classDiagram
 
     class ResearcherService {
         -db_session: Session
-        +upsert_researcher(profile: GoogleProfileDTO) ResearcherAccount
-        +save_credentials(researcher_id: UUID, tokens: OAuthTokenDTO) OAuthCredential
+        +upsert_researcher(profile: GoogleProfileDTO) Peneliti
+        +save_credentials(peneliti_id: UUID, tokens: OAuthTokenDTO) KredensialOAuth
     }
 
     class SessionService {
         -db_session: Session
-        +create_session(researcher_id: UUID) UserSession
-        +validate_session(session_token: String) UserSession
+        +create_session(peneliti_id: UUID) SesiPengguna
+        +validate_session(session_token: String) SesiPengguna
         +invalidate_session(session_token: String) void
     }
 
@@ -315,13 +315,13 @@ classDiagram
       - `def decrypt(self, cipher_text: str) -> str:`
   - `backend/src/auth/session_service.py`:
     - `class SessionService:`
-      - `def create_24h_session(self, researcher_id: UUID) -> str:`
-      - `def verify_session(self, session_token: str) -> ResearcherAccount:`
+      - `def create_24h_session(self, peneliti_id: UUID) -> str:`
+      - `def verify_session(self, session_token: str) -> Peneliti:`
 - **Entities**:
   - `backend/src/auth/models.py`:
-    - `class ResearcherAccount(SQLModel, table=True):`
-    - `class UserSession(SQLModel, table=True):`
-    - `class OAuthCredential(SQLModel, table=True):`
+    - `class Peneliti(SQLModel, table=True):`
+    - `class SesiPengguna(SQLModel, table=True):`
+    - `class KredensialOAuth(SQLModel, table=True):`
 
 ---
 
@@ -342,7 +342,7 @@ classDiagram
 
 | Milestone / Phase | Scope / Layer | Commit Type & Suggested Message | Verification Required |
 |---|---|---|---|
-| **Milestone 1** | Database Models & Alembic Migration | `feat(auth): add researcher, session, and oauth credential schema with pgvector` | Alembic migration up/down green |
+| **Milestone 1** | Database Models & Alembic Migration | `feat(auth): add peneliti, sesi_pengguna, and kredensial_oauth schema with pgvector` | Alembic migration up/down green |
 | **Milestone 2** | Crypto & OAuth Core Controllers | `feat(auth): implement token encryption and Google OAuth code exchange service` | Unit tests for Fernet crypto & OAuth mock pass |
 | **Milestone 3** | FastAPI Routers & Session Flow | `feat(auth): add login, callback, logout, and me API endpoints` | Integration test for OAuth flow green |
 | **Milestone 4** | Next.js Frontend Integration | `feat(auth): implement login button, dashboard session check, and logout UI` | End-to-end Bun & Next.js verification green |

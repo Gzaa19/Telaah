@@ -5,7 +5,7 @@ from typing import Optional
 from sqlmodel import Session
 
 from backend.src.core.config import settings
-from backend.src.auth.models import UserSession
+from backend.src.auth.models import SesiPengguna
 from backend.src.auth.repository import AuthRepository
 
 
@@ -14,7 +14,7 @@ class SessionService:
         self.db = db
         self.repo = repository or AuthRepository(db=db)
 
-    def create_24h_session(self, researcher_id: uuid.UUID) -> UserSession:
+    def create_24h_session(self, researcher_id: uuid.UUID) -> SesiPengguna:
         session_token = secrets.token_urlsafe(48)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.SESSION_EXPIRE_HOURS)
         return self.repo.create_session(
@@ -23,7 +23,7 @@ class SessionService:
             expires_at=expires_at,
         )
 
-    def validate_session(self, session_token: str) -> Optional[UserSession]:
+    def validate_session(self, session_token: str) -> Optional[SesiPengguna]:
         if not session_token:
             return None
         return self.repo.get_active_session_by_token(session_token=session_token)

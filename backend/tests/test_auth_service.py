@@ -34,18 +34,18 @@ def test_session_service_create_and_validate(db_session):
     session_service = SessionService(db=db_session)
     user_session = session_service.create_24h_session(researcher_id=researcher.id)
 
-    assert user_session.session_token is not None
-    assert user_session.is_active is True
-    expires_at = user_session.expires_at
+    assert user_session.token_sesi is not None
+    assert user_session.apakah_aktif is True
+    expires_at = user_session.kedaluwarsa_pada
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     assert expires_at > datetime.now(timezone.utc)
 
     # Validate session
-    validated = session_service.validate_session(user_session.session_token)
+    validated = session_service.validate_session(user_session.token_sesi)
     assert validated is not None
     assert validated.id == user_session.id
-    assert validated.researcher_id == researcher.id
+    assert validated.peneliti_id == researcher.id
 
 
 def test_session_service_expired_session(db_session):
@@ -63,7 +63,7 @@ def test_session_service_expired_session(db_session):
         expires_at=past_time
     )
 
-    validated = session_service.validate_session(expired_session.session_token)
+    validated = session_service.validate_session(expired_session.token_sesi)
     assert validated is None
 
 
@@ -87,7 +87,7 @@ def test_researcher_service_upsert_and_credentials(db_session):
     researcher, credential = researcher_service.upsert_researcher_with_credentials(profile, tokens)
 
     assert researcher.email == "peneliti@univ.ac.id"
-    assert credential.is_drive_granted is True
+    assert credential.apakah_drive_diizinkan is True
     # Ciphertext verification: raw token must NOT be stored in DB
-    assert credential.encrypted_access_token != "raw-access-token-123"
-    assert crypto_service.decrypt_token(credential.encrypted_access_token) == "raw-access-token-123"
+    assert credential.token_akses_terenkripsi != "raw-access-token-123"
+    assert crypto_service.decrypt_token(credential.token_akses_terenkripsi) == "raw-access-token-123"

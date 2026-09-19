@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Tuple, Optional
 from sqlmodel import Session
 
-from backend.src.auth.models import ResearcherAccount, OAuthCredential
+from backend.src.auth.models import Peneliti, KredensialOAuth
 from backend.src.auth.repository import AuthRepository
 from backend.src.auth.schemas import GoogleProfileDTO, OAuthTokenDTO, ResearcherProfileResponse
 from backend.src.auth.crypto_service import TokenEncryptionService
@@ -25,7 +25,7 @@ class ResearcherService:
         self,
         profile: GoogleProfileDTO,
         tokens: OAuthTokenDTO
-    ) -> Tuple[ResearcherAccount, OAuthCredential]:
+    ) -> Tuple[Peneliti, KredensialOAuth]:
         # 1. Upsert researcher account
         researcher = self.repo.upsert_researcher(
             email=profile.email,
@@ -63,17 +63,17 @@ class ResearcherService:
         session_expires_at: datetime
     ) -> Optional[ResearcherProfileResponse]:
         researcher = self.repo.get_researcher_by_id(researcher_id)
-        if not researcher or not researcher.is_active:
+        if not researcher or not researcher.apakah_aktif:
             return None
 
         credential = self.repo.get_oauth_credential_by_researcher_id(researcher_id)
-        is_drive_granted = credential.is_drive_granted if credential else False
+        is_drive_granted = credential.apakah_drive_diizinkan if credential else False
 
         return ResearcherProfileResponse(
             researcher_id=researcher.id,
             email=researcher.email,
-            full_name=researcher.full_name,
-            avatar_url=researcher.avatar_url,
+            full_name=researcher.nama_lengkap,
+            avatar_url=researcher.url_avatar,
             is_drive_granted=is_drive_granted,
             session_expires_at=session_expires_at,
         )

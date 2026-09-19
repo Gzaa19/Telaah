@@ -97,7 +97,7 @@ def google_callback(
     # Set 24h session cookie
     response.set_cookie(
         key=settings.SESSION_COOKIE_NAME,
-        value=user_session.session_token,
+        value=user_session.token_sesi,
         httponly=True,
         secure=not settings.DEBUG,
         samesite="lax",
@@ -137,8 +137,8 @@ def get_me(
 
     researcher_service = ResearcherService(db=db)
     profile_response = researcher_service.get_researcher_profile_response(
-        researcher_id=active_session.researcher_id,
-        session_expires_at=active_session.expires_at,
+        researcher_id=active_session.peneliti_id,
+        session_expires_at=active_session.kedaluwarsa_pada,
     )
 
     if not profile_response:

@@ -120,39 +120,45 @@ flowchart LR
 
 ```mermaid
 classDiagram
-    class ResearcherAccount {
-        +UUID researcher_id
+    class Peneliti {
+        +UUID id
         +String email
-        +String full_name
-        +String avatar_url
-        +DateTime created_at
-        +DateTime last_login_at
+        +String nama_lengkap
+        +String url_avatar
+        +Boolean apakah_aktif
+        +DateTime login_terakhir_pada
+        +DateTime dibuat_pada
+        +DateTime diperbarui_pada
     }
 
-    class UserSession {
-        +UUID session_id
-        +UUID researcher_id
-        +DateTime session_expires_at
-        +Boolean is_active
+    class SesiPengguna {
+        +UUID id
+        +UUID peneliti_id
+        +String token_sesi
+        +DateTime kedaluwarsa_pada
+        +Boolean apakah_aktif
+        +DateTime dibuat_pada
     }
 
-    class OAuthCredential {
-        +UUID credential_id
-        +UUID researcher_id
-        +String provider
-        +String encrypted_access_token
-        +String encrypted_refresh_token
-        +DateTime token_expires_at
-        +Boolean is_drive_granted
+    class KredensialOAuth {
+        +UUID id
+        +UUID peneliti_id
+        +String penyedia
+        +String token_akses_terenkripsi
+        +String token_penyegaran_terenkripsi
+        +DateTime token_kedaluwarsa_pada
+        +Boolean apakah_drive_diizinkan
+        +DateTime dibuat_pada
+        +DateTime diperbarui_pada
     }
 
-    ResearcherAccount "1" --> "1..*" UserSession : maintains
-    ResearcherAccount "1" --> "1" OAuthCredential : owns
+    Peneliti "1" --> "1..*" SesiPengguna : memiliki
+    Peneliti "1" --> "1" KredensialOAuth : memiliki
 ```
 
-- **ResearcherAccount**: Entitas bisnis utama yang merepresentasikan Peneliti pengguna aplikasi Paper Generator.
-- **UserSession**: Entitas yang mencatat status keaktifan sesi Peneliti pada peramban/aplikasi.
-- **OAuthCredential**: Kredensial terenkripsi hasil otorisasi Google OAuth, menyimpan token dan status hak akses Drive.
+- **Peneliti**: Entitas bisnis utama yang merepresentasikan Peneliti pengguna aplikasi Paper Generator.
+- **SesiPengguna**: Entitas yang mencatat status keaktifan sesi Peneliti pada peramban/aplikasi.
+- **KredensialOAuth**: Kredensial terenkripsi hasil otorisasi Google OAuth, menyimpan token dan status hak akses Drive.
 
 ---
 

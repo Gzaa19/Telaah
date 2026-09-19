@@ -10,39 +10,39 @@
 
 ```mermaid
 erDiagram
-    researchers ||--o{ user_sessions : "maintains"
-    researchers ||--o| oauth_credentials : "owns"
+    peneliti ||--o{ sesi_pengguna : "memiliki"
+    peneliti ||--o| kredensial_oauth : "memiliki"
 
-    researchers {
+    peneliti {
         uuid id PK
         string email UK
-        string full_name
-        string avatar_url
-        boolean is_active
-        timestamp last_login_at
-        timestamp created_at
-        timestamp updated_at
+        string nama_lengkap
+        string url_avatar
+        boolean apakah_aktif
+        timestamp login_terakhir_pada
+        timestamp dibuat_pada
+        timestamp diperbarui_pada
     }
 
-    user_sessions {
+    sesi_pengguna {
         uuid id PK
-        uuid researcher_id FK
-        string session_token UK
-        timestamp expires_at
-        boolean is_active
-        timestamp created_at
+        uuid peneliti_id FK
+        string token_sesi UK
+        timestamp kedaluwarsa_pada
+        boolean apakah_aktif
+        timestamp dibuat_pada
     }
 
-    oauth_credentials {
+    kredensial_oauth {
         uuid id PK
-        uuid researcher_id FK, UK
-        string provider
-        text encrypted_access_token
-        text encrypted_refresh_token
-        timestamp token_expires_at
-        boolean is_drive_granted
-        timestamp created_at
-        timestamp updated_at
+        uuid peneliti_id FK, UK
+        string penyedia
+        text token_akses_terenkripsi
+        text token_penyegaran_terenkripsi
+        timestamp token_kedaluwarsa_pada
+        boolean apakah_drive_diizinkan
+        timestamp dibuat_pada
+        timestamp diperbarui_pada
     }
 ```
 
@@ -50,46 +50,46 @@ erDiagram
 
 ## 2. Table Specifications
 
-### 2.1 Table: `researchers`
-Stores core researcher account profiles.
+### 2.1 Table: `peneliti`
+Menyimpan profil akun utama peneliti.
 
-| Column Name | Data Type | Constraints | Description |
+| Nama Kolom | Tipe Data | Batasan | Deskripsi |
 |---|---|---|---|
-| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | Unique identifier for researcher |
-| `email` | `VARCHAR(255)` | `UNIQUE`, `NOT NULL`, Indexed | Google account email address |
-| `full_name` | `VARCHAR(255)` | `NOT NULL` | Display name from Google Profile |
-| `avatar_url` | `TEXT` | `NULLABLE` | Profile picture URL from Google |
-| `is_active` | `BOOLEAN` | `NOT NULL`, Default `TRUE` | Account status flag |
-| `last_login_at` | `TIMESTAMPTZ` | `NOT NULL` | Last successful login timestamp |
-| `created_at` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Record creation timestamp |
-| `updated_at` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Record update timestamp |
+| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | Pengidentifikasi unik peneliti |
+| `email` | `VARCHAR(255)` | `UNIQUE`, `NOT NULL`, Indexed | Alamat email akun Google |
+| `nama_lengkap` | `VARCHAR(255)` | `NOT NULL` | Nama tampilan dari Profil Google |
+| `url_avatar` | `TEXT` | `NULLABLE` | URL foto profil dari Google |
+| `apakah_aktif` | `BOOLEAN` | `NOT NULL`, Default `TRUE` | Status keaktifan akun |
+| `login_terakhir_pada` | `TIMESTAMPTZ` | `NOT NULL` | Waktu login terakhir berhasil |
+| `dibuat_pada` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Waktu pembuatan baris data |
+| `diperbarui_pada` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Waktu pembaruan baris data |
 
-### 2.2 Table: `user_sessions`
-Stores active 24-hour application sessions issued to researchers.
+### 2.2 Table: `sesi_pengguna`
+Menyimpan sesi aplikasi aktif selama 24 jam yang diterbitkan untuk peneliti.
 
-| Column Name | Data Type | Constraints | Description |
+| Nama Kolom | Tipe Data | Batasan | Deskripsi |
 |---|---|---|---|
-| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | Session record ID |
-| `researcher_id` | `UUID` | `FOREIGN KEY (researchers.id) ON DELETE CASCADE`, Indexed | Associated researcher |
-| `session_token` | `VARCHAR(512)` | `UNIQUE`, `NOT NULL`, Indexed | Cryptographic session identifier / JWT ID |
-| `expires_at` | `TIMESTAMPTZ` | `NOT NULL` | Session expiration (24 hours from issuance) |
-| `is_active` | `BOOLEAN` | `NOT NULL`, Default `TRUE` | Session validity state |
-| `created_at` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Session creation timestamp |
+| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | ID baris sesi |
+| `peneliti_id` | `UUID` | `FOREIGN KEY (peneliti.id) ON DELETE CASCADE`, Indexed | Peneliti pemilik sesi |
+| `token_sesi` | `VARCHAR(512)` | `UNIQUE`, `NOT NULL`, Indexed | Token identifikasi sesi kriptografis / JWT ID |
+| `kedaluwarsa_pada` | `TIMESTAMPTZ` | `NOT NULL` | Waktu kedaluwarsa sesi (24 jam sejak diterbitkan) |
+| `apakah_aktif` | `BOOLEAN` | `NOT NULL`, Default `TRUE` | Status validitas sesi |
+| `dibuat_pada` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Waktu pembuatan sesi |
 
-### 2.3 Table: `oauth_credentials`
-Stores encrypted Google OAuth tokens for Drive API access.
+### 2.3 Table: `kredensial_oauth`
+Menyimpan token Google OAuth terenkripsi untuk akses Google Drive API.
 
-| Column Name | Data Type | Constraints | Description |
+| Nama Kolom | Tipe Data | Batasan | Deskripsi |
 |---|---|---|---|
-| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | Credential record ID |
-| `researcher_id` | `UUID` | `FOREIGN KEY (researchers.id) ON DELETE CASCADE`, `UNIQUE` | Associated researcher |
-| `provider` | `VARCHAR(50)` | `NOT NULL`, Default `'google'` | OAuth provider |
-| `encrypted_access_token` | `TEXT` | `NOT NULL` | Fernet/AES-256 encrypted Google access token |
-| `encrypted_refresh_token` | `TEXT` | `NULLABLE` | Fernet/AES-256 encrypted Google refresh token |
-| `token_expires_at` | `TIMESTAMPTZ` | `NOT NULL` | Google access token expiration timestamp |
-| `is_drive_granted` | `BOOLEAN` | `NOT NULL`, Default `FALSE` | Indicates whether Google Drive scope was consented |
-| `created_at` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Record creation timestamp |
-| `updated_at` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Record update timestamp |
+| `id` | `UUID` | `PRIMARY KEY`, Default `gen_random_uuid()` | ID kredensial |
+| `peneliti_id` | `UUID` | `FOREIGN KEY (peneliti.id) ON DELETE CASCADE`, `UNIQUE` | Peneliti pemilik kredensial |
+| `penyedia` | `VARCHAR(50)` | `NOT NULL`, Default `'google'` | Penyedia OAuth |
+| `token_akses_terenkripsi` | `TEXT` | `NOT NULL` | Token akses Google terenkripsi Fernet/AES-256 |
+| `token_penyegaran_terenkripsi` | `TEXT` | `NULLABLE` | Token penyegaran (refresh) Google terenkripsi Fernet/AES-256 |
+| `token_kedaluwarsa_pada` | `TIMESTAMPTZ` | `NOT NULL` | Waktu kedaluwarsa access token Google |
+| `apakah_drive_diizinkan` | `BOOLEAN` | `NOT NULL`, Default `FALSE` | Menandakan apakah izin scope Google Drive telah disetujui |
+| `dibuat_pada` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Waktu pembuatan data |
+| `diperbarui_pada` | `TIMESTAMPTZ` | `NOT NULL`, Default `NOW()` | Waktu pembaruan data |
 
 ---
 
@@ -101,8 +101,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- Indexes for performance & lookups
-CREATE INDEX idx_researchers_email ON researchers(email);
-CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);
-CREATE INDEX idx_user_sessions_researcher ON user_sessions(researcher_id);
-CREATE INDEX idx_oauth_credentials_researcher ON oauth_credentials(researcher_id);
+CREATE INDEX idx_peneliti_email ON peneliti(email);
+CREATE INDEX idx_sesi_pengguna_token ON sesi_pengguna(token_sesi);
+CREATE INDEX idx_sesi_pengguna_peneliti ON sesi_pengguna(peneliti_id);
+CREATE INDEX idx_kredensial_oauth_peneliti ON kredensial_oauth(peneliti_id);
 ```

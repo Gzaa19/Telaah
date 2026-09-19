@@ -2,19 +2,19 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 from sqlmodel import Session, select
-from backend.src.auth.models import ResearcherAccount, UserSession, OAuthCredential
+from backend.src.auth.models import Peneliti, SesiPengguna, KredensialOAuth
 
 
 class AuthRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_researcher_by_id(self, researcher_id: uuid.UUID) -> Optional[ResearcherAccount]:
-        statement = select(ResearcherAccount).where(ResearcherAccount.id == researcher_id)
+    def get_researcher_by_id(self, researcher_id: uuid.UUID) -> Optional[Peneliti]:
+        statement = select(Peneliti).where(Peneliti.id == researcher_id)
         return self.db.exec(statement).first()
 
-    def get_researcher_by_email(self, email: str) -> Optional[ResearcherAccount]:
-        statement = select(ResearcherAccount).where(ResearcherAccount.email == email)
+    def get_researcher_by_email(self, email: str) -> Optional[Peneliti]:
+        statement = select(Peneliti).where(Peneliti.email == email)
         return self.db.exec(statement).first()
 
     def upsert_researcher(
@@ -22,22 +22,23 @@ class AuthRepository:
         email: str,
         full_name: str,
         avatar_url: Optional[str] = None
-    ) -> ResearcherAccount:
+    ) -> Peneliti:
         researcher = self.get_researcher_by_email(email)
         now = datetime.now(timezone.utc)
         if researcher:
-            researcher.full_name = full_name
-            researcher.avatar_url = avatar_url
-            researcher.last_login_at = now
-            researcher.updated_at = now
+            researcher.nama_lengkap = full_name
+            researcher.url_avatar = avatar_url
+            researcher.login_terakhir_pada = now
+            researcher.diperbarui_pada = now
         else:
-            researcher = ResearcherAccount(
+            researcher = Peneliti(
                 email=email,
-                full_name=full_name,
-                avatar_url=avatar_url,
-                last_login_at=now,
-                created_at=now,
-                updated_at=now,
+                nama_lengkap=full_name,
+                url_avatar=avatar_url,
+                apakah_aktif=True,
+                login_terakhir_pada=now,
+                dibuat_pada=now,
+                diperbarui_pada=now,
             )
             self.db.add(researcher)
         self.db.commit()
@@ -52,27 +53,27 @@ class AuthRepository:
         is_drive_granted: bool,
         enc_refresh_token: Optional[str] = None,
         provider: str = "google"
-    ) -> OAuthCredential:
-        statement = select(OAuthCredential).where(OAuthCredential.researcher_id == researcher_id)
+    ) -> KredensialOAuth:
+        statement = select(KredensialOAuth).where(KredensialOAuth.peneliti_id == researcher_id)
         credential = self.db.exec(statement).first()
         now = datetime.now(timezone.utc)
         if credential:
-            credential.encrypted_access_token = enc_access_token
+            credential.token_akses_terenkripsi = enc_access_token
             if enc_refresh_token:
-                credential.encrypted_refresh_token = enc_refresh_token
-            credential.token_expires_at = token_expires_at
-            credential.is_drive_granted = is_drive_granted
-            credential.updated_at = now
+                credential.token_penyegaran_terenkripsi = enc_refresh_token
+            credential.token_kedaluwarsa_pada = token_expires_at
+            credential.apakah_drive_diizinkan = is_drive_granted
+            credential.diperbarui_pada = now
         else:
-            credential = OAuthCredential(
-                researcher_id=researcher_id,
-                provider=provider,
-                encrypted_access_token=enc_access_token,
-                encrypted_refresh_token=enc_refresh_token,
-                token_expires_at=token_expires_at,
-                is_drive_granted=is_drive_granted,
-                created_at=now,
-                updated_at=now,
+            credential = KredensialOAuth(
+                peneliti_id=researcher_id,
+                penyedia=provider,
+                token_akses_terenkripsi=enc_access_token,
+                token_penyegaran_terenkripsi=enc_refresh_token,
+                token_kedaluwarsa_pada=token_expires_at,
+                apakah_drive_diizinkan=is_drive_granted,
+                dibuat_pada=now,
+                diperbarui_pada=now,
             )
             self.db.add(credential)
         self.db.commit()
@@ -81,8 +82,8 @@ class AuthRepository:
 
     def get_oauth_credential_by_researcher_id(
         self, researcher_id: uuid.UUID
-    ) -> Optional[OAuthCredential]:
-        statement = select(OAuthCredential).where(OAuthCredential.researcher_id == researcher_id)
+    ) -> Optional[KredensialOAuth]:
+        statement = select(KredensialOAuth).where(KredensialOAuth.peneliti_id == researcher_id)
         return self.db.exec(statement).first()
 
     def create_session(
@@ -90,28 +91,29 @@ class AuthRepository:
         researcher_id: uuid.UUID,
         session_token: str,
         expires_at: datetime
-    ) -> UserSession:
-        user_session = UserSession(
-            researcher_id=researcher_id,
-            session_token=session_token,
-            expires_at=expires_at,
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+    ) -> SesiPengguna:
+        now = datetime.now(timezone.utc)
+        user_session = SesiPengguna(
+            peneliti_id=researcher_id,
+            token_sesi=session_token,
+            kedaluwarsa_pada=expires_at,
+            apakah_aktif=True,
+            dibuat_pada=now,
         )
         self.db.add(user_session)
         self.db.commit()
         self.db.refresh(user_session)
         return user_session
 
-    def get_active_session_by_token(self, session_token: str) -> Optional[UserSession]:
-        statement = select(UserSession).where(
-            UserSession.session_token == session_token,
-            UserSession.is_active == True,
+    def get_active_session_by_token(self, session_token: str) -> Optional[SesiPengguna]:
+        statement = select(SesiPengguna).where(
+            SesiPengguna.token_sesi == session_token,
+            SesiPengguna.apakah_aktif == True,
         )
         session = self.db.exec(statement).first()
         if not session:
             return None
-        expires_at = session.expires_at
+        expires_at = session.kedaluwarsa_pada
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         if expires_at <= datetime.now(timezone.utc):
@@ -119,10 +121,10 @@ class AuthRepository:
         return session
 
     def deactivate_session(self, session_token: str) -> bool:
-        statement = select(UserSession).where(UserSession.session_token == session_token)
+        statement = select(SesiPengguna).where(SesiPengguna.token_sesi == session_token)
         session = self.db.exec(statement).first()
         if session:
-            session.is_active = False
+            session.apakah_aktif = False
             self.db.commit()
             return True
         return False

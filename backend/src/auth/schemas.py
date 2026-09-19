@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GoogleProfileDTO(BaseModel):
@@ -22,7 +22,11 @@ class OAuthTokenDTO(BaseModel):
 
 
 class ResearcherProfileResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    """
+    Response schema for current researcher profile.
+    Maintains camelCase / snake_case contract for frontend compatibility.
+    """
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     researcher_id: uuid.UUID
     email: str
