@@ -43,8 +43,8 @@ flowchart TD
 
 **Purpose**: Establish database schemas, entity models, and migration scripts required before use case controllers can run.
 
-- [ ] T005 Create Alembic migration script `backend/alembic/versions/002_document_import_schema.py` creating `dokumen`, `teks_ekstraksi`, and `halaman_ekstraksi` tables with indexes and unique constraints (`google_drive_id, peneliti_id`)
-- [ ] T006 Implement Entity SQLModel classes (`Dokumen`, `TeksEkstraksi`, `HalamanEkstraksi`) with enums (`status_import: importing, extracting, extracted, failed` and `tipe_file: pdf, docx`) in `backend/src/documents/models.py`
+- [ ] T005 Create Alembic migration script `backend/alembic/versions/002_document_import_schema.py` creating `documents`, `extracted_texts`, and `extracted_pages` tables with indexes and unique constraints (`google_drive_id, researcher_id`)
+- [ ] T006 Implement Entity SQLModel classes (`Document`, `ExtractedText`, `ExtractedPage`) with enums (`import_status: importing, extracting, extracted, failed` and `file_type: pdf, docx`) in `backend/src/documents/models.py`
 - [ ] T007 [P] Implement base `DocumentRepository` CRUD and status update methods in `backend/src/documents/repository.py`
 - [ ] T008 Run migration in test database environment (`alembic upgrade head`) and verify table creation in PostgreSQL
 - [ ] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): implement document import schema migrations and foundational entity models"`
@@ -134,7 +134,7 @@ flowchart TD
 - [ ] T050 [UC3] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC3): add test suite for import retry flow"`
 
 ### Step 5.2: Controller & Entity Extensions
-- [ ] T051 [UC3] Implement `retry_import` method in `backend/src/documents/service.py` resetting document status to `importing`, clearing `alasan_gagal`, and re-enqueueing `import_document_task` in ARQ
+- [ ] T051 [UC3] Implement `retry_import` method in `backend/src/documents/service.py` resetting document status to `importing`, clearing `failure_reason`, and re-enqueueing `import_document_task` in ARQ
 
 ### Step 5.3: Boundary & Integration
 - [ ] T052 [UC3] Implement FastAPI Router endpoint (`POST /api/documents/{id}/retry`) in `backend/src/documents/router.py`

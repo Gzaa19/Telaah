@@ -7,90 +7,90 @@
 
 ## Tables
 
-### `dokumen`
+### `documents`
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| `id` | `UUID` | PK, default `gen_random_uuid()` | |
-| `google_drive_id` | `VARCHAR(255)` | NOT NULL | Google Drive file ID — kunci deduplication |
-| `nama_file` | `VARCHAR(500)` | NOT NULL | Nama file asli dari Drive |
-| `tipe_file` | `ENUM('pdf','docx')` | NOT NULL | Tipe file yang didukung |
-| `ukuran_file_bytes` | `BIGINT` | NULLABLE | Ukuran file dari Drive metadata |
-| `tanggal_modifikasi_drive` | `TIMESTAMPTZ` | NULLABLE | `modifiedTime` dari Drive API |
-| `md5_checksum_drive` | `VARCHAR(64)` | NULLABLE | `md5Checksum` dari Drive API — untuk deteksi perubahan konten |
-| `status_import` | `ENUM('importing','extracting','extracted','failed')` | NOT NULL, default `'importing'` | State machine pipeline import |
-| `alasan_gagal` | `TEXT` | NULLABLE | Pesan error yang dapat dibaca peneliti |
-| `waktu_import` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Waktu pertama kali import dimulai |
-| `waktu_ekstraksi_selesai` | `TIMESTAMPTZ` | NULLABLE | Waktu ekstraksi teks berhasil selesai |
-| `peneliti_id` | `UUID` | NOT NULL, FK → `peneliti.id` | Pemilik dokumen |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | |
+| `id` | `UUID` | PK, default `gen_random_uuid()` | Primary key |
+| `google_drive_id` | `VARCHAR(255)` | NOT NULL | Google Drive file ID — unique key for deduplication |
+| `file_name` | `VARCHAR(500)` | NOT NULL | Original file name from Drive |
+| `file_type` | `ENUM('pdf','docx')` | NOT NULL | Supported file types |
+| `file_size_bytes` | `BIGINT` | NULLABLE | File size in bytes from Drive metadata |
+| `drive_modified_at` | `TIMESTAMPTZ` | NULLABLE | `modifiedTime` from Drive API |
+| `drive_md5_checksum` | `VARCHAR(64)` | NULLABLE | `md5Checksum` from Drive API — content change detection |
+| `import_status` | `ENUM('importing','extracting','extracted','failed')` | NOT NULL, default `'importing'` | Import pipeline state machine |
+| `failure_reason` | `TEXT` | NULLABLE | Human-readable error message if failed |
+| `imported_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Timestamp when import was initiated |
+| `extracted_at` | `TIMESTAMPTZ` | NULLABLE | Timestamp when text extraction succeeded |
+| `researcher_id` | `UUID` | NOT NULL, FK → `peneliti.id` | Document owner (references `peneliti` table from UC-01) |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Audit timestamp |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Auto-update on write |
 
 **Indexes**:
 ```sql
-CREATE UNIQUE INDEX uq_dokumen_drive_id_peneliti ON dokumen (google_drive_id, peneliti_id);
-CREATE INDEX idx_dokumen_peneliti_id ON dokumen (peneliti_id);
-CREATE INDEX idx_dokumen_status_import ON dokumen (status_import);
+CREATE UNIQUE INDEX uq_documents_drive_id_researcher ON documents (google_drive_id, researcher_id);
+CREATE INDEX idx_documents_researcher_id ON documents (researcher_id);
+CREATE INDEX idx_documents_import_status ON documents (import_status);
 ```
 
 **Constraints**:
-- `(google_drive_id, peneliti_id)` UNIQUE — satu peneliti tidak bisa mengimpor file Drive yang sama dua kali tanpa konfirmasi override.
-- `alasan_gagal` hanya terisi ketika `status_import = 'failed'`.
+- `(google_drive_id, researcher_id)` UNIQUE — a researcher cannot import the same Drive file twice without a force-reimport confirmation.
+- `failure_reason` is only populated when `import_status = 'failed'`.
 
 ---
 
-### `teks_ekstraksi`
+### `extracted_texts`
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| `id` | `UUID` | PK, default `gen_random_uuid()` | |
-| `dokumen_id` | `UUID` | NOT NULL, FK → `dokumen.id` ON DELETE CASCADE, UNIQUE | Satu dokumen → satu ekstraksi aktif |
-| `konten_teks_penuh` | `TEXT` | NOT NULL | Seluruh teks dokumen digabung (input untuk UC-03) |
-| `total_halaman` | `INTEGER` | NOT NULL | Jumlah halaman (PDF) atau seksi (DOCX) |
-| `waktu_ekstraksi` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | |
+| `id` | `UUID` | PK, default `gen_random_uuid()` | Primary key |
+| `document_id` | `UUID` | NOT NULL, FK → `documents.id` ON DELETE CASCADE, UNIQUE | Exactly one active extraction per document |
+| `full_text` | `TEXT` | NOT NULL | Complete concatenated text content (input for UC-03) |
+| `total_pages` | `INTEGER` | NOT NULL | Total page count (PDF) or total section count (DOCX) |
+| `extracted_at` | `TIMESTAMPTZ` | NOT NULL, default `NOW()` | Extraction timestamp |
 
 **Indexes**:
 ```sql
-CREATE UNIQUE INDEX uq_teks_ekstraksi_dokumen ON teks_ekstraksi (dokumen_id);
+CREATE UNIQUE INDEX uq_extracted_texts_document ON extracted_texts (document_id);
 ```
 
 ---
 
-### `halaman_ekstraksi`
+### `extracted_pages`
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
-| `id` | `UUID` | PK, default `gen_random_uuid()` | |
-| `teks_ekstraksi_id` | `UUID` | NOT NULL, FK → `teks_ekstraksi.id` ON DELETE CASCADE | |
-| `nomor_halaman` | `INTEGER` | NOT NULL | Nomor halaman (1-indexed untuk PDF); urutan paragraf/seksi untuk DOCX |
-| `konten_halaman` | `TEXT` | NOT NULL | Teks halaman/seksi ini |
+| `id` | `UUID` | PK, default `gen_random_uuid()` | Primary key |
+| `extracted_text_id` | `UUID` | NOT NULL, FK → `extracted_texts.id` ON DELETE CASCADE | Parent extraction record |
+| `page_number` | `INTEGER` | NOT NULL | Physical page number (1-indexed for PDF) or section order (DOCX) |
+| `content` | `TEXT` | NOT NULL | Text content for this specific page or section |
 
 **Indexes**:
 ```sql
-CREATE INDEX idx_halaman_teks_id ON halaman_ekstraksi (teks_ekstraksi_id);
-CREATE UNIQUE INDEX uq_halaman_nomor ON halaman_ekstraksi (teks_ekstraksi_id, nomor_halaman);
+CREATE INDEX idx_extracted_pages_text_id ON extracted_pages (extracted_text_id);
+CREATE UNIQUE INDEX uq_extracted_pages_number ON extracted_pages (extracted_text_id, page_number);
 ```
 
-> `HalamanEkstraksi` adalah unit granularity untuk UC-03 — setiap baris ini menjadi kandidat chunk dengan metadata `nomor_halaman` yang memungkinkan keterlacakan sitasi.
+> `ExtractedPage` provides the unit granularity for UC-03 — each row represents a chunk candidate with `page_number` metadata for academic citation traceability.
 
 ---
 
-## State Machine: `dokumen.status_import`
+## State Machine: `documents.import_status`
 
 ```mermaid
 stateDiagram-v2
     [*] --> importing : POST /api/documents/import (job enqueued)
-    importing --> extracting : File berhasil diunduh dari Drive
-    extracting --> extracted : Teks berhasil diekstrak & disimpan
-    extracted --> [*] : UC-03 indexing job dipicu
-    importing --> failed : Gagal unduh (network, Drive API error, token revoked)
-    extracting --> failed : Gagal ekstraksi (scanned PDF, encrypted PDF, DOCX corrupt)
-    failed --> importing : Peneliti klik "Coba Lagi" (retry_import)
+    importing --> extracting : File downloaded from Drive
+    extracting --> extracted : Text extracted and saved
+    extracted --> [*] : UC-03 indexing job triggered
+    importing --> failed : Download error (network, Drive 5xx, token revoked)
+    extracting --> failed : Extraction error (scanned PDF, password-protected, corrupt DOCX)
+    failed --> importing : Researcher clicks "Retry" (retry_import)
 ```
 
 **Retry Policy**:
-- `failed` dari error transient (Drive API 5xx, network timeout): ARQ `max_tries=3` dengan exponential backoff.
-- `failed` dari error permanen (scanned PDF, PDF terenkripsi, file tidak ditemukan di Drive, token revoked): ARQ `max_tries=1` — tidak diretry otomatis. Peneliti harus memicu ulang secara manual setelah menyelesaikan penyebab masalah.
+- `failed` from transient errors (Drive API 5xx, network timeout): ARQ `max_tries=3` with exponential backoff.
+- `failed` from permanent errors (scanned PDF, encrypted PDF, file not found, token revoked): ARQ `max_tries=1` — no automatic retry. Researcher must resolve the underlying issue and trigger retry manually.
 
 ---
 
@@ -99,7 +99,7 @@ stateDiagram-v2
 File: `backend/alembic/versions/002_document_import_schema.py`
 
 ```python
-"""UC-02: Document import schema — dokumen, teks_ekstraksi, halaman_ekstraksi tables
+"""UC-02: Document import schema — documents, extracted_texts, extracted_pages tables
 
 Revision ID: 002
 Revises: 001
@@ -111,27 +111,62 @@ def upgrade():
     op.execute("CREATE TYPE import_status AS ENUM ('importing', 'extracting', 'extracted', 'failed')")
     op.execute("CREATE TYPE file_type AS ENUM ('pdf', 'docx')")
 
-    # 2. Create dokumen table
-    op.create_table('dokumen', ...)
+    # 2. Create documents table
+    op.create_table(
+        'documents',
+        sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
+        sa.Column('google_drive_id', sa.String(length=255), nullable=False),
+        sa.Column('file_name', sa.String(length=500), nullable=False),
+        sa.Column('file_type', sa.Enum('pdf', 'docx', name='file_type'), nullable=False),
+        sa.Column('file_size_bytes', sa.BigInteger(), nullable=True),
+        sa.Column('drive_modified_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('drive_md5_checksum', sa.String(length=64), nullable=True),
+        sa.Column('import_status', sa.Enum('importing', 'extracting', 'extracted', 'failed', name='import_status'), server_default='importing', nullable=False),
+        sa.Column('failure_reason', sa.Text(), nullable=True),
+        sa.Column('imported_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('extracted_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('researcher_id', sa.UUID(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['researcher_id'], ['peneliti.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
 
-    # 3. Create teks_ekstraksi table
-    op.create_table('teks_ekstraksi', ...)
+    # 3. Create extracted_texts table
+    op.create_table(
+        'extracted_texts',
+        sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
+        sa.Column('document_id', sa.UUID(), nullable=False),
+        sa.Column('full_text', sa.Text(), nullable=False),
+        sa.Column('total_pages', sa.Integer(), nullable=False),
+        sa.Column('extracted_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['document_id'], ['documents.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('document_id', name='uq_extracted_texts_document')
+    )
 
-    # 4. Create halaman_ekstraksi table
-    op.create_table('halaman_ekstraksi', ...)
+    # 4. Create extracted_pages table
+    op.create_table(
+        'extracted_pages',
+        sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
+        sa.Column('extracted_text_id', sa.UUID(), nullable=False),
+        sa.Column('page_number', sa.Integer(), nullable=False),
+        sa.Column('content', sa.Text(), nullable=False),
+        sa.ForeignKeyConstraint(['extracted_text_id'], ['extracted_texts.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
 
     # 5. Create indexes
-    op.create_index('uq_dokumen_drive_id_peneliti', 'dokumen', ['google_drive_id', 'peneliti_id'], unique=True)
-    op.create_index('idx_dokumen_peneliti_id', 'dokumen', ['peneliti_id'])
-    op.create_index('idx_dokumen_status_import', 'dokumen', ['status_import'])
-    op.create_index('uq_teks_ekstraksi_dokumen', 'teks_ekstraksi', ['dokumen_id'], unique=True)
-    op.create_index('idx_halaman_teks_id', 'halaman_ekstraksi', ['teks_ekstraksi_id'])
-    op.create_index('uq_halaman_nomor', 'halaman_ekstraksi', ['teks_ekstraksi_id', 'nomor_halaman'], unique=True)
+    op.create_index('uq_documents_drive_id_researcher', 'documents', ['google_drive_id', 'researcher_id'], unique=True)
+    op.create_index('idx_documents_researcher_id', 'documents', ['researcher_id'])
+    op.create_index('idx_documents_import_status', 'documents', ['import_status'])
+    op.create_index('idx_extracted_pages_text_id', 'extracted_pages', ['extracted_text_id'])
+    op.create_index('uq_extracted_pages_number', 'extracted_pages', ['extracted_text_id', 'page_number'], unique=True)
 
 def downgrade():
-    op.drop_table('halaman_ekstraksi')
-    op.drop_table('teks_ekstraksi')
-    op.drop_table('dokumen')
+    op.drop_table('extracted_pages')
+    op.drop_table('extracted_texts')
+    op.drop_table('documents')
     op.execute("DROP TYPE import_status")
     op.execute("DROP TYPE file_type")
 ```

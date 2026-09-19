@@ -176,41 +176,51 @@ flowchart LR
 
 ```mermaid
 classDiagram
-    class Dokumen {
-        +dokumenId: UUID
+    class Document {
+        +documentId: UUID
         +googleDriveId: String
-        +namaFile: String
-        +tipeFile: Enum[PDF, DOCX]
-        +ukuranFile: Integer
-        +tanggalModifikasiDrive: DateTime
-        +statusImport: Enum[importing, extracting, extracted, failed]
-        +alasanGagal: String
-        +waktuImport: DateTime
-        +penelitiId: UUID
+        +fileName: String
+        +fileType: Enum[PDF, DOCX]
+        +fileSizeBytes: Integer
+        +driveModifiedAt: DateTime
+        +driveMd5Checksum: String
+        +importStatus: Enum[importing, extracting, extracted, failed]
+        +failureReason: String
+        +importedAt: DateTime
+        +extractedAt: DateTime
+        +researcherId: UUID
     }
 
-    class TeksEkstraksi {
-        +teksId: UUID
-        +dokumenId: UUID
-        +kontenTeks: Text
-        +totalHalaman: Integer
-        +waktuEkstraksi: DateTime
+    class ExtractedText {
+        +extractedTextId: UUID
+        +documentId: UUID
+        +fullText: Text
+        +totalPages: Integer
+        +extractedAt: DateTime
     }
 
-    class Peneliti {
-        +penelitiId: UUID
-        +namaLengkap: String
-        +emailGoogle: String
-        +tokenDriveAktif: Boolean
+    class ExtractedPage {
+        +extractedPageId: UUID
+        +extractedTextId: UUID
+        +pageNumber: Integer
+        +content: Text
     }
 
-    Peneliti "1" --> "*" Dokumen : mengimpor
-    Dokumen "1" --> "1" TeksEkstraksi : menghasilkan
+    class ResearcherAccount {
+        +researcherId: UUID
+        +fullName: String
+        +email: String
+    }
+
+    ResearcherAccount "1" --> "*" Document : imports
+    Document "1" --> "1" ExtractedText : yields
+    ExtractedText "1" --> "*" ExtractedPage : contains
 ```
 
-- **Dokumen**: Representasi file literatur yang diimpor dari Google Drive. Menyimpan identitas Drive (`googleDriveId`), metadata file, dan status pipeline import. `googleDriveId` berfungsi sebagai kunci unik untuk pencegahan duplikasi.
-- **TeksEkstraksi**: Konten teks yang berhasil diekstrak dari dokumen. Menjadi input langsung untuk UC-03 pipeline indexing. Disimpan terpisah dari metadata dokumen untuk fleksibilitas re-ekstraksi.
-- **Peneliti**: Pengguna yang memiliki hak atas dokumen yang diimpor. Token Drive-nya digunakan selama proses unduhan file.
+- **Document**: Representasi berkas literatur ilmiah yang diimpor dari Google Drive. Menyimpan identitas Drive (`googleDriveId`), metadata berkas, hash konten (`driveMd5Checksum`), dan status pipeline import (`importStatus`). `googleDriveId` berfungsi sebagai kunci unik per peneliti untuk pencegahan duplikasi.
+- **ExtractedText**: Konten teks lengkap hasil ekstraksi dari berkas, terpisah dari metadata dokumen untuk fleksibilitas re-ekstraksi. Menjadi input langsung untuk pipeline indexing UC-03.
+- **ExtractedPage**: Potongan teks per halaman (PDF) atau per seksi (DOCX), menyimpan `pageNumber` untuk keterlacakan sitasi ilmiah pada UC-03.
+- **ResearcherAccount**: Pengguna sistem yang memiliki hak eksklusif atas dokumen yang diimpor.
 
 ---
 

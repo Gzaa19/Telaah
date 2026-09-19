@@ -7,16 +7,16 @@
 
 ## GET /api/drive/files
 
-Browse file dan folder dari Google Drive peneliti.
+Browse files and folders from the researcher's connected Google Drive.
 
 ### Query Parameters
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `folder_id` | `string` | No | `"root"` | Google Drive folder ID. `"root"` untuk root Drive. |
-| `q` | `string` | No | `""` | Pencarian berdasarkan nama file (min 2 karakter). |
-| `page_token` | `string` | No | `null` | Token paginasi dari response sebelumnya. |
-| `page_size` | `integer` | No | `50` | Jumlah item per halaman. Max: `100`. |
+| `folder_id` | `string` | No | `"root"` | Google Drive folder ID. `"root"` for Drive root. |
+| `q` | `string` | No | `""` | Search keyword by file name (min 2 characters). |
+| `page_token` | `string` | No | `null` | Pagination token from previous response. |
+| `page_size` | `integer` | No | `50` | Number of items per page. Max: `100`. |
 
 ### Response: 200 OK
 
@@ -25,21 +25,21 @@ Browse file dan folder dari Google Drive peneliti.
   "files": [
     {
       "id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms",
-      "name": "Systematic Review - Metode RAG.pdf",
+      "name": "Systematic Review - RAG Methods.pdf",
       "mime_type": "application/pdf",
-      "tipe_file": "pdf",
-      "ukuran_bytes": 2048000,
-      "tanggal_modifikasi": "2026-09-10T14:30:00Z",
+      "file_type": "pdf",
+      "size_bytes": 2048000,
+      "modified_at": "2026-09-10T14:30:00Z",
       "is_folder": false,
       "can_import": true
     },
     {
       "id": "0B1Yt7kl9YtHgZ2F2a2RtRUNFYm8",
-      "name": "Literatur",
+      "name": "Literature",
       "mime_type": "application/vnd.google-apps.folder",
-      "tipe_file": null,
-      "ukuran_bytes": null,
-      "tanggal_modifikasi": "2026-09-01T08:00:00Z",
+      "file_type": null,
+      "size_bytes": null,
+      "modified_at": "2026-09-01T08:00:00Z",
       "is_folder": true,
       "can_import": false
     }
@@ -47,38 +47,38 @@ Browse file dan folder dari Google Drive peneliti.
   "next_page_token": "~!!~AI9FV7Qp5JZuMaG...",
   "folder_path": [
     { "id": "root", "name": "My Drive" },
-    { "id": "0B1Yt7kl9YtHgZ2F2a2RtRUNFYm8", "name": "Literatur" }
+    { "id": "0B1Yt7kl9YtHgZ2F2a2RtRUNFYm8", "name": "Literature" }
   ]
 }
 ```
 
-> `can_import: true` hanya untuk file `pdf` dan `docx`. `folder_path` digunakan untuk breadcrumb navigasi.
+> `can_import: true` is strictly set for `pdf` and `docx` files. `folder_path` is used for breadcrumb navigation.
 
 ### Response: 401 Unauthorized
 ```json
-{ "detail": "Sesi tidak valid atau telah kedaluwarsa." }
+{ "detail": "Invalid or expired session." }
 ```
 
-### Response: 403 Forbidden (token Drive revoked)
+### Response: 403 Forbidden (Drive token revoked)
 ```json
-{ "detail": "Akses Google Drive dicabut. Silakan hubungkan ulang akun Drive Anda.", "error_code": "DRIVE_TOKEN_REVOKED" }
+{ "detail": "Google Drive access has been revoked. Please reconnect your Drive account.", "error_code": "DRIVE_TOKEN_REVOKED" }
 ```
 
 ---
 
 ## POST /api/documents/import
 
-Memulai proses import dokumen dari Google Drive.
+Initiate document import and background text extraction from Google Drive.
 
 ### Request Body
 
 ```json
 {
   "drive_file_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms",
-  "nama_file": "Systematic Review - Metode RAG.pdf",
-  "tipe_file": "pdf",
-  "ukuran_bytes": 2048000,
-  "md5_checksum": "d41d8cd98f00b204e9800998ecf8427e",
+  "file_name": "Systematic Review - RAG Methods.pdf",
+  "file_type": "pdf",
+  "file_size_bytes": 2048000,
+  "drive_md5_checksum": "d41d8cd98f00b204e9800998ecf8427e",
   "force_reimport": false
 }
 ```
@@ -86,113 +86,113 @@ Memulai proses import dokumen dari Google Drive.
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `drive_file_id` | `string` | Yes | Google Drive file ID |
-| `nama_file` | `string` | Yes | Nama file dari Drive |
-| `tipe_file` | `"pdf" \| "docx"` | Yes | Tipe file |
-| `ukuran_bytes` | `integer` | No | Ukuran file dari Drive metadata |
-| `md5_checksum` | `string` | No | md5Checksum dari Drive API |
-| `force_reimport` | `boolean` | No (default `false`) | `true` untuk override dokumen yang sudah pernah diimpor (Alt-3) |
+| `file_name` | `string` | Yes | Original file name from Drive |
+| `file_type` | `"pdf" \| "docx"` | Yes | Supported file type |
+| `file_size_bytes` | `integer` | No | File size in bytes from Drive metadata |
+| `drive_md5_checksum` | `string` | No | md5Checksum from Drive API for change detection |
+| `force_reimport` | `boolean` | No (default `false`) | Set `true` to overwrite previously imported document (Alt-3) |
 
-### Response: 202 Accepted (job enqueued)
+### Response: 202 Accepted (Job Enqueued)
 
 ```json
 {
-  "dokumen_id": "550e8400-e29b-41d4-a716-446655440000",
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "importing",
-  "nama_file": "Systematic Review - Metode RAG.pdf",
-  "pesan": "Import dokumen sedang diproses."
+  "file_name": "Systematic Review - RAG Methods.pdf",
+  "message": "Document import is being processed in background."
 }
 ```
 
-### Response: 409 Conflict (duplikat, `force_reimport` tidak di-set)
+### Response: 409 Conflict (Duplicate without force_reimport)
 
 ```json
 {
-  "detail": "Dokumen ini sudah pernah diimpor.",
-  "dokumen_id": "550e8400-e29b-41d4-a716-446655440000",
-  "status_import_saat_ini": "extracted",
+  "detail": "This document has already been imported.",
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
+  "current_import_status": "extracted",
   "error_code": "DUPLICATE_DOCUMENT"
 }
 ```
 
-> Frontend menampilkan konfirmasi dialog (Alt-3). Jika peneliti konfirmasi, kirim ulang dengan `force_reimport: true`.
+> The frontend renders a confirmation dialog (Alt-3). When confirmed, the researcher re-submits with `force_reimport: true`.
 
-### Response: 422 Unprocessable Entity (tipe file tidak didukung)
+### Response: 422 Unprocessable Entity (Unsupported file type)
 ```json
-{ "detail": "Tipe file tidak didukung. Hanya PDF dan DOCX yang dapat diimpor.", "error_code": "UNSUPPORTED_FILE_TYPE" }
+{ "detail": "Unsupported file type. Only PDF and DOCX files can be imported.", "error_code": "UNSUPPORTED_FILE_TYPE" }
 ```
 
 ---
 
 ## GET /api/documents/{document_id}/status
 
-Polling status import dokumen (digunakan oleh SCR-04 setiap ~3 detik).
+Poll import status of a specific document (used by SCR-04 every ~3 seconds).
 
 ### Path Parameters
 
 | Parameter | Type | Description |
 |---|---|---|
-| `document_id` | `UUID` | ID dokumen yang diimpor |
+| `document_id` | `UUID` | ID of the imported document |
 
-### Response: 200 OK
+### Response: 200 OK (In Progress or Extracted)
 
 ```json
 {
-  "dokumen_id": "550e8400-e29b-41d4-a716-446655440000",
-  "nama_file": "Systematic Review - Metode RAG.pdf",
-  "status_import": "extracting",
-  "alasan_gagal": null,
-  "waktu_import": "2026-09-19T11:40:00Z",
-  "waktu_ekstraksi_selesai": null,
-  "status_indexing": null
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
+  "file_name": "Systematic Review - RAG Methods.pdf",
+  "import_status": "extracting",
+  "failure_reason": null,
+  "imported_at": "2026-09-19T11:40:00Z",
+  "extracted_at": null,
+  "indexing_status": null
 }
 ```
 
-`status_import` values: `importing | extracting | extracted | failed`
-`status_indexing` (dari UC-03 setelah ekstraksi selesai): `queued | extracting | chunking | embedding | indexed | failed | null`
+`import_status` values: `importing | extracting | extracted | failed`  
+`indexing_status` (from UC-03 once extraction completes): `queued | extracting | chunking | embedding | indexed | failed | null`
 
-### Response: 200 OK (failed)
+### Response: 200 OK (Failed)
 
 ```json
 {
-  "dokumen_id": "550e8400-e29b-41d4-a716-446655440000",
-  "nama_file": "Laporan Scan.pdf",
-  "status_import": "failed",
-  "alasan_gagal": "PDF tidak mengandung teks yang dapat diekstrak (kemungkinan PDF hasil scan).",
-  "waktu_import": "2026-09-19T11:40:00Z",
-  "waktu_ekstraksi_selesai": null,
-  "status_indexing": null
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
+  "file_name": "Scanned Report.pdf",
+  "import_status": "failed",
+  "failure_reason": "PDF does not contain extractable text (likely a scanned image).",
+  "imported_at": "2026-09-19T11:40:00Z",
+  "extracted_at": null,
+  "indexing_status": null
 }
 ```
 
 ### Response: 404 Not Found
 ```json
-{ "detail": "Dokumen tidak ditemukan." }
+{ "detail": "Document not found." }
 ```
 
 ---
 
 ## POST /api/documents/{document_id}/retry
 
-Memulai ulang import dokumen yang gagal (UC-02b).
+Retry a failed document import (UC-02b).
 
 ### Path Parameters
 
 | Parameter | Type | Description |
 |---|---|---|
-| `document_id` | `UUID` | ID dokumen dengan status `failed` |
+| `document_id` | `UUID` | ID of the document with `failed` status |
 
 ### Response: 202 Accepted
 ```json
 {
-  "dokumen_id": "550e8400-e29b-41d4-a716-446655440000",
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "importing",
-  "pesan": "Import ulang dokumen sedang diproses."
+  "message": "Document re-import is being processed in background."
 }
 ```
 
-### Response: 409 Conflict (status bukan `failed`)
+### Response: 409 Conflict (Document not in `failed` status)
 ```json
-{ "detail": "Retry hanya dapat dilakukan pada dokumen dengan status 'failed'.", "status_saat_ini": "extracted" }
+{ "detail": "Retry can only be triggered for documents with 'failed' status.", "current_status": "extracted" }
 ```
 
 ---
@@ -205,9 +205,9 @@ export interface DriveFile {
   id: string;
   name: string;
   mime_type: string;
-  tipe_file: 'pdf' | 'docx' | null;
-  ukuran_bytes: number | null;
-  tanggal_modifikasi: string;
+  file_type: 'pdf' | 'docx' | null;
+  size_bytes: number | null;
+  modified_at: string;
   is_folder: boolean;
   can_import: boolean;
 }
@@ -219,32 +219,32 @@ export interface DriveFileListResponse {
 }
 
 // types/documents.ts
+export type ImportStatus = 'importing' | 'extracting' | 'extracted' | 'failed';
+export type IndexingStatus = 'queued' | 'extracting' | 'chunking' | 'embedding' | 'indexed' | 'failed' | null;
+
 export interface ImportDocumentRequest {
   drive_file_id: string;
-  nama_file: string;
-  tipe_file: 'pdf' | 'docx';
-  ukuran_bytes?: number;
-  md5_checksum?: string;
+  file_name: string;
+  file_type: 'pdf' | 'docx';
+  file_size_bytes?: number;
+  drive_md5_checksum?: string;
   force_reimport?: boolean;
 }
 
 export interface ImportDocumentResponse {
-  dokumen_id: string;
+  document_id: string;
   status: ImportStatus;
-  nama_file: string;
-  pesan: string;
+  file_name: string;
+  message: string;
 }
 
-export type ImportStatus = 'importing' | 'extracting' | 'extracted' | 'failed';
-export type IndexingStatus = 'queued' | 'extracting' | 'chunking' | 'embedding' | 'indexed' | 'failed' | null;
-
 export interface DocumentStatusResponse {
-  dokumen_id: string;
-  nama_file: string;
-  status_import: ImportStatus;
-  alasan_gagal: string | null;
-  waktu_import: string;
-  waktu_ekstraksi_selesai: string | null;
-  status_indexing: IndexingStatus;
+  document_id: string;
+  file_name: string;
+  import_status: ImportStatus;
+  failure_reason: string | null;
+  imported_at: string;
+  extracted_at: string | null;
+  indexing_status: IndexingStatus;
 }
 ```
