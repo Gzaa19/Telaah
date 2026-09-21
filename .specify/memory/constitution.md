@@ -1,12 +1,9 @@
 <!--
 Sync Impact Report:
-- Version change: 1.0.0 → 1.1.0
+- Version change: 1.1.0 → 1.2.0
 - List of modified principles:
-  - Added Principle 6: 6. Ponytail Engineering (Simplicity & Anti-Overengineering)
-  - Added Principle 7: 7. Anti-Slop Frontend Design (Taste-Skill Compliance)
-  - Clarified Scope: Telaah is an AI Scientific Journal Paper & Manuscript Generator (target: Scopus, SINTA, IEEE, Elsevier), NOT a funding/grant proposal generator.
-- Added sections:
-  - Frontend Component & Iconography Constraints
+  - Principle 6: Expanded "6. Ponytail Engineering (Simplicity, Anti-Overengineering & Agent Token Efficiency)" to mandate RTK CLI proxy and token-efficient terminal execution for AI agents.
+- Added sections: None
 - Removed sections: None
 - Follow-up TODOs: None
 -->
@@ -44,11 +41,15 @@ Sync Impact Report:
 - FastAPI (Python) MUST tetap menjadi core API backend utama yang bertanggung jawab atas logika AI, pemrosesan embedding, dan integrasi database.
 - Rationale: Mengoptimalkan kecepatan tooling frontend sekaligus mempertahankan keunggulan ekosistem Python untuk AI/LLM.
 
-### 6. Ponytail Engineering (Simplicity & Anti-Overengineering)
+### 6. Ponytail Engineering (Simplicity, Anti-Overengineering & Agent Token Efficiency)
 - **YAGNI Mandate**: Sebelum menulis kode baru, selalu evaluasi: apakah kode ini benar-benar dibutuhkan sekarang? Dapatkah fitur standar platform / standard library menyelesaikannya?
 - **Anti-Bloat**: Dilarang membuat abstraksi berlapis yang tidak diminta (*no unrequested abstractions*), library pihak ketiga yang berlebihan (*no avoidable dependencies*), dan boilerplate kosong.
 - **Minimum Working Solution**: Bangun solusi paling sederhana dan elegan yang langsung bekerja. Tandai penyederhanaan arsitektural yang disengaja dengan komentar: `// ponytail: <alasan/penjelasan>`.
-- Rationale: Menjaga codebase tetap ringan, mudah dirawat (*maintainable*), cepat, dan bebas dari beban teknis berlebih.
+- **Agent Token Hygiene & RTK CLI Proxy**:
+  - AI agent MUST meminimalkan pemborosan token (*Token Tax*) dan mencegah polusi *context window* saat menjalankan perintah terminal.
+  - Jika CLI proxy **`rtk`** (Rust Token Killer) terpasang di sistem pengguna (misal: `/opt/homebrew/bin/rtk`), AI agent MUST memprioritaskan penggunaan `rtk <command>` untuk perintah terminal yang menghasilkan output panjang atau bising (seperti `rtk pytest`, `rtk git status`, `rtk git diff`, `rtk bun run build`, `rtk ls`, `rtk find`, dll.).
+  - Jika `rtk` tidak tersedia di environment tertentu (misal: CI/CD runner), AI agent MUST menggunakan flag hening/ringkas (seperti `-q`, `--compact`, atau piping spesifik) untuk mencegah *context buffer exhaustion*.
+- Rationale: Menjaga codebase tetap ringan, mudah dirawat (*maintainable*), cepat, serta menghemat konsumsi token konteks LLM hingga 60–90% selama siklus pengembangan agenik otonom.
 
 ### 7. Anti-Slop Frontend Design (Taste-Skill Compliance)
 - **Teknologi Utama**: Frontend MUST menggunakan **Next.js App Router**, **Tailwind CSS**, dan **shadcn/ui**.
@@ -79,7 +80,7 @@ Sync Impact Report:
   2. `/speckit-plan` (Buat rencana arsitektur dan teknis implementasi ICONIX)
   3. `/speckit-tasks` (Rincikan tugas-tugas terukur dan sekuensial)
   4. `/speckit-implement` (Eksekusi implementasi kode berdasarkan tasks.md)
-- **Kepatuhan Desain & Kode**: Setiap PR/implementasi UI wajib diverifikasi terhadap Prinsip 6 (Ponytail) dan Prinsip 7 (Taste-Skill).
+- **Kepatuhan Desain & Kode**: Setiap PR/implementasi UI wajib diverifikasi terhadap Prinsip 6 (Ponytail & Agent Token Hygiene) dan Prinsip 7 (Taste-Skill).
 
 ## Governance
 
@@ -87,7 +88,7 @@ Sync Impact Report:
 - **Prosedur Amandemen**: Constitution dapat diamandemen hanya melalui perintah `/speckit-constitution`. Setiap amandemen MUST mencantumkan alasan perubahan dan dicatat dalam changelog proyek.
 - **Aturan Penomoran Versi**:
   - **MAJOR**: Perubahan mendasar atau penghapusan Core Principles.
-  - **MINOR**: Penambahan prinsip baru (seperti Ponytail & Taste-Skill) atau pembaruan batasan arsitektur.
+  - **MINOR**: Penambahan prinsip baru (seperti Ponytail & Taste-Skill) atau pembaruan batasan arsitektur/operasional agent.
   - **PATCH**: Koreksi tipografi atau perbaikan kata minor.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-16 | **Last Amended**: 2026-09-16
+**Version**: 1.2.0 | **Ratified**: 2026-09-16 | **Last Amended**: 2026-09-21
