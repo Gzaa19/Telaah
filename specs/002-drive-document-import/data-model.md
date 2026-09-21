@@ -71,7 +71,7 @@ CREATE INDEX idx_extracted_pages_text_id ON extracted_pages (extracted_text_id);
 CREATE UNIQUE INDEX uq_extracted_pages_number ON extracted_pages (extracted_text_id, page_number);
 ```
 
-> `ExtractedPage` provides the unit granularity for UC-03 — each row represents a chunk candidate with `page_number` metadata for academic citation traceability.
+> `ExtractedPage` menyimpan teks per halaman (PDF) atau per seksi (DOCX) sebagai unit granularitas dari hasil ekstraksi UC-02. Setiap baris dikirim ke UC-03 (Document Indexing and Local Embedding) sebagai bagian dari `document_id` — UC-03 menentukan strategi chunking dan embedding secara mandiri menggunakan model lokal.
 
 ---
 
@@ -82,11 +82,13 @@ stateDiagram-v2
     [*] --> importing : POST /api/documents/import (job enqueued)
     importing --> extracting : File downloaded from Drive
     extracting --> extracted : Text extracted and saved
-    extracted --> [*] : UC-03 indexing job triggered
+    extracted --> [*] : UC-02 selesai — event/job dikirim ke UC-03 dengan document_id
     importing --> failed : Download error (network, Drive 5xx, token revoked)
     extracting --> failed : Extraction error (scanned PDF, password-protected, corrupt DOCX)
     failed --> importing : Researcher clicks "Retry" (retry_import)
 ```
+
+**Catatan Boundary**: Status `extracted` adalah **terminal state UC-02**. Setelah state ini, sistem mengirim event ke UC-03 (Document Indexing and Local Embedding). Proses selanjutnya (cleaning, chunking, generate embedding lokal, penyimpanan vector ke pgvector, similarity search) adalah tanggung jawab eksklusif UC-03 dan **tidak** tercakup dalam state machine ini.
 
 **Retry Policy**:
 - `failed` from transient errors (Drive API 5xx, network timeout): ARQ `max_tries=3` with exponential backoff.

@@ -1,4 +1,4 @@
-# Technical Plan: Google Drive Document Import (UC-02) – ICONIX Process
+# Technical Plan: UC-02 Google Drive Connection and Document Import – ICONIX Process
 
 **Branch**: `002-drive-document-import` | **Date**: 2026-09-19 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/002-drive-document-import/spec.md`
@@ -79,9 +79,9 @@ classDiagram
     ExtractedText "1" --> "*" ExtractedPage : contains
 ```
 
-- **Document**: Main imported unit. `google_drive_id` serves as unique key for deduplication (Alt-3). `drive_md5_checksum` detects content modification. `import_status` follows state machine: `importing → extracting → extracted → failed`.
-- **ExtractedText**: Complete text extraction result, decoupled from document metadata for re-extraction flexibility. Directly consumed by UC-03 pipeline.
-- **ExtractedPage**: Page-level (PDF) or section-level (DOCX) text chunks, preserving `page_number` for academic citation traceability needed in UC-03.
+- **Document**: Main imported unit. `google_drive_id` serves as unique key for deduplication (Alt-3). `drive_md5_checksum` detects content modification. `import_status` follows state machine: `importing → extracting → extracted | failed`.
+- **ExtractedText**: Complete text extraction result, decoupled from document metadata for re-extraction flexibility. Produced by UC-02 as output data; UC-03 (Document Indexing and Local Embedding) reads it via `document_id` reference.
+- **ExtractedPage**: Page-level (PDF) or section-level (DOCX) text records produced by UC-02 extraction. Preserves `page_number` for citation traceability. UC-03 determines its own chunking and embedding strategy independently using a local embedding model.
 - **OAuthCredential**: Existing auth entity — used for silent token refresh during Drive download.
 - **Associations**: `Document.researcher_id` → FK to `researchers.id`. `ExtractedText.document_id` → FK to `documents.id` (UNIQUE constraint — one active extraction per document). `ExtractedPage.extracted_text_id` → FK to `extracted_texts.id`.
 - **Database Migrations**: Alembic migration for `documents`, `extracted_texts`, and `extracted_pages` tables with indexes on `google_drive_id`, `researcher_id`, and `import_status`.
@@ -90,7 +90,7 @@ classDiagram
 
 ## 3. ICONIX Robustness Analysis (Preliminary Design)
 
-### Robustness Diagram: UC-02 — Import Document from Google Drive
+### Robustness Diagram: UC-02: Google Drive Connection and Document Import
 
 ```mermaid
 flowchart TD
@@ -203,7 +203,7 @@ flowchart TD
 
 ## 5. Detailed Design: Sequence Diagrams (Behavior Allocation)
 
-### Sequence Diagram: UC-02a — Browse & List Drive Files
+### Sequence Diagram: UC-02a: Browse and Search Drive Files
 
 ```mermaid
 sequenceDiagram
@@ -234,7 +234,7 @@ sequenceDiagram
     Browser-->>Researcher: Render file list + folder breadcrumbs
 ```
 
-### Sequence Diagram: UC-02 — Import & Extract Document (Happy Path)
+### Sequence Diagram: UC-02: Import and Extract Document (Happy Path)
 
 ```mermaid
 sequenceDiagram
@@ -468,5 +468,5 @@ hooks/
 | **Phase 3: File Browser UI** | SCR-02 frontend | `feat(UC-02a): implement Drive file browser with folder navigation and search` | Browser renders folder structure; only PDF/DOCX selectable |
 | **Phase 4: Import Pipeline** | POST /import + ARQ task | `feat(UC-02): implement document import endpoint and ARQ extraction worker` | Import completes end-to-end; `ExtractedText` + `ExtractedPage` saved |
 | **Phase 5: Progress & Retry UI** | SCR-03, SCR-04 frontend | `feat(UC-02): add import confirmation modal, progress view, and retry flow` | Status polling works; failed state shows error + retry button |
-| **Phase 6: UC-03 Trigger** | ARQ → indexing queue | `feat(UC-02): trigger UC-03 indexing job on extraction completion` | After `extracted`, UC-03 `queued` status visible in Library |
+| **Phase 6: UC-03 Trigger** | ARQ → indexing queue | `feat(UC-02): trigger UC-03 indexing job on extraction completion` | After `extracted`, ARQ job `index_document_task` enqueued with correct `document_id` (verified via worker test T032) |
 | **Phase 7: Release** | Tests + docs | `chore(release): complete UC-02 Drive import verification and documentation` | Full test suite green; quickstart.md validated |
