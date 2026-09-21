@@ -43,11 +43,11 @@ flowchart TD
 
 **Purpose**: Establish database schemas, entity models, and migration scripts required before use case controllers can run.
 
-- [ ] T005 Create Alembic migration script `backend/alembic/versions/002_document_import_schema.py` creating `documents`, `extracted_texts`, and `extracted_pages` tables with indexes and unique constraints (`google_drive_id, researcher_id`)
-- [ ] T006 Implement Entity SQLModel classes (`Document`, `ExtractedText`, `ExtractedPage`) with enums (`import_status: importing, extracting, extracted, failed` and `file_type: pdf, docx`) in `backend/src/documents/models.py`
-- [ ] T007 [P] Implement base `DocumentRepository` CRUD and status update methods in `backend/src/documents/repository.py`
-- [ ] T008 Run migration in test database environment (`alembic upgrade head`) and verify table creation in PostgreSQL
-- [ ] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): implement document import schema migrations and foundational entity models"`
+- [X] T005 Create Alembic migration script `backend/alembic/versions/002_document_import_schema.py` creating `documents`, `extracted_texts`, and `extracted_pages` tables with indexes and unique constraints (`google_drive_id, researcher_id`)
+- [X] T006 Implement Entity SQLModel classes (`Document`, `ExtractedText`, `ExtractedPage`) with enums (`import_status: importing, extracting, extracted, failed` and `file_type: pdf, docx`) in `backend/src/documents/models.py`
+- [X] T007 [P] Implement base `DocumentRepository` CRUD and status update methods in `backend/src/documents/repository.py`
+- [X] T008 Run migration in test database environment (`alembic upgrade head`) and verify table creation in PostgreSQL
+- [X] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): implement document import schema migrations and foundational entity models"`
 
 **PDR Verification Checkpoint**: Entity models conform to Updated Domain Model in `plan.md` and `data-model.md`.
 
