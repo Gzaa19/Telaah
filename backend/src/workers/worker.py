@@ -3,6 +3,7 @@ from typing import Optional
 from arq import create_pool
 from arq.connections import ArqRedis, RedisSettings
 from backend.src.core.config import settings
+from backend.src.workers.import_task import import_document_task
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,6 @@ class WorkerSettings:
     redis_settings = get_redis_settings()
     on_startup = startup
     on_shutdown = shutdown
-    functions = []
+    functions = [import_document_task]
     max_jobs = 10
     job_timeout = 300
