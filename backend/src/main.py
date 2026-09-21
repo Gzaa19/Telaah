@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.core.config import settings
 from backend.src.auth.router import router as auth_router
+from backend.src.drive.router import router as drive_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -34,6 +35,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(auth_router)
+app.include_router(drive_router)
 
 
 @app.get("/health", tags=["Health"])

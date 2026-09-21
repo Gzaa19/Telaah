@@ -24,8 +24,8 @@ def researcher_and_cred(db_session):
     valid_cred = OAuthCredential(
         researcher_id=researcher.id,
         provider="google",
-        encrypted_access_token=crypto.encrypt("valid-access-token-123"),
-        encrypted_refresh_token=crypto.encrypt("valid-refresh-token-456"),
+        encrypted_access_token=crypto.encrypt_token("valid-access-token-123"),
+        encrypted_refresh_token=crypto.encrypt_token("valid-refresh-token-456"),
         token_expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         is_drive_granted=True,
     )
@@ -55,21 +55,17 @@ def test_get_valid_access_token_silent_refresh(db_session, researcher_and_cred):
 
     service = DriveTokenService(db=db_session)
 
-    with patch("google.oauth2.credentials.Credentials.refresh") as mock_refresh:
-        # Mock credentials refresh
-        def fake_refresh(request):
-            return None
+    def fake_refresh(self, request):
+        self.token = "new-refreshed-token-789"
+        self.expiry = datetime.now(timezone.utc) + timedelta(hours=1)
 
-        mock_refresh.side_effect = fake_refresh
+    with patch("google.oauth2.credentials.Credentials.refresh", new=fake_refresh):
+        new_token = service.get_valid_access_token(researcher.id)
+        assert new_token == "new-refreshed-token-789"
 
-        with patch("google.oauth2.credentials.Credentials.token", "new-refreshed-token-789"), \
-             patch("google.oauth2.credentials.Credentials.expiry", datetime.now(timezone.utc) + timedelta(hours=1)):
-            new_token = service.get_valid_access_token(researcher.id)
-            assert new_token == "new-refreshed-token-789"
-
-            # Verify persisted in database
-            db_session.refresh(cred)
-            assert crypto.decrypt(cred.encrypted_access_token) == "new-refreshed-token-789"
+        # Verify persisted in database
+        db_session.refresh(cred)
+        assert crypto.decrypt_token(cred.encrypted_access_token) == "new-refreshed-token-789"
 
 
 def test_get_valid_access_token_refresh_error(db_session, researcher_and_cred):

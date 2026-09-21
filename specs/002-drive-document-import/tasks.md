@@ -59,31 +59,31 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_drive_service.py backend/tests/test_drive_router.py`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T010 [P] [UC1] Write unit tests for `DriveTokenService` covering token validation, silent refresh using `Credentials.refresh()`, and `RefreshError` handling in `backend/tests/test_drive_token_service.py`
-- [ ] T011 [P] [UC1] Write unit tests for `DriveService` covering `files.list()` pagination (`pageSize=100`, `pageToken`), name search queries, and folder traversal in `backend/tests/test_drive_service.py`
-- [ ] T012 [P] [UC1] Write contract/integration tests for FastAPI drive router (`GET /api/drive/files`) in `backend/tests/test_drive_router.py`
-- [ ] T013 [UC1] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Drive file browsing and token refresh"`
+- [X] T010 [P] [UC1] Write unit tests for `DriveTokenService` covering token validation, silent refresh using `Credentials.refresh()`, and `RefreshError` handling in `backend/tests/test_drive_token_service.py`
+- [X] T011 [P] [UC1] Write unit tests for `DriveService` covering `files.list()` pagination (`pageSize=100`, `pageToken`), name search queries, and folder traversal in `backend/tests/test_drive_service.py`
+- [X] T012 [P] [UC1] Write contract/integration tests for FastAPI drive router (`GET /api/drive/files`) in `backend/tests/test_drive_router.py`
+- [X] T013 [UC1] Verify tests FAIL prior to implementation (Red stage)
+- [X] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Drive file browsing and token refresh"`
 
 ### Step 3.2: Controller Layer (Business Logic & Drive API Integration)
-- [ ] T015 [P] [UC1] Implement Pydantic DTO schemas (`DriveFileItem`, `DriveFileListResponse`, `DriveFileMetadataResponse`) in `backend/src/drive/schemas.py`
-- [ ] T016 [P] [UC1] Implement `DriveTokenService` for silent token refresh via `google-auth` without replacing existing OAuth flow in `backend/src/drive/token_service.py`
-- [ ] T017 [UC1] Implement `DriveService` wrapping `google-api-python-client` (`files.list`, `files.get`) with folder and search filtering in `backend/src/drive/drive_service.py`
-- [ ] T018 [UC1] Verify unit tests pass (Green stage)
-- [ ] T019 [UC1] **Git Commit (Controller)**: `git add backend/src/drive/ && git commit -m "feat(UC1): implement DriveService, DriveTokenService, and schemas"`
+- [X] T015 [P] [UC1] Implement Pydantic DTO schemas (`DriveFileItem`, `DriveFileListResponse`, `DriveFileMetadataResponse`) in `backend/src/drive/schemas.py`
+- [X] T016 [P] [UC1] Implement `DriveTokenService` for silent token refresh via `google-auth` without replacing existing OAuth flow in `backend/src/drive/token_service.py`
+- [X] T017 [UC1] Implement `DriveService` wrapping `google-api-python-client` (`files.list`, `files.get`) with folder and search filtering in `backend/src/drive/drive_service.py`
+- [X] T018 [UC1] Verify unit tests pass (Green stage)
+- [X] T019 [UC1] **Git Commit (Controller)**: `git add backend/src/drive/ && git commit -m "feat(UC1): implement DriveService, DriveTokenService, and schemas"`
 
 ### Step 3.3: Boundary Layer (FastAPI API Router & Next.js Frontend GUI)
-- [ ] T020 [UC1] Implement FastAPI Router endpoint (`GET /api/drive/files`) validating session cookie and injecting `DriveService` in `backend/src/drive/router.py`
-- [ ] T021 [P] [UC1] Implement Drive icon component using `@phosphor-icons/react` (`FilePdf`, `FileDoc`, `Folder`, strictly NO `lucide-react`) in `frontend/src/components/features/drive/DriveFileIcon.tsx`
-- [ ] T022 [P] [UC1] Implement `DriveFileRow` component displaying file name, type badge, size, modified date, and selectable state in `frontend/src/components/features/drive/DriveFileRow.tsx`
-- [ ] T023 [P] [UC1] Implement API client fetch wrapper in `frontend/src/lib/api/drive.ts` and React Query hook in `frontend/src/hooks/useDriveFiles.ts`
-- [ ] T024 [UC1] Implement `DriveBrowser` component with folder hierarchy navigation, breadcrumb bar, search input, and PDF/DOCX filter in `frontend/src/components/features/drive/DriveBrowser.tsx`
-- [ ] T025 [UC1] Implement Drive File Browser Page (`SCR-02`) at `/library/drive-browser` in `frontend/src/app/library/drive-browser/page.tsx`
+- [X] T020 [UC1] Implement FastAPI Router endpoint (`GET /api/drive/files`) validating session cookie and injecting `DriveService` in `backend/src/drive/router.py`
+- [X] T021 [P] [UC1] Implement Drive icon component using `@phosphor-icons/react` (`FilePdf`, `FileDoc`, `Folder`, strictly NO `lucide-react`) in `frontend/src/components/features/drive/DriveFileIcon.tsx`
+- [X] T022 [P] [UC1] Implement `DriveFileRow` component displaying file name, type badge, size, modified date, and selectable state in `frontend/src/components/features/drive/DriveFileRow.tsx`
+- [X] T023 [P] [UC1] Implement API client fetch wrapper in `frontend/src/lib/api/drive.ts` and React Query hook in `frontend/src/hooks/useDriveFiles.ts`
+- [X] T024 [UC1] Implement `DriveBrowser` component with folder hierarchy navigation, breadcrumb bar, search input, and PDF/DOCX filter in `frontend/src/components/features/drive/DriveBrowser.tsx`
+- [X] T025 [UC1] Implement Drive File Browser Page (`SCR-02`) at `/library/drive-browser` in `frontend/src/app/library/drive-browser/page.tsx`
 
 ### Step 3.4: BCE Audit & Major Milestone Checkpoint
-- [ ] T026 [UC1] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations routed via `DriveService` and `DriveTokenService`
-- [ ] T027 [UC1] Run integration tests and confirm all sunny-day browse, search, and pagination flows pass
-- [ ] T028 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete UC-02a Drive file browsing and search end-to-end [MVP Milestone]"`
+- [X] T026 [UC1] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations routed via `DriveService` and `DriveTokenService`
+- [X] T027 [UC1] Run integration tests and confirm all sunny-day browse, search, and pagination flows pass
+- [X] T028 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete UC-02a Drive file browsing and search end-to-end [MVP Milestone]"`
 
 **Checkpoint**: Use Case 2a is fully functional and delivers an independently testable MVP.
 

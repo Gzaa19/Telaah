@@ -46,8 +46,8 @@ def authenticated_session(db_session):
     cred = OAuthCredential(
         researcher_id=researcher.id,
         provider="google",
-        encrypted_access_token=crypto.encrypt("access-token-xyz"),
-        encrypted_refresh_token=crypto.encrypt("refresh-token-xyz"),
+        encrypted_access_token=crypto.encrypt_token("access-token-xyz"),
+        encrypted_refresh_token=crypto.encrypt_token("refresh-token-xyz"),
         token_expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         is_drive_granted=True,
     )
