@@ -32,10 +32,10 @@ flowchart TD
 
 **Purpose**: Scaffolding directories, configurations, and dependencies.
 
-- [ ] T001 Configure Python backend dependencies (`google-api-python-client>=2.120.0`, `google-auth>=2.29.0`, `google-auth-httplib2>=0.2.0`, `pdfplumber>=0.11.0`, `python-docx>=1.1.0`, `arq>=0.25.0`, `asyncpg>=0.29.0`) in `backend/requirements.txt`
-- [ ] T002 Configure TypeScript interface contracts and type definitions for Drive files and document imports in `frontend/src/types/drive.ts` and `frontend/src/types/documents.ts`
-- [ ] T003 [P] Setup Redis connection pool and ARQ worker configuration in `backend/src/workers/worker.py`
-- [ ] T004 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-02 dependencies, types, and ARQ worker configuration"`
+- [X] T001 Configure Python backend dependencies (`google-api-python-client>=2.120.0`, `google-auth>=2.29.0`, `google-auth-httplib2>=0.2.0`, `pdfplumber>=0.11.0`, `python-docx>=1.1.0`, `arq>=0.25.0`, `asyncpg>=0.29.0`) in `backend/requirements.txt`
+- [X] T002 Configure TypeScript interface contracts and type definitions for Drive files and document imports in `frontend/src/types/drive.ts` and `frontend/src/types/documents.ts`
+- [X] T003 [P] Setup Redis connection pool and ARQ worker configuration in `backend/src/workers/worker.py`
+- [X] T004 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-02 dependencies, types, and ARQ worker configuration"`
 
 ---
 
