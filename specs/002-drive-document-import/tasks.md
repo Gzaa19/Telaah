@@ -148,13 +148,13 @@ flowchart TD
 
 **Purpose**: Cross-cutting audit, full regression test, constitution compliance check, and release milestone.
 
-- [ ] T056 Run complete backend test suite (`pytest backend/tests/ -v`) and verify 100% passing tests
-- [ ] T057 Run frontend lint, typecheck, and build (`bun run lint && bun run build`) verifying zero compile errors
-- [ ] T058 Validate all 7 scenarios in `specs/002-drive-document-import/quickstart.md` (browse, happy PDF, happy DOCX, scanned PDF failure, duplicate 409, retry, md5 change detection)
-- [ ] T059 [P] Verify constitution compliance: strictly NO `lucide-react` imports, all icons use `@phosphor-icons/react`, dark canvas aesthetic maintained, and read-only Drive constraint preserved
-- [ ] T060 [P] Update API documentation in `backend/src/main.py` FastAPI OpenAPI metadata and feature documentation
-- [ ] T061 Code formatting, linting, and unused import cleanup across `backend/` and `frontend/`
-- [ ] T062 **Git Major Commit (Release)**: `git add . && git commit -m "chore(release): finalize UC-02 Google Drive Document Import implementation, verification, and documentation"`
+- [X] T056 Run complete backend test suite (`pytest backend/tests/ -v`) and verify 100% passing tests
+- [X] T057 Run frontend lint, typecheck, and build (`bun run lint && bun run build`) verifying zero compile errors
+- [X] T058 Validate all 7 scenarios in `specs/002-drive-document-import/quickstart.md` (browse, happy PDF, happy DOCX, scanned PDF failure, duplicate 409, retry, md5 change detection)
+- [X] T059 [P] Verify constitution compliance: strictly NO `lucide-react` imports, all icons use `@phosphor-icons/react`, dark canvas aesthetic maintained, and read-only Drive constraint preserved
+- [X] T060 [P] Update API documentation in `backend/src/main.py` FastAPI OpenAPI metadata and feature documentation
+- [X] T061 Code formatting, linting, and unused import cleanup across `backend/` and `frontend/`
+- [X] T062 **Git Major Commit (Release)**: `git add . && git commit -m "chore(release): finalize UC-02 Google Drive Document Import implementation, verification, and documentation"`
 
 ---
 
