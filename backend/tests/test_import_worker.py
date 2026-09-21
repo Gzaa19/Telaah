@@ -46,7 +46,8 @@ async def test_import_document_task_success():
 
         # Verify status progressed to extracted
         assert any(
-            call.args[1] == ImportStatus.extracted
+            call.kwargs.get("status") == ImportStatus.extracted
+            or (len(call.args) > 1 and call.args[1] == ImportStatus.extracted)
             for call in mock_update_status.call_args_list
         )
         # Verify text was saved

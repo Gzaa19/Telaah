@@ -95,32 +95,32 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_text_extractor.py backend/tests/test_document_service.py backend/tests/test_document_router.py backend/tests/test_import_worker.py`
 
 ### Step 4.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T029 [P] [UC2] Write unit tests for `TextExtractor` covering PDF extraction via `pdfplumber` with page tracking, scanned PDF detection (`is_scanned_pdf`), password-protected PDF handling, and DOCX paragraphs/tables extraction via `python-docx` in `backend/tests/test_text_extractor.py`
-- [ ] T030 [P] [UC2] Write unit tests for `DocumentService` covering duplicate checking by `google_drive_id`, `force_reimport` override logic, and job enqueueing in `backend/tests/test_document_service.py`
-- [ ] T031 [P] [UC2] Write contract/integration tests for document endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/tests/test_document_router.py`
-- [ ] T032 [P] [UC2] Write worker task tests for `import_document_task` verifying download streaming (`SpooledTemporaryFile`), extraction persistence, and UC-03 queue dispatch in `backend/tests/test_import_worker.py`
-- [ ] T033 [UC2] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T034 [UC2] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add failing test suite for document import, extraction, and ARQ worker"`
+- [X] T029 [P] [UC2] Write unit tests for `TextExtractor` covering PDF extraction via `pdfplumber` with page tracking, scanned PDF detection (`is_scanned_pdf`), password-protected PDF handling, and DOCX paragraphs/tables extraction via `python-docx` in `backend/tests/test_text_extractor.py`
+- [X] T030 [P] [UC2] Write unit tests for `DocumentService` covering duplicate checking by `google_drive_id`, `force_reimport` override logic, and job enqueueing in `backend/tests/test_document_service.py`
+- [X] T031 [P] [UC2] Write contract/integration tests for document endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/tests/test_document_router.py`
+- [X] T032 [P] [UC2] Write worker task tests for `import_document_task` verifying download streaming (`SpooledTemporaryFile`), extraction persistence, and UC-03 queue dispatch in `backend/tests/test_import_worker.py`
+- [X] T033 [UC2] Verify tests FAIL prior to implementation (Red stage)
+- [X] T034 [UC2] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add failing test suite for document import, extraction, and ARQ worker"`
 
 ### Step 4.2: Controller Layer (Text Extraction, Document Service & ARQ Worker)
-- [ ] T035 [P] [UC2] Implement Pydantic DTO schemas (`ImportDocumentRequest`, `ImportDocumentResponse`, `DocumentStatusResponse`) in `backend/src/documents/schemas.py`
-- [ ] T036 [P] [UC2] Implement `TextExtractor` using `pdfplumber` (coordinate-aware, page tracking) and `python-docx` (sections/tables) with `is_scanned_pdf` threshold check in `backend/src/documents/extractor.py`
-- [ ] T037 [UC2] Implement `DocumentService` for duplicate prevention, import enqueueing, and status retrieval in `backend/src/documents/service.py`
-- [ ] T038 [UC2] Implement `import_document_task` in `backend/src/workers/import_task.py` with chunked `MediaIoBaseDownload`, `SpooledTemporaryFile`, status progression (`importing -> extracting -> extracted`), and UC-03 queue dispatch
-- [ ] T039 [UC2] Verify unit tests pass (Green stage)
-- [ ] T040 [UC2] **Git Commit (Controller)**: `git add backend/src/documents/ backend/src/workers/ && git commit -m "feat(UC2): implement TextExtractor, DocumentService, and ARQ import worker task"`
+- [X] T035 [P] [UC2] Implement Pydantic DTO schemas (`ImportDocumentRequest`, `ImportDocumentResponse`, `DocumentStatusResponse`) in `backend/src/documents/schemas.py`
+- [X] T036 [P] [UC2] Implement `TextExtractor` using `pdfplumber` (coordinate-aware, page tracking) and `python-docx` (sections/tables) with `is_scanned_pdf` threshold check in `backend/src/documents/extractor.py`
+- [X] T037 [UC2] Implement `DocumentService` for duplicate prevention, import enqueueing, and status retrieval in `backend/src/documents/service.py`
+- [X] T038 [UC2] Implement `import_document_task` in `backend/src/workers/import_task.py` with chunked `MediaIoBaseDownload`, `SpooledTemporaryFile`, status progression (`importing -> extracting -> extracted`), and UC-03 queue dispatch
+- [X] T039 [UC2] Verify unit tests pass (Green stage)
+- [X] T040 [UC2] **Git Commit (Controller)**: `git add backend/src/documents/ backend/src/workers/ && git commit -m "feat(UC2): implement TextExtractor, DocumentService, and ARQ import worker task"`
 
 ### Step 4.3: Boundary Layer (FastAPI API Router & Next.js Frontend GUI)
-- [ ] T041 [UC2] Implement FastAPI Router endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/src/documents/router.py`
-- [ ] T042 [P] [UC2] Implement API client functions in `frontend/src/lib/api/documents.ts` and React Query hooks (`useImportDocument.ts`, `useDocumentStatus.ts` with 3s polling) in `frontend/src/hooks/`
-- [ ] T043 [P] [UC2] Implement Import Confirmation Modal (`SCR-03`) with metadata preview, duplicate warning, and force re-import toggle in `frontend/src/components/features/drive/ImportConfirmModal.tsx`
-- [ ] T044 [P] [UC2] Implement Import Progress View (`SCR-04`) with multi-step progress bar (`importing -> extracting -> extracted`) and error alert in `frontend/src/components/features/drive/ImportProgress.tsx`
-- [ ] T045 [UC2] Integrate Library Page (`SCR-01`) at `/library` displaying document list, status badge, and "Tambah Dokumen" button triggering `SCR-02` in `frontend/src/app/library/page.tsx`
+- [X] T041 [UC2] Implement FastAPI Router endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/src/documents/router.py`
+- [X] T042 [P] [UC2] Implement API client functions in `frontend/src/lib/api/documents.ts` and React Query hooks (`useImportDocument.ts`, `useDocumentStatus.ts` with 3s polling) in `frontend/src/hooks/`
+- [X] T043 [P] [UC2] Implement Import Confirmation Modal (`SCR-03`) with metadata preview, duplicate warning, and force re-import toggle in `frontend/src/components/features/drive/ImportConfirmModal.tsx`
+- [X] T044 [P] [UC2] Implement Import Progress View (`SCR-04`) with multi-step progress bar (`importing -> extracting -> extracted`) and error alert in `frontend/src/components/features/drive/ImportProgress.tsx`
+- [X] T045 [UC2] Integrate Library Page (`SCR-01`) at `/library` displaying document list, status badge, and "Tambah Dokumen" button triggering `SCR-02` in `frontend/src/app/library/page.tsx`
 
 ### Step 4.4: BCE Audit & Major Milestone Checkpoint
-- [ ] T046 [UC2] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; ARQ worker updates state exclusively through `DocumentRepository`
-- [ ] T047 [UC2] Run integration tests and confirm sunny-day import pipeline (PDF & DOCX) passes end-to-end
-- [ ] T048 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete UC-02 document import and extraction pipeline end-to-end [Major Milestone]"`
+- [X] T046 [UC2] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; ARQ worker updates state exclusively through `DocumentRepository`
+- [X] T047 [UC2] Run integration tests and confirm sunny-day import pipeline (PDF & DOCX) passes end-to-end
+- [X] T048 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete UC-02 document import and extraction pipeline end-to-end [Major Milestone]"`
 
 ---
 
