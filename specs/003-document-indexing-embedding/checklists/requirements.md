@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Document Indexing & Embedding (UC-02)
+# Specification Quality Checklist: UC-03 Document Indexing and Local Embedding
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-09-19
+**Created**: 2026-09-21
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,10 +31,12 @@
 
 ## Notes
 
-- Semua 10 acceptance criteria awal dipetakan ke SC-001 hingga SC-010.
-- Sesi klarifikasi 2026-09-19 (ronde 1): 5 keputusan embedding lokal diintegrasikan → FR-018–022, NFR-007–008, SC-011–016.
-- Sesi klarifikasi 2026-09-19 (ronde 2): Keputusan dekomposisi UC — spec ini menjadi **UC-03: Document Indexing & Embedding**. UC-02 (Google Drive Document Import) dipisah ke spec baru. Semua referensi UC-02 internal diubah ke UC-03. Browse/import Drive ditambahkan ke Out of Scope.
-- Pipeline status `queued → extracting → chunking → embedding → indexed → failed` terdokumentasi penuh di FR-007 dan UC-03 Basic Flow.
-- Menyebut "Gemini Text Embedding API" dalam spec adalah keputusan arsitektur/bisnis (larangan eksplisit), bukan kebocoran detail implementasi — item checklist tetap lulus.
-- Detail teknis (library embedding lokal spesifik, ukuran chunk, konfigurasi pgvector) ditangguhkan ke tahap `/speckit-plan` sesuai arahan.
-- **Tindak lanjut**: Buat spec UC-02 dengan `/speckit-specify` untuk fitur Google Drive Document Import sebelum `/speckit-plan` dijalankan untuk spec ini.
+- UC-03 (Document Indexing and Local Embedding) dipisah dari UC-02 (Google Drive Connection and Document Import) berdasarkan keputusan dekomposisi use case pada sesi clarify 2026-09-21.
+- UC-02 adalah upstream — `document_id` dikirim setelah status `extracted`.
+- UC-04 (Reverse Engineering and Research Outline) dan UC-06 (Section-based RAG Paper Generation) adalah downstream — konsumen knowledge base UC-03.
+- Constraint kritis: UC-03 DILARANG menggunakan Gemini Text Embedding API (FR-010). Embedding harus dari model lokal Hugging Face.
+- Prefix konvensi: `"passage: "` saat indexing, `"query: "` saat retrieval oleh UC-04/UC-06.
+- Status pipeline UC-03: `queued → cleaning → chunking → embedding → storing → indexed | failed`.
+- Deduplikasi berdasarkan kombinasi `document_id`, checksum, model version, dan konfigurasi chunking (FR-015).
+- UC-03a, UC-03b, UC-03c adalah sub-use-case di dalam UC-03 — bukan use case terpisah setara UC-01 s/d UC-08.
+- Spec ini siap untuk diteruskan ke `/speckit-clarify` atau langsung ke `/speckit-plan`.

@@ -1,52 +1,71 @@
-# Feature Specification: Document Indexing & Embedding – ICONIX Process
+# Feature Specification: UC-03 Document Indexing and Local Embedding – ICONIX Process
 
 **Feature Branch**: `003-document-indexing-embedding`
-**Created**: 2026-09-19
+**Created**: 2026-09-21
 **Status**: Draft
-**Input**: User description: "Revisi spesifikasi UC 2 dengan menambahkan tahap indexing dan embedding dokumen setelah proses import dan ekstraksi teks."
+**Input**: User description: "UC-03: Document Indexing and Local Embedding — mengubah hasil ekstraksi dokumen menjadi knowledge base berbasis vektor untuk semantic retrieval pada paper generator iciCos."
 **Methodology Reference**: Doug Rosenberg & Matt Stephens, *Use Case Driven Object Modeling with UML*
 
-> **Catatan Dekomposisi UC**: Spec ini mencakup **UC-03: Document Indexing & Embedding** saja. Browse dokumen dari Google Drive dan proses import/ekstraksi teks dipisahkan ke **UC-02: Google Drive Document Import** (spec terpisah, dibuat via `/speckit-specify`). UC-01 hanya mencakup Google OAuth login dan grant permission `drive.readonly`.
+> **Catatan Dekomposisi UC**: Spec ini mencakup **UC-03: Document Indexing and Local Embedding** — mulai dari penerimaan `document_id` dari UC-02, cleaning teks, chunking, pembuatan embedding lokal, hingga penyimpanan vector dan metadata ke PostgreSQL/pgvector. UC-03 **berhenti** setelah status dokumen menjadi `indexed` dan knowledge base siap digunakan oleh UC-04 (Reverse Engineering and Research Outline) serta UC-06 (Section-based RAG Paper Generation). UC-03 **tidak melakukan** pembuatan outline paper, pemanggilan LLM generatif, citation validation, rendering LaTeX/PDF, atau koneksi ke Google Drive.
 
 ---
 
 ## 1. Overview & System Context
 
-Fitur ini merupakan kelanjutan dari UC-02 (Google Drive Document Import). Setelah dokumen berhasil diimpor dan teks diekstrak oleh UC-02, sistem Telaah harus memprosesnya melalui pipeline *indexing* dan *embedding* agar dokumen tersebut dapat digunakan dalam proses *semantic retrieval* saat menghasilkan draf paper ilmiah.
+Setelah UC-02 (Google Drive Connection and Document Import) berhasil mengekstrak teks dokumen dan mengubah status menjadi `extracted`, UC-03 menerima sinyal berupa `document_id` dan menjalankan pipeline transformasi: membersihkan teks, memecahnya menjadi chunk terkelola, menghasilkan representasi vektor menggunakan model embedding yang berjalan secara lokal, lalu menyimpan seluruh chunk beserta metadata keterlacakannya ke PostgreSQL dengan ekstensi pgvector.
 
-**Target Aktor**: Peneliti yang telah mengautentikasi akunnya dan memiliki dokumen literatur yang sudah diimpor dari Google Drive (oleh UC-02).
+**Target Aktor**: Peneliti yang memiliki dokumen dengan status `extracted` di sistem Telaah. Proses berjalan secara otomatis di background; peneliti dapat memantau status indexing dan melihat ringkasan hasilnya.
 
-**Masalah yang Diselesaikan**: Tanpa tahap indexing dan embedding, dokumen yang diimpor hanya tersimpan sebagai file mentah dan tidak dapat digunakan secara semantik oleh sistem AI. Fitur ini mengubah dokumen mentah menjadi representasi vektor yang dapat dicari secara presisi, memungkinkan sistem untuk menemukan bagian dokumen yang relevan berdasarkan konteks penulisan paper.
+**Masalah yang Diselesaikan**: Teks mentah hasil ekstraksi UC-02 tidak dapat langsung digunakan untuk semantic retrieval. Tanpa indexing dan embedding, sistem tidak dapat menemukan bagian dokumen yang relevan berdasarkan konteks penulisan paper. Fitur ini mengubah teks mentah menjadi knowledge base yang dapat dicari secara presisi, sambil menjaga keterlacakan setiap chunk ke dokumen dan halaman sumbernya.
 
-**Nilai Bisnis**: Menjamin setiap dokumen literatur yang diimpor peneliti dapat digunakan secara efektif dalam proses asistansi penulisan paper ilmiah, dengan keterlacakan penuh ke sumber aslinya untuk integritas sitasi.
+**Nilai Bisnis**: Memungkinkan generator paper iciCos (UC-04 dan UC-06) menggunakan koleksi literatur yang telah diimpor peneliti untuk melakukan semantic retrieval yang akurat, tertelusuri, dan bebas dari fabrikasi sitasi.
 
-**Keputusan Arsitektur Kunci**: Seluruh proses *vector embedding* dokumen referensi menggunakan **model embedding lokal** yang berjalan di dalam environment backend atau inference service milik aplikasi. Gemini Text Embedding API atau layanan cloud embedding lainnya **tidak boleh digunakan** untuk proses indexing dokumen. Gemini API hanya diperbolehkan untuk proses generasi atau transformasi teks pada use case lain jika memang dibutuhkan.
+**Independensi dari API Cloud**: Seluruh proses pembuatan embedding dilakukan oleh model yang berjalan lokal — tidak ada ketergantungan pada Gemini Text Embedding API atau layanan embedding cloud manapun. Hal ini menjamin reprodusibilitas, kontrol versi model, dan ketersediaan sistem tanpa bergantung pada kuota atau biaya API eksternal.
+
+---
+
+## Clarifications
+
+### Session 2026-09-21
+
+- Q: Model embedding yang digunakan? → A: Model Hugging Face lokal, kandidat utama `intfloat/multilingual-e5-base`. Harus mendukung Bahasa Indonesia dan Bahasa Inggris. Model dimuat sekali dan digunakan kembali.
+- Q: Apakah Gemini Text Embedding API boleh digunakan untuk indexing? → A: Tidak. UC-03 dilarang menggunakan Gemini Text Embedding API atau external embedding API untuk proses indexing.
+- Q: Prefix pada chunk saat indexing? → A: Setiap chunk diberi prefix `"passage: "` sebelum di-embed (sesuai konvensi multilingual-e5). Query retrieval pada UC-04/UC-06 menggunakan prefix `"query: "`.
+- Q: Apakah LangChain digunakan? → A: Ya, secara hybrid — untuk text splitter, HuggingFace embeddings wrapper, dan prompt/retriever interface bila diperlukan. Komponen inti (service, repository, metadata, status, deduplication, retry) diimplementasi sebagai kode aplikasi sendiri.
 
 ---
 
 ## 2. GUI Storyboards & Screen Navigation
 
+UC-03 berjalan sebagai background pipeline. Antarmuka pengguna hanya menyediakan visibilitas status dan hasil — peneliti tidak mengoperasikan pipeline secara langsung.
+
 ### Screen Inventory
 
 | Screen / View ID | Screen Name | Key UI Elements | Next Screen / Action Trigger |
 |---|---|---|---|
-| `SCR-01` | Library / Daftar Dokumen | Tabel dokumen, kolom status indexing (badge), tombol "Index Ulang", tombol "Tambah Dokumen" | Klik baris → `SCR-02`; Klik "Tambah Dokumen" → UC-02 (Drive Import) |
-| `SCR-02` | Detail Dokumen & Status Indexing | Nama file, status pipeline (progress stepper), rincian error (jika gagal), tombol "Coba Lagi" | Klik "Coba Lagi" → memulai ulang indexing; Klik kembali → `SCR-01` |
-| `SCR-03` | Progress Indexing (Inline / Notifikasi) | Progress bar atau indikator langkah (Queued → Extracting → Chunking → Embedding → Indexed), pesan status terkini | Auto-update saat status berubah; Selesai → badge "Indexed" di `SCR-01` |
-| `SCR-04` | Notifikasi Siap Digunakan | Banner/toast "Dokumen siap untuk semantic retrieval" | Ditutup otomatis atau manual; status tersimpan di `SCR-01` |
+| `SCR-05` | Library / Daftar Dokumen (extended) | Tabel dokumen terimport dengan kolom status indexing (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`), jumlah chunk, tombol "Retry Indexing" pada status `failed` | Klik "Retry Indexing" → restart pipeline UCT-03; Status berubah otomatis saat pipeline berjalan |
+| `SCR-06` | Indexing Detail | Ringkasan hasil indexing: total chunk, model embedding, dimensi vektor, waktu selesai; log status bertahap; tombol "Re-index Dokumen" | Klik "Re-index" → konfirmasi modal → restart pipeline |
+| `SCR-07` | Konfirmasi Re-index | Pesan konfirmasi bahwa data indexing lama akan dihapus; tombol "Ya, Re-index" dan "Batal" | Konfirmasi → restart pipeline; Batal → kembali ke SCR-06 |
 
 ### Storyboard Navigation Flow
 
 ```mermaid
 flowchart TD
-    SCR01["SCR-01: Library / Daftar Dokumen"] -->|"Pilih dokumen baru dari Drive"| IMPORT["UC-02: Google Drive Document Import\n(spec terpisah)"]
-    IMPORT -->|"Ekstraksi selesai, trigger indexing"| SCR03["SCR-03: Progress Indexing (UC-03)"]
-    SCR03 -->|"Indexing berhasil"| SCR04["SCR-04: Notifikasi Siap Digunakan"]
-    SCR04 -->|"Kembali / auto-close"| SCR01
-    SCR03 -->|"Indexing gagal"| SCR02["SCR-02: Detail Dokumen & Status Error"]
-    SCR02 -->|"Klik Coba Lagi"| SCR03
-    SCR01 -->|"Klik baris dokumen"| SCR02
-    SCR01 -->|"Klik Index Ulang"| SCR03
+    UC02["UC-02: extracted\n→ document_id dikirim ke UC-03"]
+    SCR05["SCR-05: Library / Daftar Dokumen\n(status indexing tampil di kolom)"]
+    SCR06["SCR-06: Indexing Detail"]
+    SCR07["SCR-07: Konfirmasi Re-index"]
+    DONE["Status: indexed\n→ Knowledge base siap untuk UC-04/UC-06"]
+    ERR["Status: failed\n→ Pesan error + tombol Retry"]
+
+    UC02 -->|"Background: pipeline berjalan"| SCR05
+    SCR05 -->|"Klik baris dokumen"| SCR06
+    SCR06 -->|"Klik Re-index"| SCR07
+    SCR07 -->|"Konfirmasi"| SCR05
+    SCR07 -->|"Batal"| SCR06
+    SCR05 -->|"Status: indexed"| DONE
+    SCR05 -->|"Status: failed"| ERR
+    ERR -->|"Klik Retry Indexing"| SCR05
 ```
 
 ---
@@ -58,129 +77,148 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph Actors ["Actors"]
-        RESEARCHER["Actor: Peneliti\n[Pengguna Terautentikasi]"]
-        GDRIVE["External System: Google Drive API\n[Sumber Dokumen - Read Only]"]
-        LOCALEMBED["Internal Service: Local Embedding Model\n[Berjalan di backend/inference service aplikasi]"]
+        RESEARCHER["Actor: Peneliti\n[Pemilik dokumen,\npemantau status indexing]"]
+        UC02EXT["Upstream: UC-02\nGoogle Drive Connection\nand Document Import\n[Sumber document_id]"]
+        UC04EXT["Downstream: UC-04\nReverse Engineering\nand Research Outline\n[Konsumen knowledge base]"]
+        UC06EXT["Downstream: UC-06\nSection-based RAG\nPaper Generation\n[Konsumen knowledge base]"]
     end
 
     subgraph SystemBoundary ["System Boundary: Telaah – AI Paper Generator"]
-        UC02EXT(["UC-02: Google Drive Document Import\n(spec terpisah — upstream trigger)"])
-        UC03(["UC-03: Index dan Embed Dokumen Literatur"])
-        UC03A(["UC-03a: Pantau Progress Indexing"])
-        UC03B(["UC-03b: Ulang Indexing Dokumen Gagal"])
-        UC03C(["UC-03c: Sinkronisasi Perubahan Dokumen Drive"])
+        UC03(["UC-03: Document Indexing\nand Local Embedding"])
+        UC03A(["UC-03a: Monitor Indexing Status\n(sub-use-case UC-03)"])
+        UC03B(["UC-03b: Retry Failed Indexing\n(sub-use-case UC-03)"])
+        UC03C(["UC-03c: Re-index Dokumen\n(sub-use-case UC-03)"])
     end
 
-    RESEARCHER -->|"Memicu setelah import (UC-02)"| UC03
+    UC02EXT -->|"Event: document_id\n(status=extracted)"| UC03
     RESEARCHER -->|"Memantau status"| UC03A
     RESEARCHER -->|"Meminta retry"| UC03B
-    GDRIVE -->|"Notifikasi perubahan file"| UC03C
-    UC02EXT -->|"Teks terekstrak, trigger indexing"| UC03
-    UC03 <-->|"Baca teks terekstrak"| GDRIVE
-    UC03 <-->|"Generate embedding (lokal)"| LOCALEMBED
-    UC03C -->|"Trigger re-indexing"| UC03
+    RESEARCHER -->|"Meminta re-index"| UC03C
+    UC03 -->|"Knowledge base tersedia"| UC04EXT
+    UC03 -->|"Knowledge base tersedia"| UC06EXT
 ```
 
 ---
 
 ### 3.2 Detailed Use Case Specifications
 
-### UC-03: Index dan Embed Dokumen Literatur
+### UC-03: Document Indexing and Local Embedding
 
-- **Primary Actor**: Peneliti (dipicu otomatis setelah ekstraksi teks oleh UC-02 selesai; dapat juga dipicu manual)
-- **Goal in Context**: Peneliti memiliki dokumen literatur yang telah diindeks dan siap digunakan untuk pencarian semantik dalam proses penulisan paper
+- **Primary Actor**: Sistem (dipicu otomatis oleh UC-02); Peneliti sebagai pemantau
+- **Goal in Context**: Mengubah teks hasil ekstraksi UC-02 menjadi knowledge base berbasis vektor yang dapat digunakan untuk semantic retrieval oleh UC-04 dan UC-06
 - **Preconditions**:
-  - Peneliti telah berhasil login via Google OAuth 2.0
-  - Dokumen PDF atau DOCX telah diimpor dari Google Drive dan teks telah berhasil diekstrak oleh UC-02 (Google Drive Document Import)
-  - Dokumen belum dalam status `indexed`, atau dokumen telah berubah sejak indexing terakhir
-  - Model embedding lokal tersedia dan dapat menerima permintaan inference
+  - Dokumen memiliki status `extracted` (ditetapkan oleh UC-02)
+  - `ExtractedText` dan `ExtractedPage` tersedia di sistem untuk `document_id` tersebut
+  - Model embedding lokal tersedia dan dapat dimuat
+  - PostgreSQL dengan pgvector tersedia
 - **Postconditions (Success Guarantees)**:
-  - Teks dokumen telah dibersihkan, dipecah menjadi chunk-chunk, dan setiap chunk memiliki embedding vektor tersimpan di sistem
-  - Metadata lengkap setiap chunk tersimpan dan dapat ditelusuri ke dokumen sumber, termasuk nama model, versi model, dan dimensi vektor yang digunakan
+  - Seluruh chunk teks beserta embedding dan metadata tersimpan di PostgreSQL/pgvector
   - Status dokumen berubah menjadi `indexed`
-  - Peneliti mendapat notifikasi bahwa dokumen siap untuk semantic retrieval
-- **Trigger**: Penyelesaian proses ekstraksi teks oleh UC-02 (otomatis), atau permintaan manual dari peneliti
+  - Setiap chunk dapat ditelusuri ke dokumen, halaman, dan section sumbernya
+  - Knowledge base siap digunakan oleh UC-04 dan UC-06
+  - Tidak ada chunk duplikat berdasarkan kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking
+- **Trigger**: UC-02 mengirimkan event/job berisi `document_id` setelah status dokumen menjadi `extracted`
 
 #### Basic Course of Events (Sunny Day Flow)
 
 | Step | Actor Action | System Response |
 |:---:|---|---|
-| 1 | UC-02 menyelesaikan ekstraksi teks dari dokumen yang diimpor. | Sistem mengubah status dokumen menjadi `queued` dan menambahkan dokumen ke antrian pemrosesan indexing. |
-| 2 | — (proses otomatis) | Sistem mengambil dokumen dari antrian, mengubah status menjadi `extracting`, dan membersihkan teks hasil ekstraksi dari karakter atau struktur yang tidak diperlukan (header/footer berulang, karakter khusus, spasi berlebih). Pembersihan mendukung teks berbahasa Indonesia maupun Inggris. |
-| 3 | — (proses otomatis) | Sistem mengubah status menjadi `chunking`, memecah teks menjadi potongan-potongan (chunk) dengan ukuran yang sesuai dan overlap yang memadai untuk menjaga konteks antar-chunk. |
-| 4 | — (proses otomatis) | Sistem menyimpan metadata setiap chunk: identitas dokumen Google Drive, nama file, halaman/bagian dokumen, urutan chunk, teks asli chunk, waktu proses, identitas peneliti pemilik dokumen, nama model embedding lokal yang akan digunakan, versi model, dan dimensi vektor yang diharapkan. |
-| 5 | — (proses otomatis) | Sistem mengubah status menjadi `embedding` dan mengirimkan setiap chunk ke **model embedding lokal** (berjalan di dalam environment backend atau inference service aplikasi) untuk menghasilkan representasi vektor. Tidak ada panggilan ke Gemini Text Embedding API atau layanan cloud embedding eksternal pada tahap ini. |
-| 6 | — (proses otomatis) | Sistem menerima vektor dari model lokal, memverifikasi konsistensi dimensi vektor terhadap kolom penyimpanan vektor, kemudian menyimpan hasil embedding beserta metadata chunk (termasuk nama model, versi, dimensi) ke penyimpanan vektor. |
-| 7 | — (proses otomatis) | Sistem mengubah status dokumen menjadi `indexed` dan memperbarui waktu indexing terakhir. |
-| 8 | Peneliti membuka halaman Library. | Sistem menampilkan status dokumen sebagai `Indexed` dengan badge visual dan menampilkan notifikasi bahwa dokumen siap digunakan untuk penulisan paper. |
+| 1 | — (event otomatis dari UC-02) | Sistem menerima `document_id`, memverifikasi hak akses `researcher_id`, dan memvalidasi status dokumen `extracted`. Status berubah menjadi `queued`. |
+| 2 | — (proses otomatis) | Sistem mengambil seluruh teks, halaman, section, dan metadata dokumen dari hasil ekstraksi UC-02. |
+| 3 | — (proses otomatis) | Sistem membersihkan teks: menghapus karakter kendali, spasi berlebih, dan artefak ekstraksi tanpa menghilangkan informasi ilmiah penting. Status berubah menjadi `cleaning`. |
+| 4 | — (proses otomatis) | Sistem memecah teks menjadi chunk dengan ukuran dan overlap yang dikonfigurasi, mempertahankan metadata `page_number`, `section_name`, dan `chunk_index` pada setiap chunk. Status berubah menjadi `chunking`. |
+| 5 | — (proses otomatis) | Sistem menambahkan prefix `"passage: "` pada setiap chunk dan menghasilkan embedding menggunakan model Hugging Face lokal. Status berubah menjadi `embedding`. |
+| 6 | — (proses otomatis) | Sistem menyimpan seluruh chunk, embedding, dan metadata ke PostgreSQL/pgvector secara batch. Menyimpan pula konfigurasi indexing: nama model, versi, dimensi embedding, checksum dokumen, `chunk_size`, dan `chunk_overlap`. Status berubah menjadi `storing`. |
+| 7 | — (proses otomatis) | Sistem memvalidasi kesesuaian dimensi embedding dengan konfigurasi pgvector. Setelah seluruh chunk tersimpan dan tervalidasi, status berubah menjadi `indexed`. |
+| 8 | Peneliti membuka halaman Library atau Indexing Detail. | Sistem menampilkan status `indexed`, jumlah chunk yang dihasilkan, nama model, dimensi vektor, dan waktu selesai. |
 
 #### Alternate & Exception Courses (Rainy Day Flows)
 
-- **Alt-1: Dokumen Sama Tanpa Perubahan (Duplikasi Dicegah)**
-  - **Pada Step 1**: Jika dokumen yang sama (berdasarkan identitas Google Drive) telah dalam status `indexed` dan tidak ada perubahan sejak indexing terakhir:
-  - Sistem melewati proses indexing, mempertahankan status `indexed`, dan menginformasikan bahwa indexing tidak diperlukan.
+- **Alt-1: Dokumen Belum Berstatus `extracted`**
+  - **Pada Step 1**: Jika `import_status` bukan `extracted`:
+  - Sistem menolak proses, mencatat alasan penolakan, dan tidak mengubah status dokumen. Pipeline berhenti tanpa side effect.
 
-- **Alt-2: Dokumen Berubah di Google Drive (Re-indexing)**
-  - **Pada Step 1**: Jika sistem mendeteksi perubahan file di Google Drive (melalui perbandingan versi/hash):
-  - Sistem menghapus data embedding lama dari dokumen tersebut dan memulai ulang pipeline indexing dari awal.
+- **Alt-2: Hasil Ekstraksi Kosong**
+  - **Pada Step 2**: Jika `ExtractedText.full_text` kosong atau semua halaman tidak mengandung teks bermakna:
+  - Sistem mengubah status menjadi `failed`, menyimpan alasan: "Tidak ada teks yang dapat diindeks — hasil ekstraksi kosong." Pipeline berhenti.
 
-- **Alt-3: Kegagalan pada Tahap Pembersihan atau Chunking**
-  - **Pada Step 2–3**: Jika teks tidak dapat dibersihkan atau dipecah (misalnya dokumen terenkripsi atau korup):
-  - Sistem mengubah status menjadi `failed`, menyimpan alasan kegagalan yang dapat dibaca peneliti, dan menampilkan opsi "Coba Lagi" di antarmuka.
+- **Alt-3: Model Lokal Gagal Dimuat**
+  - **Pada Step 5**: Jika model tidak tersedia di cache atau gagal diinisialisasi:
+  - Sistem mengubah status menjadi `failed`, menyimpan alasan kegagalan. Peneliti dapat mencoba ulang setelah model tersedia.
 
-- **Alt-4: Kegagalan pada Tahap Embedding — Model Lokal Tidak Tersedia**
-  - **Pada Step 5**: Jika model embedding lokal tidak dapat dijangkau (tidak berjalan, habis memori, atau tidak responsif):
-  - Sistem mengubah status menjadi `failed`, menyimpan pesan error yang jelas dan dapat dibaca peneliti (misalnya: "Model embedding lokal tidak tersedia. Periksa status inference service."), dan menyediakan opsi retry. Sistem tidak beralih ke layanan cloud embedding sebagai fallback.
+- **Alt-4: Ketidaksesuaian Dimensi Embedding**
+  - **Pada Step 7**: Jika dimensi embedding tidak cocok dengan konfigurasi kolom pgvector:
+  - Sistem mengubah status menjadi `failed`, menyimpan alasan: "Dimensi embedding tidak sesuai dengan konfigurasi database." Tidak ada chunk yang tersimpan secara parsial.
 
-- **Alt-4b: Kegagalan pada Tahap Embedding — Dimensi Vektor Tidak Sesuai**
-  - **Pada Step 6**: Jika vektor yang dikembalikan model lokal memiliki dimensi berbeda dari yang dikonfigurasi pada kolom penyimpanan vektor:
-  - Sistem menolak penyimpanan, mengubah status menjadi `failed`, dan menyimpan detail ketidaksesuaian dimensi. Ini mencegah pencampuran vektor dari model berbeda.
+- **Alt-5: Dokumen Sudah Pernah Di-index (Duplikasi)**
+  - **Pada Step 1**: Jika kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking sudah ada:
+  - Sistem menolak proses duplikasi dan melaporkan bahwa indexing sudah ada. Tidak ada perubahan pada data yang sudah tersimpan.
 
-- **Alt-5: Sinkronisasi Penghapusan Dokumen di Drive**
-  - **Kapan saja**: Jika dokumen sumber dihapus dari Google Drive:
-  - Sistem menandai dokumen sebagai tidak tersedia, menghapus data embedding terkait, dan menginformasikan peneliti bahwa dokumen tidak lagi dapat digunakan.
+- **Alt-6: Dokumen Berubah Setelah Indexing (Re-index)**
+  - **Trigger manual oleh Peneliti**: Jika peneliti meminta re-index setelah dokumen sumber berubah (checksum berbeda):
+  - Sistem menghapus seluruh chunk dan embedding lama untuk dokumen tersebut, lalu menjalankan ulang pipeline dari Step 2. Konfirmasi dari peneliti diperlukan sebelum penghapusan data lama.
 
-- **Alt-6: Hak Akses Tidak Memadai**
-  - **Kapan saja**: Jika peneliti mencoba melihat atau memicu indexing dokumen milik peneliti lain:
-  - Sistem menolak akses dan tidak menampilkan data embedding atau metadata chunk yang bukan milik peneliti tersebut.
+- **Alt-7: Kegagalan Parsial Batch Embedding**
+  - **Pada Step 5–6**: Jika sebagian batch berhasil dan sebagian gagal:
+  - Sistem tidak menyimpan hasil parsial. Status berubah menjadi `failed` dengan informasi batch yang gagal. Retry menjalankan ulang pipeline dari awal.
 
-- **Alt-7: Pergantian Model Embedding (Versioning)**
-  - **Di luar siklus normal**: Jika model embedding lokal yang digunakan diganti dengan model lain (menghasilkan dimensi atau representasi berbeda):
-  - Sistem harus dapat mengidentifikasi dokumen yang diindeks menggunakan model lama dan menyediakan mekanisme untuk re-indexing selektif. Vektor dari model berbeda tidak boleh bercampur dalam satu kolom penyimpanan vektor.
+- **Alt-8: Worker Berhenti Saat Indexing**
+  - **Di titik mana pun**: Jika worker/proses background berhenti tidak terduga:
+  - Status dokumen tetap pada status terakhir yang dicatat (bukan `indexed`). Sistem mendeteksi job stale dan memungkinkan retry manual oleh peneliti.
+
+- **Alt-9: Peneliti Tidak Memiliki Hak Akses**
+  - **Pada Step 1**: Jika `researcher_id` pada dokumen tidak cocok dengan peneliti yang memicu pipeline:
+  - Sistem menolak akses dan tidak memproses dokumen. Tidak ada informasi dokumen yang bocor lintas peneliti.
 
 ---
 
-### UC-03a: Pantau Progress Indexing
+### UC-03a: Monitor Indexing Status
 
 - **Primary Actor**: Peneliti
-- **Goal in Context**: Peneliti dapat memantau tahapan indexing dokumen secara real-time
-- **Preconditions**: Dokumen sedang dalam proses indexing (status bukan `indexed` atau `failed`)
-- **Postconditions**: Peneliti melihat status terkini pipeline indexing
+- **Goal in Context**: Peneliti dapat memantau progres dan hasil indexing dokumen yang sedang atau sudah diproses
+- **Sub-use-case dari**: UC-03 (Document Indexing and Local Embedding)
+- **Preconditions**: Peneliti telah login; dokumen telah memasuki pipeline UC-03
+- **Postconditions**: Peneliti mengetahui status terkini dan ringkasan hasil indexing
 
 #### Basic Course of Events
 
 | Step | Actor Action | System Response |
 |:---:|---|---|
-| 1 | Peneliti membuka halaman Library atau Detail Dokumen. | Sistem menampilkan status pipeline terkini: `queued`, `extracting`, `chunking`, `embedding`, `indexed`, atau `failed`. |
-| 2 | — (otomatis) | Sistem memperbarui indikator status secara berkala tanpa perlu refresh halaman manual. |
-| 3 | Peneliti melihat status berubah menjadi `indexed`. | Sistem menampilkan notifikasi bahwa dokumen siap digunakan untuk semantic retrieval. |
+| 1 | Peneliti membuka halaman Library. | Sistem menampilkan daftar dokumen beserta kolom status indexing yang diperbarui secara berkala. |
+| 2 | Peneliti mengklik baris dokumen yang sedang atau sudah di-index. | Sistem menampilkan halaman Indexing Detail: status bertahap, jumlah chunk, model embedding, dimensi, dan waktu selesai (atau pesan error jika gagal). |
 
 ---
 
-### UC-03b: Ulang Indexing Dokumen Gagal
+### UC-03b: Retry Failed Indexing
 
 - **Primary Actor**: Peneliti
-- **Goal in Context**: Peneliti dapat memulai ulang proses indexing untuk dokumen yang gagal diproses
-- **Preconditions**: Status dokumen adalah `failed`
-- **Postconditions**: Proses indexing dimulai ulang dari awal
+- **Goal in Context**: Peneliti dapat memulai ulang proses indexing untuk dokumen yang gagal
+- **Sub-use-case dari**: UC-03 (Document Indexing and Local Embedding)
+- **Preconditions**: Status indexing dokumen adalah `failed`
+- **Postconditions**: Proses indexing dimulai ulang dari awal pipeline
 
 #### Basic Course of Events
 
 | Step | Actor Action | System Response |
 |:---:|---|---|
-| 1 | Peneliti membuka Detail Dokumen dengan status `failed`. | Sistem menampilkan alasan kegagalan (termasuk keterangan spesifik apakah kegagalan karena model lokal tidak tersedia atau karena dimensi vektor tidak sesuai) dan tombol "Coba Lagi". |
-| 2 | Peneliti mengklik "Coba Lagi". | Sistem mengubah status menjadi `queued` dan memasukkan kembali dokumen ke antrian indexing. |
-| 3 | — (otomatis) | Sistem memulai ulang pipeline indexing seperti pada UC-03 Sunny Day Flow. |
+| 1 | Peneliti melihat dokumen dengan status `failed` dan mengklik "Retry Indexing". | Sistem mengubah status menjadi `queued` dan memasukkan kembali job ke antrean. Pipeline dijalankan ulang dari Step 1 UC-03. |
+
+---
+
+### UC-03c: Re-index Dokumen
+
+- **Primary Actor**: Peneliti
+- **Goal in Context**: Peneliti dapat memicu re-indexing jika dokumen sumber berubah atau konfigurasi indexing diperbarui
+- **Sub-use-case dari**: UC-03 (Document Indexing and Local Embedding)
+- **Preconditions**: Status indexing dokumen adalah `indexed`; terdapat perubahan pada checksum dokumen atau konfigurasi indexing
+- **Postconditions**: Data indexing lama dihapus dan diganti dengan data indexing baru
+
+#### Basic Course of Events
+
+| Step | Actor Action | System Response |
+|:---:|---|---|
+| 1 | Peneliti mengklik "Re-index Dokumen" pada halaman Indexing Detail. | Sistem menampilkan modal konfirmasi SCR-07: menjelaskan bahwa data chunk dan embedding lama akan dihapus. |
+| 2 | Peneliti mengklik "Ya, Re-index". | Sistem menghapus seluruh chunk dan embedding lama, mengubah status menjadi `queued`, dan menjalankan ulang pipeline UC-03. |
 
 ---
 
@@ -188,65 +226,69 @@ flowchart LR
 
 ```mermaid
 classDiagram
-    class Dokumen {
+    class IndexingRecord {
+        +indexingId: UUID
+        +documentId: UUID
+        +researcherId: UUID
+        +indexingStatus: Enum
+        +failureReason: String
+        +totalChunks: Integer
+        +embeddingModel: String
+        +embeddingModelVersion: String
+        +embeddingDimension: Integer
+        +chunkSize: Integer
+        +chunkOverlap: Integer
+        +sourceChecksum: String
+        +startedAt: DateTime
+        +completedAt: DateTime
+    }
+
+    class DocumentChunk {
+        +chunkId: UUID
+        +indexingRecordId: UUID
+        +documentId: UUID
+        +researcherId: UUID
+        +chunkIndex: Integer
+        +chunkText: Text
+        +embedding: Vector
+        +pageNumber: Integer
+        +sectionName: String
+        +documentTitle: String
+        +authors: String
+        +publicationYear: Integer
+        +sourceGoogleDriveId: String
+        +sourceChecksum: String
+        +embeddingModel: String
+        +embeddingModelVersion: String
+        +embeddingDimension: Integer
+        +chunkSize: Integer
+        +chunkOverlap: Integer
+        +indexedAt: DateTime
+    }
+
+    class Document {
+        +documentId: UUID
         +googleDriveId: String
-        +namaFile: String
-        +tipeFile: Enum[PDF, DOCX]
-        +statusIndexing: Enum[queued, extracting, chunking, embedding, indexed, failed]
-        +waktuIndexingTerakhir: DateTime
-        +versiDrive: String
-        +alasanGagal: String
-        +penelitiId: UUID
-        +namaModelEmbedding: String
-        +versiModelEmbedding: String
+        +fileName: String
+        +importStatus: Enum
+        +researcherId: UUID
     }
 
-    class Chunk {
-        +chunkId: UUID
-        +dokumenId: UUID
-        +halamanAtasBagian: String
-        +urutanChunk: Integer
-        +teksAsli: String
-        +waktuProses: DateTime
-        +penelitiId: UUID
+    class ResearcherAccount {
+        +researcherId: UUID
+        +email: String
     }
 
-    class EmbeddingVektor {
-        +embeddingId: UUID
-        +chunkId: UUID
-        +vektor: Vector
-        +dimensi: Integer
-        +namaModel: String
-        +versiModel: String
-        +waktuGenerate: DateTime
-    }
-
-    class Peneliti {
-        +penelitiId: UUID
-        +namaLengkap: String
-        +emailGoogle: String
-    }
-
-    class HasilRetrieval {
-        +chunkId: UUID
-        +skorKemiripan: Float
-        +namaFile: String
-        +halamanAtasBagian: String
-        +teksAsli: String
-    }
-
-    Peneliti "1" --> "*" Dokumen : memiliki
-    Dokumen "1" --> "*" Chunk : dipecah menjadi
-    Chunk "1" --> "1" EmbeddingVektor : memiliki
-    HasilRetrieval ..> Chunk : merujuk ke
-    HasilRetrieval ..> Dokumen : menampilkan info
+    ResearcherAccount "1" --> "*" Document : owns
+    Document "1" --> "0..1" IndexingRecord : tracked_by
+    IndexingRecord "1" --> "*" DocumentChunk : produces
+    Document "1" --> "*" DocumentChunk : sourced_from
 ```
 
-- **Dokumen**: Representasi file literatur ilmiah yang sudah diimpor melalui UC-02. Menyimpan status pipeline indexing, referensi ke pemilik (peneliti), serta nama dan versi model embedding lokal yang digunakan saat indexing.
-- **Chunk**: Potongan teks dari dokumen, unit terkecil yang diproses dan disimpan bersama metadata sumbernya untuk keterlacakan.
-- **EmbeddingVektor**: Representasi numerik vektor dari sebuah chunk yang digunakan untuk pencarian semantik. Terikat erat ke chunk sumber dan mencatat nama model, versi model, serta dimensi vektor yang digunakan — memungkinkan deteksi ketidaksesuaian saat model diganti.
-- **Peneliti**: Pengguna sistem yang memiliki hak akses eksklusif atas dokumen dan embedding miliknya.
-- **HasilRetrieval**: Struktur hasil pencarian semantik yang mengembalikan chunk relevan beserta konteks dokumen sumber (nama file, lokasi chunk).
+- **IndexingRecord**: Rekam jejak satu siklus indexing untuk satu dokumen. Menyimpan konfigurasi yang digunakan (model, dimensi, chunk size, overlap, checksum), status bertahap, dan waktu eksekusi. Memungkinkan deteksi perubahan untuk re-indexing.
+- **DocumentChunk**: Unit terkecil knowledge base. Menyimpan teks chunk, vektor embedding, dan metadata keterlacakan lengkap (halaman, section, posisi, bibliografi, model yang digunakan). Diakses langsung oleh UC-04 dan UC-06 saat retrieval.
+- **Document**: Entitas dari UC-02 yang menjadi sumber. UC-03 membaca status dan teks ekstraksi dari entitas ini, serta memperbarui status indexing.
+- **ResearcherAccount**: Pemilik dokumen. Memastikan isolasi data — satu peneliti tidak dapat mengakses chunk milik peneliti lain.
 
 ---
 
@@ -254,82 +296,87 @@ classDiagram
 
 ### Functional Requirements (FR)
 
-- **FR-001**: Sistem HARUS membersihkan teks hasil ekstraksi dari karakter atau struktur yang tidak diperlukan sebelum melakukan chunking. *(UC-03 Step 2)*
-- **FR-002**: Sistem HARUS memecah teks menjadi chunk-chunk dengan ukuran yang sesuai dan overlap yang memadai untuk menjaga konteks. *(UC-03 Step 3)*
-- **FR-003**: Sistem HARUS menyimpan metadata setiap chunk, mencakup minimal: identitas dokumen Google Drive, nama file, halaman/bagian dokumen, urutan chunk, teks asli chunk, waktu proses, identitas peneliti pemilik, nama model embedding lokal yang digunakan, versi model, dan dimensi vektor. *(UC-03 Step 4)*
-- **FR-004**: Sistem HARUS menghasilkan embedding vektor untuk setiap chunk menggunakan **model embedding lokal** yang berjalan di dalam environment backend atau inference service milik aplikasi. Gemini Text Embedding API dan layanan cloud embedding eksternal lainnya **dilarang digunakan** untuk proses indexing dokumen referensi. *(UC-03 Step 5)*
-- **FR-005**: Sistem HARUS menyimpan embedding dan metadata chunk ke penyimpanan vektor. *(UC-03 Step 6)*
-- **FR-006**: Sistem HARUS memverifikasi konsistensi dimensi vektor antara model embedding lokal dan kolom penyimpanan vektor sebelum penyimpanan; penyimpanan vektor dengan dimensi tidak sesuai harus ditolak. *(UC-03 Step 6)*
-- **FR-007**: Sistem HARUS menandai status indexing dokumen dengan salah satu dari: `queued`, `extracting`, `chunking`, `embedding`, `indexed`, atau `failed`. *(UC-03 Step 1–7)*
-- **FR-008**: Sistem HARUS mencegah duplikasi indexing apabila dokumen yang sama tidak mengalami perubahan sejak indexing terakhir. *(Alt-1)*
-- **FR-009**: Sistem HARUS memproses ulang dokumen apabila file di Google Drive mengalami perubahan sejak indexing terakhir. *(Alt-2)*
-- **FR-010**: Sistem HARUS menyimpan alasan kegagalan yang dapat dibaca peneliti apabila proses indexing gagal, dan menyediakan opsi untuk memulai ulang proses. *(Alt-3, Alt-4)*
-- **FR-011**: Sistem HARUS menampilkan progress indexing (status pipeline) kepada peneliti secara real-time. *(UC-03a)*
-- **FR-012**: Sistem HARUS memberikan informasi bahwa dokumen telah siap digunakan untuk semantic retrieval setelah indexing berhasil. *(UC-03 Step 8)*
-- **FR-013**: Sistem HARUS memastikan setiap embedding dapat ditelusuri kembali ke dokumen dan chunk sumbernya. *(FR-003 + FR-005)*
-- **FR-014**: Sistem HARUS memastikan data embedding dan isi dokumen hanya dapat diakses oleh peneliti pemilik dokumen tersebut. *(Alt-6)*
-- **FR-015**: Sistem HARUS menyinkronisasi penghapusan dokumen di Google Drive dengan penghapusan data indexing terkait di aplikasi. *(Alt-5)*
-- **FR-016**: Sistem TIDAK BOLEH mengubah atau memodifikasi dokumen asli di Google Drive dalam proses apapun. *(Constraint)*
-- **FR-017**: Hasil pencarian semantik (similarity search) HARUS menampilkan nama dokumen dan lokasi chunk sumber. *(HasilRetrieval)*
-- **FR-018**: Model embedding lokal HARUS mampu menghasilkan representasi vektor untuk teks berbahasa Indonesia dan bahasa Inggris karena dokumen referensi dapat menggunakan salah satu atau keduanya. *(UC-03 Step 2, Clarification)*
-- **FR-019**: Sistem HARUS dapat menjalankan seluruh pipeline indexing tanpa bergantung pada Gemini Text Embedding API atau layanan cloud embedding eksternal; indexing HARUS berfungsi penuh bahkan ketika tidak ada koneksi ke layanan cloud embedding. *(UC-03 Step 5, Clarification)*
-- **FR-020**: Apabila model embedding lokal tidak tersedia atau tidak responsif, sistem HARUS menampilkan pesan error yang jelas kepada peneliti dan TIDAK BOLEH mengalihkan proses ke layanan cloud embedding sebagai fallback. *(Alt-4, Clarification)*
-- **FR-021**: Metadata setiap chunk dan dokumen HARUS mencatat nama model embedding, versi model, dan dimensi vektor yang digunakan saat indexing. *(UC-03 Step 4 & 6, Clarification)*
-- **FR-022**: Apabila model embedding lokal diganti dengan model berbeda, sistem HARUS memiliki mekanisme versioning yang mencegah percampuran vektor dari model berbeda dalam satu kolom penyimpanan vektor, dan HARUS menyediakan kemampuan re-indexing selektif untuk dokumen yang diindeks oleh model lama. *(Alt-7, Clarification)*
+- **FR-001**: Sistem HARUS menerima `document_id` dari UC-02 sebagai trigger indexing. *(UC-03 Step 1)*
+- **FR-002**: Sistem HARUS memverifikasi `researcher_id` sebelum mengakses dokumen dan menolak akses jika tidak sesuai. *(UC-03 Step 1, Alt-9)*
+- **FR-003**: Sistem HARUS memproses dokumen hanya jika `import_status` adalah `extracted`; menolak dan mencatat alasan jika tidak. *(UC-03 Step 1, Alt-1)*
+- **FR-004**: Sistem HARUS mengambil teks, halaman, section, dan metadata dari hasil ekstraksi UC-02. *(UC-03 Step 2)*
+- **FR-005**: Sistem HARUS membersihkan teks dari karakter kendali dan artefak ekstraksi tanpa menghilangkan informasi ilmiah. *(UC-03 Step 3)*
+- **FR-006**: Sistem HARUS memecah teks menjadi chunk dengan `chunk_size` dan `chunk_overlap` yang dikonfigurasi. *(UC-03 Step 4)*
+- **FR-007**: Sistem HARUS mempertahankan metadata `chunk_index`, `page_number`, dan `section_name` (jika tersedia) pada setiap chunk. *(UC-03 Step 4, FR-007)*
+- **FR-008**: Sistem HARUS menambahkan prefix `"passage: "` pada setiap chunk sebelum proses embedding. *(UC-03 Step 5)*
+- **FR-009**: Sistem HARUS menghasilkan embedding menggunakan model Hugging Face yang berjalan secara lokal. *(UC-03 Step 5)*
+- **FR-010**: Sistem TIDAK BOLEH menggunakan Gemini Text Embedding API atau external embedding API manapun untuk proses indexing. *(UC-03 Step 5, Alt-3)*
+- **FR-011**: Sistem HARUS menyimpan chunk, embedding, dan metadata ke PostgreSQL dengan ekstensi pgvector. *(UC-03 Step 6)*
+- **FR-012**: Sistem HARUS memvalidasi kesesuaian dimensi embedding dengan konfigurasi kolom pgvector sebelum menyimpan. *(UC-03 Step 7, Alt-4)*
+- **FR-013**: Sistem HARUS menyimpan metadata konfigurasi indexing: nama model, versi model, dimensi embedding, checksum dokumen, `chunk_size`, dan `chunk_overlap`. *(UC-03 Step 6)*
+- **FR-014**: Sistem HARUS mengelola status indexing secara bertahap: `queued → cleaning → chunking → embedding → storing → indexed | failed`. *(UC-03 Step 1–7)*
+- **FR-015**: Sistem HARUS mencegah duplikasi berdasarkan kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking. *(Alt-5)*
+- **FR-016**: Sistem HARUS mendukung re-indexing dengan menghapus data chunk dan embedding lama sebelum menjalankan pipeline baru, setelah konfirmasi peneliti. *(UC-03c, Alt-6)*
+- **FR-017**: Sistem HARUS menyediakan retry untuk kegagalan yang dapat diulang (error transient seperti resource sementara tidak tersedia). *(UC-03b, Alt-7, Alt-8)*
+- **FR-018**: Sistem HARUS menyediakan similarity search dasar untuk verifikasi bahwa index berfungsi dengan benar. *(SC-006)*
+- **FR-019**: Sistem HARUS mengembalikan metadata sumber (`document_id`, `page_number`, `section_name`, `document_title`) pada setiap hasil similarity search. *(SC-007)*
+- **FR-020**: Sistem HARUS menampilkan status dan ringkasan hasil indexing kepada peneliti secara berkala tanpa reload halaman. *(UC-03a, SCR-05, SCR-06)*
+- **FR-021**: Sistem HARUS memuat model embedding sekali dan menggunakannya kembali untuk semua dokumen tanpa reload per dokumen. *(NFR-001)*
+- **FR-022**: Sistem TIDAK BOLEH mengizinkan satu peneliti mengakses chunk milik peneliti lain. *(Alt-9)*
+- **FR-023**: Sistem HARUS menyimpan metadata bibliografi (`authors`, `publication_year`) jika tersedia; menandai sebagai kosong jika tidak ada — tidak boleh mengarang metadata. *(Traceability)*
+- **FR-024**: Sistem HARUS mendukung batch embedding untuk memproses banyak chunk sekaligus secara efisien. *(NFR-003)*
 
 ### Non-Functional Requirements (NFR)
 
-- **NFR-001 (Performa)**: Proses indexing keseluruhan untuk dokumen berukuran rata-rata (≤ 50 halaman) harus selesai dalam waktu yang wajar sehingga peneliti tidak perlu menunggu lama; dokumen tetap dapat digunakan secara semantik sesegera mungkin setelah selesai.
-- **NFR-002 (Keamanan & Privasi)**: Data embedding dan teks chunk hanya dapat diakses oleh peneliti yang memiliki hak atas dokumen tersebut; tidak boleh ada kebocoran data lintas peneliti.
-- **NFR-003 (Keterlacakan)**: Setiap hasil retrieval harus dapat ditelusuri sampai ke dokumen sumber dan nomor halaman/bagian aslinya, mendukung integritas sitasi ilmiah.
-- **NFR-004 (Integritas Data)**: Sistem harus menjaga konsistensi antara dimensi vektor model embedding yang digunakan dan kolom penyimpanan vektor; penyimpanan vektor dengan dimensi tidak sesuai harus ditolak secara eksplisit.
-- **NFR-005 (Non-Destruktif)**: Proses indexing tidak boleh dalam kondisi apapun mengubah, memindahkan, atau menghapus dokumen asli di Google Drive.
-- **NFR-006 (Ketahanan Gagal)**: Kegagalan pada satu dokumen tidak boleh menghentikan pemrosesan dokumen lain di antrian.
-- **NFR-007 (Kemandirian dari Cloud Embedding)**: Proses indexing harus berjalan sepenuhnya di dalam environment yang dikendalikan aplikasi (backend/inference service). Sistem tidak boleh bergantung pada layanan embedding cloud pihak ketiga (termasuk Gemini Text Embedding API) untuk menghasilkan vektor dokumen referensi; ketergantungan eksternal pada tahap ini meningkatkan risiko privasi data dan ketergantungan layanan.
-- **NFR-008 (Dukungan Multibahasa)**: Model embedding lokal yang dipilih harus mendukung teks berbahasa Indonesia dan bahasa Inggris secara memadai, mengingat dokumen referensi ilmiah dapat menggunakan salah satu atau kedua bahasa tersebut.
+- **NFR-001 (Efisiensi Model)**: Model embedding HARUS dimuat sekali ke memori saat startup worker dan digunakan kembali untuk semua permintaan indexing — tidak boleh di-reload per dokumen.
+- **NFR-002 (Background Processing)**: Seluruh pipeline indexing HARUS berjalan sebagai background job yang tidak memblokir antarmuka pengguna atau API layer.
+- **NFR-003 (Batch Embedding)**: Sistem HARUS memproses chunk dalam batch untuk mengurangi overhead model inference; ukuran batch dapat dikonfigurasi.
+- **NFR-004 (Memory Safety)**: Sistem HARUS membatasi penggunaan memori saat memproses dokumen besar dengan melakukan chunking dan batch embedding secara bertahap — tidak memuat seluruh teks dokumen ke memori sekaligus saat embedding.
+- **NFR-005 (Privasi & Isolasi Data)**: Chunk, embedding, dan metadata indexing HARUS terisolasi per `researcher_id`; tidak ada endpoint atau query yang mengembalikan data lintas peneliti.
+- **NFR-006 (Reprodusibilitas)**: Dengan model dan konfigurasi yang sama, embedding yang dihasilkan untuk teks yang sama HARUS menghasilkan vektor yang identik — memungkinkan deteksi perubahan via checksum.
+- **NFR-007 (Ketahanan Gagal)**: Kegagalan indexing satu dokumen TIDAK BOLEH menghentikan atau mempengaruhi proses indexing dokumen lain yang sedang berjalan.
+- **NFR-008 (Pemisahan Concern)**: Logic indexing HARUS dipisahkan dari komponen Google Drive (UC-02) dan paper generation (UC-04, UC-06) — tidak ada dependency langsung dari indexing ke Drive API atau LLM generatif.
+- **NFR-009 (Visibilitas Progres)**: Peneliti HARUS dapat melihat status indexing bertahap yang diperbarui tanpa interval lebih dari 5 detik.
+- **NFR-010 (Keamanan Token)**: Semua akses ke data dokumen dan chunk HARUS divalidasi terhadap sesi aktif peneliti — tidak ada akses anonim ke knowledge base.
 
 ---
 
 ## 6. Success Criteria & Scope Boundaries
 
-- **SC-001**: Dokumen PDF atau DOCX yang sudah diimpor melalui UC-02 berhasil dipecah menjadi chunk yang valid — terverifikasi ketika setiap chunk memiliki teks yang bermakna dan metadata sumber yang lengkap.
-- **SC-002**: Setiap chunk memiliki metadata sumber yang valid, mencakup identitas dokumen, nama file, informasi halaman/bagian, urutan chunk, teks asli, waktu proses, dan identitas peneliti.
-- **SC-003**: Embedding berhasil dibuat dan tersimpan, dengan setiap embedding terikat ke chunk sumber yang dapat dilacak.
-- **SC-004**: Pencarian semantik (similarity search) berhasil menemukan chunk yang relevan berdasarkan query uji dalam bahasa alami.
-- **SC-005**: Hasil pencarian menampilkan nama dokumen dan lokasi chunk sumber (halaman/bagian) untuk setiap hasil yang dikembalikan.
-- **SC-006**: Dokumen yang sama tidak menghasilkan embedding duplikat ketika tidak ada perubahan pada file di Google Drive.
-- **SC-007**: Dokumen yang mengalami perubahan di Google Drive dapat diindeks ulang, menggantikan embedding lama dengan yang baru.
-- **SC-008**: Kegagalan pada tahap pembersihan, chunking, atau embedding dapat ditampilkan kepada peneliti dengan deskripsi yang jelas dan opsi untuk mencoba ulang.
-- **SC-009**: Proses indexing berjalan tanpa memodifikasi dokumen asli di Google Drive.
-- **SC-010**: Data embedding satu peneliti tidak dapat diakses oleh peneliti lain.
-- **SC-011**: Indexing satu dokumen berhasil diselesaikan **tanpa** memanggil Gemini Text Embedding API atau layanan cloud embedding eksternal lainnya — dapat diverifikasi melalui log atau monitoring jaringan.
-- **SC-012**: Setiap chunk memiliki vector embedding lokal yang tersimpan di penyimpanan vektor, dapat diambil dan digunakan untuk similarity search.
-- **SC-013**: Metadata setiap chunk dan dokumen mencatat nama model embedding, versi model, dimensi vektor, dan waktu embedding dibuat.
-- **SC-014**: Similarity search berhasil mengambil chunk yang relevan menggunakan vektor hasil model lokal berdasarkan query uji dalam bahasa Indonesia maupun bahasa Inggris.
-- **SC-015**: Apabila model embedding lokal tidak tersedia saat proses indexing berjalan, sistem menampilkan pesan error yang jelas dan spesifik (bukan pesan generik) tanpa mencoba memanggil layanan cloud embedding sebagai pengganti.
-- **SC-016**: Vektor dari model embedding versi berbeda tidak bercampur dalam satu kolom penyimpanan — sistem dapat mengidentifikasi dokumen mana yang perlu di-index ulang ketika model diganti.
+- **SC-001**: Minimal satu dokumen PDF dan satu dokumen DOCX yang telah di-ekstrak oleh UC-02 berhasil di-index sepenuhnya — seluruh chunk tersimpan dan terverifikasi di pgvector.
+- **SC-002**: Semua chunk yang dihasilkan memiliki metadata keterlacakan lengkap: `document_id`, `chunk_index`, dan setidaknya salah satu dari `page_number` atau `section_name`.
+- **SC-003**: Pipeline indexing berjalan tanpa satu pun pemanggilan ke Gemini Text Embedding API atau external embedding service — dapat diverifikasi melalui network log atau test assertion.
+- **SC-004**: Knowledge base yang dihasilkan dapat digunakan oleh UC-04 dan UC-06 untuk similarity search — terverifikasi dengan minimal satu query test yang mengembalikan chunk relevan beserta sumber dokumen dan lokasi chunk.
+- **SC-005**: Indexing ulang dokumen yang sama (tanpa perubahan checksum) tidak menghasilkan chunk duplikat di database.
+- **SC-006**: Similarity search dasar (menggunakan prefix `"query: "`) menemukan setidaknya satu chunk relevan dari dokumen yang telah di-index untuk kueri uji yang representatif.
+- **SC-007**: Setiap hasil similarity search mengembalikan metadata sumber yang lengkap: `document_title`, `page_number` atau `section_name`, dan `chunk_index`.
+- **SC-008**: Implementasi mematuhi prinsip ICONIX (BCE architecture, TDD, sequence diagrams) dan Specification-Driven Development sesuai constitution proyek Telaah.
+- **SC-009**: Kegagalan indexing menampilkan pesan error yang dapat dibaca peneliti dan menyediakan opsi "Retry Indexing" — tanpa informasi teknis internal.
+- **SC-010**: Status indexing diperbarui dan tampil di antarmuka peneliti tanpa interval lebih dari 5 detik selama pipeline berjalan.
 
-**Out of Scope**:
-- Browse, pemilihan, dan impor dokumen dari Google Drive (menjadi **UC-02: Google Drive Document Import**, spec terpisah)
-- Ekstraksi teks dari file PDF/DOCX (bagian dari UC-02)
-- Pemilihan atau konfigurasi model embedding oleh peneliti melalui antarmuka (ditentukan pada tahap perencanaan teknis `/speckit-plan`)
-- Ukuran chunk spesifik dan nilai overlap (dikonfigurasi pada tahap teknis)
-- Antarmuka pencarian semantik mandiri (bagian dari fitur generasi paper)
-- Pengindeksan dokumen selain PDF dan DOCX
-- Sinkronisasi real-time berbasis webhook Google Drive (dapat ditambahkan di iterasi mendatang)
-- Penggunaan Gemini Text Embedding API atau layanan cloud embedding untuk indexing dokumen referensi (eksplisit di luar scope dan dilarang)
+**Out of Scope — UC-03 TIDAK BOLEH melakukan hal berikut:**
+
+| Item | Tanggung Jawab |
+|---|---|
+| Google OAuth login dan pemberian izin | UC-01: Google OAuth Login |
+| Koneksi, browse, atau download dari Google Drive | UC-02: Google Drive Connection and Document Import |
+| Ekstraksi teks dari PDF atau DOCX | UC-02: Google Drive Connection and Document Import |
+| Pembuatan outline paper atau penelitian | UC-04: Reverse Engineering and Research Outline |
+| Konfigurasi template iciCos atau profil penulisan | UC-05: Paper Template and Writing Profile Configuration |
+| Pembuatan isi paper atau pemanggilan LLM generatif | UC-06: Section-based RAG Paper Generation |
+| Citation validation akhir atau review paper | UC-07: Citation Validation and Paper Review |
+| Rendering LaTeX atau ekspor PDF | UC-08: LaTeX/PDF Export and Finalization |
+| Training atau fine-tuning model embedding | Di luar scope sistem Telaah |
+| Penggunaan Gemini Text Embedding API untuk indexing | Dilarang eksplisit (FR-010) |
 
 ---
 
 ## 7. Assumptions
 
-- UC-02 (Google Drive Document Import) menghasilkan teks mentah yang tersimpan dan siap dikonsumsi oleh pipeline indexing UC-03 ini.
-- Model embedding lokal yang digunakan telah ditentukan pada tahap perencanaan teknis, mendukung teks berbahasa Indonesia dan bahasa Inggris, dan dimensi vektornya bersifat tetap selama lifecycle aplikasi untuk satu versi model.
-- Apabila model embedding lokal diganti, proses re-indexing dokumen lama menjadi tanggung jawab operasional yang harus difasilitasi oleh sistem (bukan hanya manual migration).
-- Sistem sudah memiliki mekanisme untuk mendeteksi versi/perubahan file di Google Drive (misalnya melalui `modifiedTime` atau checksum) — mekanisme ini dapat berasal dari UC-02 atau UC-03c.
-- Proses indexing dijalankan sebagai tugas latar belakang (background job) dan tidak memblokir interaksi peneliti dengan bagian lain aplikasi.
-- Hak akses dokumen mengikuti kepemilikan dokumen di Google Drive: hanya peneliti yang mengimpor dokumen yang dapat mengaksesnya di Telaah.
-- Gemini API (untuk generasi teks) dan model embedding lokal (untuk indexing) adalah dua komponen terpisah dan tidak saling menggantikan.
+- Dokumen dengan status `extracted` memiliki `ExtractedText` dan `ExtractedPage` yang valid dan tidak kosong di database.
+- Model embedding Hugging Face (`intfloat/multilingual-e5-base` atau setara) telah tersedia di cache lokal server sebelum pipeline dijalankan; jika belum ada, sistem akan mengunduhnya saat pertama kali digunakan.
+- PostgreSQL dengan ekstensi pgvector telah dikonfigurasi dengan dimensi kolom vektor yang sesuai dengan model yang digunakan.
+- Setiap peneliti hanya dapat mengakses chunk dari dokumen yang diimpornya sendiri — tidak ada sharing knowledge base antar peneliti.
+- Prefix `"passage: "` digunakan saat indexing chunk (embedding time), dan prefix `"query: "` digunakan saat retrieval oleh UC-04/UC-06 — sesuai konvensi model multilingual-e5.
+- Konfigurasi chunk size dan overlap dapat diubah oleh administrator sistem; perubahan konfigurasi memerlukan re-indexing dokumen yang ada.
+- Pipeline indexing berjalan secara asinkron melalui background job queue (ARQ/Redis); antrian ini berbagi infrastruktur dengan UC-02 tetapi menggunakan task/queue yang terpisah.
+- Metadata bibliografi (`authors`, `publication_year`) bersumber dari konten dokumen atau metadata Google Drive — sistem tidak mengarang atau mengisi otomatis dari sumber eksternal.
+- UC-04 dan UC-06 menggunakan prefix `"query: "` pada kueri retrieval dan memanggil similarity search melalui interface yang disediakan UC-03.
 
 ---
 
@@ -342,20 +389,8 @@ classDiagram
   - `refactor(scope)`: Perbaikan struktur internal
   - `chore(scope)`: Scaffolding, konfigurasi, atau dokumentasi
 - **Major Milestone Checkpoints**:
-  - **Milestone 1 (Foundation)**: `feat(indexing): setup document chunk schema and indexing queue`
-  - **Milestone 2 (Pipeline)**: `feat(UC-03): complete text cleaning, chunking, and metadata storage`
-  - **Milestone 3 (Embedding)**: `feat(UC-03): integrate local embedding model and persist vectors to pgvector`
-  - **Milestone 4 (Release)**: `chore(release): complete UC-03 indexing pipeline verification and documentation`
-
----
-
-## Clarifications
-
-### Session 2026-09-19
-
-- Q: Apakah model embedding yang digunakan untuk indexing dokumen harus berjalan secara lokal (bukan layanan cloud seperti Gemini Text Embedding API)? → A: Ya, model embedding lokal wajib digunakan. Gemini Text Embedding API dan layanan cloud embedding lainnya dilarang untuk proses indexing dokumen referensi. Gemini API hanya boleh digunakan untuk generasi/transformasi teks pada use case lain.
-- Q: Apakah model embedding lokal harus mendukung multibahasa (Indonesia dan Inggris)? → A: Ya. Dokumen referensi dapat menggunakan bahasa Indonesia atau bahasa Inggris, sehingga model lokal yang dipilih harus mampu menghasilkan representasi vektor yang memadai untuk kedua bahasa tersebut.
-- Q: Metadata apa yang harus dicatat per chunk/embedding terkait model yang digunakan? → A: Metadata wajib mencatat nama model embedding, versi model, dimensi vektor, dan waktu embedding dibuat — disimpan di level chunk dan dokumen.
-- Q: Bagaimana sistem menangani pergantian model embedding? → A: Sistem harus memiliki strategi versioning: vektor dari model berbeda tidak boleh bercampur, dan sistem harus menyediakan kemampuan re-indexing selektif untuk dokumen yang diindeks oleh model lama.
-- Q: Apa yang harus dilakukan sistem jika model embedding lokal tidak tersedia saat indexing? → A: Sistem mengubah status menjadi `failed`, menampilkan pesan error yang jelas dan spesifik, dan tidak boleh beralih ke layanan cloud embedding sebagai fallback.
-- Q: Apakah use case koneksi/browse Google Drive dan document indexing sebaiknya dipisah menjadi UC tersendiri? → A: Ya, dipisah. UC-01 = Google OAuth login & grant permission. UC-02 = Google Drive Document Import (browse, pilih file, ekstraksi teks) — spec baru dibuat via `/speckit-specify`. UC-03 = Document Indexing & Embedding (spec ini).
+  - **Milestone 1 (Foundation)**: `feat(core): setup indexing schema migrations, IndexingRecord and DocumentChunk models`
+  - **Milestone 2 (Pipeline)**: `feat(UC-03): implement text cleaning, chunking, local embedding, and pgvector storage`
+  - **Milestone 3 (Retry & Re-index)**: `feat(UC-03b/c): implement retry and re-indexing flows`
+  - **Milestone 4 (Search)**: `feat(UC-03): implement similarity search with source metadata`
+  - **Milestone 5 (Release)**: `chore(release): complete UC-03 Document Indexing and Local Embedding verification and documentation`
