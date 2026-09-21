@@ -130,17 +130,17 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_document_router.py -k "test_retry"`
 
 ### Step 5.1: Tests (TDD)
-- [ ] T049 [P] [UC3] Write unit and integration tests for retry import flow (`POST /api/documents/{id}/retry`) and validation that only `failed` documents can be retried in `backend/tests/test_document_retry.py`
-- [ ] T050 [UC3] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC3): add test suite for import retry flow"`
+- [X] T049 [P] [UC3] Write unit and integration tests for retry import flow (`POST /api/documents/{id}/retry`) and validation that only `failed` documents can be retried in `backend/tests/test_document_retry.py`
+- [X] T050 [UC3] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC3): add test suite for import retry flow"`
 
 ### Step 5.2: Controller & Entity Extensions
-- [ ] T051 [UC3] Implement `retry_import` method in `backend/src/documents/service.py` resetting document status to `importing`, clearing `failure_reason`, and re-enqueueing `import_document_task` in ARQ
+- [X] T051 [UC3] Implement `retry_import` method in `backend/src/documents/service.py` resetting document status to `importing`, clearing `failure_reason`, and re-enqueueing `import_document_task` in ARQ
 
 ### Step 5.3: Boundary & Integration
-- [ ] T052 [UC3] Implement FastAPI Router endpoint (`POST /api/documents/{id}/retry`) in `backend/src/documents/router.py`
-- [ ] T053 [P] [UC3] Wire "Coba Lagi" action button and error alert display in `frontend/src/components/features/drive/ImportProgress.tsx` and `frontend/src/app/library/page.tsx`
-- [ ] T054 [UC3] **BCE Audit**: Confirm Boundary-Controller-Entity separation in retry flow
-- [ ] T055 [UC3] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC3): complete UC-02b retry import flow end-to-end"`
+- [X] T052 [UC3] Implement FastAPI Router endpoint (`POST /api/documents/{id}/retry`) in `backend/src/documents/router.py`
+- [X] T053 [P] [UC3] Wire "Coba Lagi" action button and error alert display in `frontend/src/components/features/drive/ImportProgress.tsx` and `frontend/src/app/library/page.tsx`
+- [X] T054 [UC3] **BCE Audit**: Confirm Boundary-Controller-Entity separation in retry flow
+- [X] T055 [UC3] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC3): complete UC-02b retry import flow end-to-end"`
 
 ---
 

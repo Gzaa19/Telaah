@@ -18,11 +18,31 @@ from backend.src.auth.router import router as auth_router
 from backend.src.drive.router import router as drive_router
 from backend.src.documents.router import router as document_router
 
+tags_metadata = [
+    {
+        "name": "Authentication",
+        "description": "Google OAuth 2.0 authentication, callback, researcher profile, and session management.",
+    },
+    {
+        "name": "Google Drive",
+        "description": "Browse and search research files and folders in Google Drive using drive.readonly scope.",
+    },
+    {
+        "name": "Documents",
+        "description": "Import documents, background text extraction (PDF/DOCX), status tracking, and retry processing.",
+    },
+    {
+        "name": "Health",
+        "description": "System health and liveness checks.",
+    },
+]
+
 app = FastAPI(
-    title=settings.APP_NAME,
-    description="Backend API for Paper Generator with Google OAuth 2.0 and pgvector",
-    version="1.0.0",
+    title="Telaah API: AI Scientific Journal Paper & Manuscript Generator",
+    description="Backend REST API for Telaah. Provides Google OAuth 2.0, Google Drive document import and text extraction (UC-02), and pgvector citation indexing.",
+    version="1.1.0",
     debug=settings.DEBUG,
+    openapi_tags=tags_metadata,
 )
 
 # CORS configuration
