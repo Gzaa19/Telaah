@@ -1,3 +1,4 @@
+
 # Feature Specification: UC-03 Document Indexing and Local Embedding – ICONIX Process
 
 **Feature Branch**: `003-document-indexing-embedding`
@@ -32,6 +33,20 @@ Setelah UC-02 (Google Drive Connection and Document Import) berhasil mengekstrak
 - Q: Apakah Gemini Text Embedding API boleh digunakan untuk indexing? → A: Tidak. UC-03 dilarang menggunakan Gemini Text Embedding API atau external embedding API untuk proses indexing.
 - Q: Prefix pada chunk saat indexing? → A: Setiap chunk diberi prefix `"passage: "` sebelum di-embed (sesuai konvensi multilingual-e5). Query retrieval pada UC-04/UC-06 menggunakan prefix `"query: "`.
 - Q: Apakah LangChain digunakan? → A: Ya, secara hybrid — untuk text splitter, HuggingFace embeddings wrapper, dan prompt/retriever interface bila diperlukan. Komponen inti (service, repository, metadata, status, deduplication, retry) diimplementasi sebagai kode aplikasi sendiri.
+- Q: Apakah model/konfigurasi chunking dapat diubah oleh peneliti? → A: Tidak pada versi awal. Model dan konfigurasi chunking dikelola sistem (environment config), bukan oleh peneliti secara bebas.
+- Q: Berapa chunk_size dan chunk_overlap baseline? → A: Nilai default dapat dikonfigurasi melalui environment variable; nilai spesifik ditentukan saat planning/implementation.
+- Q: Dari mana metadata bibliografi berasal? → A: Metadata utama diekstrak pada UC-02; UC-03 hanya meneruskan dan menyimpan metadata tersebut — tidak mengekstrak metadata bibliografi secara mandiri.
+- Q: Apakah satu dokumen dapat memiliki beberapa index version? → A: Ya. Setiap perubahan model atau konfigurasi chunking menghasilkan `IndexingRecord` baru (index version baru). Index lama dipertahankan sementara untuk keperluan audit sebelum dapat dibersihkan.
+- Q: Apa yang terjadi pada index lama saat re-indexing? → A: Index lama ditandai sebagai `archived` (bukan langsung dihapus). Index baru menjadi `active`. Pembersihan index lama dilakukan secara terpisah oleh administrator atau mekanisme cleanup.
+- Q: Apakah similarity search dasar ada di UC-03? → A: Ya — similarity search dasar berada di UC-03 untuk verifikasi bahwa index berfungsi. Retrieval berbasis section untuk paper generation berada di UC-06.
+- Q: Apakah dokumen hanya dapat diakses oleh pemiliknya? → A: Ya. Dokumen dan chunk hanya dapat diakses oleh `researcher_id` pemiliknya.
+- Q: Apa fallback jika model lokal gagal dimuat? → A: Sistem memberikan pesan error yang jelas dan mengubah status menjadi `failed`. Fallback ke model ringan hanya dilakukan jika dikonfigurasi secara eksplisit di environment — tidak ada fallback otomatis tanpa konfigurasi.
+- Q: Apakah teks chunk disimpan penuh? → A: Ya. Teks chunk lengkap beserta metadata disimpan agar hasil retrieval dapat ditelusuri langsung tanpa join ke tabel ekstraksi.
+
+### Session 2026-09-22
+
+- Q: Apakah chunk lama dihapus atau diarsipkan saat re-indexing dikonfirmasi? → A: Diarsipkan (`archived`) — `IndexingRecord` lama dan seluruh chunk-nya ditandai `archived`, tetap tersimpan untuk keperluan audit; tidak ada penghapusan otomatis saat re-indexing dikonfirmasi. Pembersihan dilakukan secara terpisah oleh administrator atau cleanup job.
+- Q: Konfirmasi: model default, trigger otomatis, konfigurasi sistem-managed, env-configurable chunking, metadata dari UC-02, multi-version index, similarity search di UC-03, isolasi per peneliti, background job, fallback eksplisit, dan full-text chunk — semua dikonfirmasi sesuai session 2026-09-21. → A: Seluruh 12 poin dikonfirmasi tanpa perubahan dari keputusan sesi sebelumnya.
 
 ---
 
@@ -45,7 +60,7 @@ UC-03 berjalan sebagai background pipeline. Antarmuka pengguna hanya menyediakan
 |---|---|---|---|
 | `SCR-05` | Library / Daftar Dokumen (extended) | Tabel dokumen terimport dengan kolom status indexing (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`), jumlah chunk, tombol "Retry Indexing" pada status `failed` | Klik "Retry Indexing" → restart pipeline UCT-03; Status berubah otomatis saat pipeline berjalan |
 | `SCR-06` | Indexing Detail | Ringkasan hasil indexing: total chunk, model embedding, dimensi vektor, waktu selesai; log status bertahap; tombol "Re-index Dokumen" | Klik "Re-index" → konfirmasi modal → restart pipeline |
-| `SCR-07` | Konfirmasi Re-index | Pesan konfirmasi bahwa data indexing lama akan dihapus; tombol "Ya, Re-index" dan "Batal" | Konfirmasi → restart pipeline; Batal → kembali ke SCR-06 |
+| `SCR-07` | Konfirmasi Re-index | Pesan konfirmasi bahwa index version baru akan dibuat dan index lama akan dipertahankan sementara sebagai `archived` untuk keperluan audit sebelum dibersihkan; tombol "Ya, Re-index" dan "Batal" | Konfirmasi → pipeline baru dijalankan, index lama diarsipkan; Batal → kembali ke SCR-06 |
 
 ### Storyboard Navigation Flow
 
@@ -144,19 +159,19 @@ flowchart LR
 
 - **Alt-3: Model Lokal Gagal Dimuat**
   - **Pada Step 5**: Jika model tidak tersedia di cache atau gagal diinisialisasi:
-  - Sistem mengubah status menjadi `failed`, menyimpan alasan kegagalan. Peneliti dapat mencoba ulang setelah model tersedia.
+  - Sistem mengubah status menjadi `failed` dan menyimpan pesan error yang dapat dibaca peneliti. Fallback ke model embedding alternatif yang lebih ringan hanya dilakukan jika dikonfigurasi secara eksplisit di environment — tidak ada fallback otomatis tanpa konfigurasi eksplisit.
 
 - **Alt-4: Ketidaksesuaian Dimensi Embedding**
   - **Pada Step 7**: Jika dimensi embedding tidak cocok dengan konfigurasi kolom pgvector:
   - Sistem mengubah status menjadi `failed`, menyimpan alasan: "Dimensi embedding tidak sesuai dengan konfigurasi database." Tidak ada chunk yang tersimpan secara parsial.
 
 - **Alt-5: Dokumen Sudah Pernah Di-index (Duplikasi)**
-  - **Pada Step 1**: Jika kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking sudah ada:
-  - Sistem menolak proses duplikasi dan melaporkan bahwa indexing sudah ada. Tidak ada perubahan pada data yang sudah tersimpan.
+  - **Pada Step 1**: Jika kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking sudah ada dan `IndexingRecord` sudah berstatus `indexed`:
+  - Sistem menolak proses duplikasi dan melaporkan bahwa index version yang identik sudah ada. Tidak ada perubahan pada data yang sudah tersimpan.
 
-- **Alt-6: Dokumen Berubah Setelah Indexing (Re-index)**
-  - **Trigger manual oleh Peneliti**: Jika peneliti meminta re-index setelah dokumen sumber berubah (checksum berbeda):
-  - Sistem menghapus seluruh chunk dan embedding lama untuk dokumen tersebut, lalu menjalankan ulang pipeline dari Step 2. Konfirmasi dari peneliti diperlukan sebelum penghapusan data lama.
+- **Alt-6: Dokumen Berubah atau Konfigurasi Berubah (Re-index → Index Version Baru)**
+  - **Trigger manual oleh Peneliti**: Jika peneliti meminta re-index (checksum berbeda atau konfigurasi berubah):
+  - Sistem menampilkan konfirmasi SCR-07. Setelah konfirmasi, `IndexingRecord` lama ditandai `archived` (chunk dan embedding lama tetap tersimpan sementara untuk audit). `IndexingRecord` baru dibuat dengan status `queued` dan menjadi index aktif. Sistem menjalankan ulang pipeline dari Step 2. Pembersihan chunk `archived` dilakukan secara terpisah.
 
 - **Alt-7: Kegagalan Parsial Batch Embedding**
   - **Pada Step 5–6**: Jika sebagian batch berhasil dan sebagian gagal:
@@ -211,14 +226,14 @@ flowchart LR
 - **Goal in Context**: Peneliti dapat memicu re-indexing jika dokumen sumber berubah atau konfigurasi indexing diperbarui
 - **Sub-use-case dari**: UC-03 (Document Indexing and Local Embedding)
 - **Preconditions**: Status indexing dokumen adalah `indexed`; terdapat perubahan pada checksum dokumen atau konfigurasi indexing
-- **Postconditions**: Data indexing lama dihapus dan diganti dengan data indexing baru
+- **Postconditions**: `IndexingRecord` lama dan seluruh chunk-nya ditandai `archived` (tetap tersimpan untuk audit); `IndexingRecord` baru dibuat dan menjadi index aktif setelah pipeline selesai
 
 #### Basic Course of Events
 
 | Step | Actor Action | System Response |
 |:---:|---|---|
-| 1 | Peneliti mengklik "Re-index Dokumen" pada halaman Indexing Detail. | Sistem menampilkan modal konfirmasi SCR-07: menjelaskan bahwa data chunk dan embedding lama akan dihapus. |
-| 2 | Peneliti mengklik "Ya, Re-index". | Sistem menghapus seluruh chunk dan embedding lama, mengubah status menjadi `queued`, dan menjalankan ulang pipeline UC-03. |
+| 1 | Peneliti mengklik "Re-index Dokumen" pada halaman Indexing Detail. | Sistem menampilkan modal konfirmasi SCR-07: menjelaskan bahwa `IndexingRecord` lama dan seluruh chunk-nya akan diarsipkan (`archived`) dan `IndexingRecord` baru akan dibuat — chunk lama tetap tersimpan untuk keperluan audit hingga dibersihkan administrator. |
+| 2 | Peneliti mengklik "Ya, Re-index". | Sistem menandai `IndexingRecord` lama dan seluruh chunk-nya sebagai `archived`, membuat `IndexingRecord` baru dengan status `queued`, dan menjalankan ulang pipeline UC-03 dari awal. |
 
 ---
 
@@ -280,12 +295,12 @@ classDiagram
     }
 
     ResearcherAccount "1" --> "*" Document : owns
-    Document "1" --> "0..1" IndexingRecord : tracked_by
+    Document "1" --> "0..*" IndexingRecord : tracked_by
     IndexingRecord "1" --> "*" DocumentChunk : produces
     Document "1" --> "*" DocumentChunk : sourced_from
 ```
 
-- **IndexingRecord**: Rekam jejak satu siklus indexing untuk satu dokumen. Menyimpan konfigurasi yang digunakan (model, dimensi, chunk size, overlap, checksum), status bertahap, dan waktu eksekusi. Memungkinkan deteksi perubahan untuk re-indexing.
+- **IndexingRecord**: Rekam jejak satu siklus indexing untuk satu dokumen. Satu dokumen dapat memiliki lebih dari satu `IndexingRecord` (multi-version) — satu berstatus `active`/`indexed`, sisanya berstatus `archived`. Menyimpan konfigurasi yang digunakan (model, dimensi, chunk size, overlap, checksum), status bertahap, dan waktu eksekusi. Memungkinkan deteksi perubahan untuk re-indexing.
 - **DocumentChunk**: Unit terkecil knowledge base. Menyimpan teks chunk, vektor embedding, dan metadata keterlacakan lengkap (halaman, section, posisi, bibliografi, model yang digunakan). Diakses langsung oleh UC-04 dan UC-06 saat retrieval.
 - **Document**: Entitas dari UC-02 yang menjadi sumber. UC-03 membaca status dan teks ekstraksi dari entitas ini, serta memperbarui status indexing.
 - **ResearcherAccount**: Pemilik dokumen. Memastikan isolasi data — satu peneliti tidak dapat mengakses chunk milik peneliti lain.
@@ -311,7 +326,8 @@ classDiagram
 - **FR-013**: Sistem HARUS menyimpan metadata konfigurasi indexing: nama model, versi model, dimensi embedding, checksum dokumen, `chunk_size`, dan `chunk_overlap`. *(UC-03 Step 6)*
 - **FR-014**: Sistem HARUS mengelola status indexing secara bertahap: `queued → cleaning → chunking → embedding → storing → indexed | failed`. *(UC-03 Step 1–7)*
 - **FR-015**: Sistem HARUS mencegah duplikasi berdasarkan kombinasi `document_id`, checksum, versi model, dan konfigurasi chunking. *(Alt-5)*
-- **FR-016**: Sistem HARUS mendukung re-indexing dengan menghapus data chunk dan embedding lama sebelum menjalankan pipeline baru, setelah konfirmasi peneliti. *(UC-03c, Alt-6)*
+- **FR-016**: Sistem HARUS mendukung re-indexing dengan menandai `IndexingRecord` lama dan seluruh chunk-nya sebagai `archived` (tetap tersimpan untuk audit), membuat `IndexingRecord` baru, dan menjalankan pipeline baru setelah konfirmasi peneliti — tidak ada penghapusan otomatis. *(UC-03c, Alt-6)*
+- **FR-016a**: Pembersihan `IndexingRecord` berstatus `archived` HARUS dilakukan secara terpisah oleh mekanisme administratif atau cleanup job — bukan otomatis saat re-indexing. *(Alt-6, UC-03c)*
 - **FR-017**: Sistem HARUS menyediakan retry untuk kegagalan yang dapat diulang (error transient seperti resource sementara tidak tersedia). *(UC-03b, Alt-7, Alt-8)*
 - **FR-018**: Sistem HARUS menyediakan similarity search dasar untuk verifikasi bahwa index berfungsi dengan benar. *(SC-006)*
 - **FR-019**: Sistem HARUS mengembalikan metadata sumber (`document_id`, `page_number`, `section_name`, `document_title`) pada setiap hasil similarity search. *(SC-007)*
@@ -374,7 +390,7 @@ classDiagram
 - Setiap peneliti hanya dapat mengakses chunk dari dokumen yang diimpornya sendiri — tidak ada sharing knowledge base antar peneliti.
 - Prefix `"passage: "` digunakan saat indexing chunk (embedding time), dan prefix `"query: "` digunakan saat retrieval oleh UC-04/UC-06 — sesuai konvensi model multilingual-e5.
 - Konfigurasi chunk size dan overlap dapat diubah oleh administrator sistem; perubahan konfigurasi memerlukan re-indexing dokumen yang ada.
-- Pipeline indexing berjalan secara asinkron melalui background job queue (ARQ/Redis); antrian ini berbagi infrastruktur dengan UC-02 tetapi menggunakan task/queue yang terpisah.
+- Pipeline indexing berjalan secara asinkron di background (FastAPI BackgroundTasks secara in-process untuk lingkup TA lokal, dengan opsi upgrade ke ARQ/Redis jika diskalakan); status dan progres pipeline dicatat langsung pada database PostgreSQL.
 - Metadata bibliografi (`authors`, `publication_year`) bersumber dari konten dokumen atau metadata Google Drive — sistem tidak mengarang atau mengisi otomatis dari sumber eksternal.
 - UC-04 dan UC-06 menggunakan prefix `"query: "` pada kueri retrieval dan memanggil similarity search melalui interface yang disediakan UC-03.
 
