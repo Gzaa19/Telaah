@@ -233,7 +233,7 @@ class IndexingRepository:
         job = self.get_latest_job_for_document(doc_id)
         version = self.get_active_index_version(doc_id) or self.get_latest_index_version(doc_id)
 
-        status = job.status if job else (version.status if version else "queued")
+        status = job.status if job else (version.status if version else "not_indexed")
         stage = job.current_stage if job else None
         total_chunks = version.total_chunks if version else None
         model_name = version.model_name if version else None

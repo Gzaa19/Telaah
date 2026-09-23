@@ -141,6 +141,31 @@ class DocumentIndexingService:
     ) -> Optional[Dict[str, Any]]:
         return self.repo.get_job_with_summary(doc_id, researcher_id)
 
+    def get_index_summary(
+        self, doc_id: uuid.UUID, researcher_id: uuid.UUID
+    ) -> Optional[Dict[str, Any]]:
+        doc = self.repo.get_document_with_access(doc_id, researcher_id)
+        if not doc:
+            return None
+        version = self.repo.get_active_index_version(doc_id) or self.repo.get_latest_index_version(doc_id)
+        if not version:
+            return None
+        return {
+            "document_id": doc.id,
+            "file_name": doc.file_name,
+            "index_version_id": version.id,
+            "status": version.status,
+            "model_name": version.model_name,
+            "model_version": version.model_version,
+            "embedding_dimension": version.embedding_dimension,
+            "chunk_size": version.chunk_size,
+            "chunk_overlap": version.chunk_overlap,
+            "total_chunks": version.total_chunks,
+            "source_checksum": version.source_checksum,
+            "completed_at": version.completed_at,
+            "is_active": version.is_active,
+        }
+
     def request_reindex(
         self, doc_id: uuid.UUID, researcher_id: uuid.UUID
     ) -> Tuple[IndexingJob, DocumentIndexVersion, Optional[uuid.UUID]]:

@@ -103,17 +103,17 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_indexing_router.py -k "test_status or test_summary"`
 
 ### Step 4.1: Unit & Integration Tests (TDD)
-- [ ] T032 [P] [UC-03a] Write contract/integration tests for `GET /api/indexing/jobs/{job_id}`, `GET /api/documents/{document_id}/index-status`, and `GET /api/documents/{document_id}/index-summary` in `backend/tests/test_indexing_status.py`
-- [ ] T033 [UC-03a] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03a): add test suite for indexing job status and summary endpoints"`
+- [x] T032 [P] [UC-03a] Write contract/integration tests for `GET /api/indexing/jobs/{job_id}`, `GET /api/documents/{document_id}/index-status`, and `GET /api/documents/{document_id}/index-summary` in `backend/tests/test_indexing_status.py`
+- [x] T033 [UC-03a] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03a): add test suite for indexing job status and summary endpoints"`
 
 ### Step 4.2: Controller & Boundary Implementation
-- [ ] T034 [UC-03a] Implement `get_job_status`, `get_index_status`, and `get_index_summary` in `backend/src/indexing/service.py` and endpoints in `backend/src/indexing/router.py`
-- [ ] T035 [P] [UC-03a] Implement React Query polling hook `useIndexingStatus` (polling every 3-5 seconds while non-terminal) in `frontend/src/hooks/useIndexingStatus.ts`
-- [ ] T036 [P] [UC-03a] Implement status badge component with stage indicators (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`) using `@phosphor-icons/react` in `frontend/src/components/features/indexing/IndexingStatusBadge.tsx`
-- [ ] T037 [P] [UC-03a] Implement Indexing Detail Modal/Panel (`SCR-06`) displaying chunk count, model name, dimension, timestamp, and progress stage in `frontend/src/components/features/indexing/IndexingDetailModal.tsx`
-- [ ] T038 [UC-03a] Integrate indexing status column, badge, and detail modal trigger into Library Page (`SCR-05`) in `frontend/src/app/library/page.tsx`
-- [ ] T039 [UC-03a] **BCE Audit**: Confirm UI components interact solely through API client and hooks without internal entity leakage
-- [ ] T040 [UC-03a] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03a): complete indexing status monitoring and detail views end-to-end"`
+- [x] T034 [UC-03a] Implement `get_job_status`, `get_index_status`, and `get_index_summary` in `backend/src/indexing/service.py` and endpoints in `backend/src/indexing/router.py`
+- [x] T035 [P] [UC-03a] Implement React Query polling hook `useIndexingStatus` (polling every 3-5 seconds while non-terminal) in `frontend/src/hooks/useIndexingStatus.ts`
+- [x] T036 [P] [UC-03a] Implement status badge component with stage indicators (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`) using `@phosphor-icons/react` in `frontend/src/components/features/indexing/IndexingStatusBadge.tsx`
+- [x] T037 [P] [UC-03a] Implement Indexing Detail Modal/Panel (`SCR-06`) displaying chunk count, model name, dimension, timestamp, and progress stage in `frontend/src/components/features/indexing/IndexingDetailModal.tsx`
+- [x] T038 [UC-03a] Integrate indexing status column, badge, and detail modal trigger into Library Page (`SCR-05`) in `frontend/src/app/library/page.tsx`
+- [x] T039 [UC-03a] **BCE Audit**: Confirm UI components interact solely through API client and hooks without internal entity leakage
+- [x] T040 [UC-03a] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03a): complete indexing status monitoring and detail views end-to-end"`
 
 ---
 

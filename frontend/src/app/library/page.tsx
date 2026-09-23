@@ -18,6 +18,8 @@ import {
   ArrowClockwise,
   ArrowRight,
 } from "@phosphor-icons/react";
+import { DocumentIndexingCell } from "@/components/features/indexing/DocumentIndexingCell";
+import { IndexingDetailModal } from "@/components/features/indexing/IndexingDetailModal";
 
 interface DocumentItem {
   id: string;
@@ -60,6 +62,7 @@ function LibraryContent() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDocForDetail, setSelectedDocForDetail] = useState<{ id: string; name: string } | null>(null);
 
   const fetchDocuments = async () => {
     setIsLoading(true);
@@ -186,6 +189,7 @@ function LibraryContent() {
                     <th className="py-3 px-4">Tipe</th>
                     <th className="py-3 px-4">Ukuran</th>
                     <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Status Indexing</th>
                     <th className="py-3 px-4">Tanggal Impor</th>
                   </tr>
                 </thead>
@@ -242,6 +246,13 @@ function LibraryContent() {
                           </Badge>
                         )}
                       </td>
+                      <td className="py-3 px-4 text-xs">
+                        <DocumentIndexingCell
+                          documentId={doc.id}
+                          importStatus={doc.import_status}
+                          onOpenDetail={(id) => setSelectedDocForDetail({ id, name: doc.file_name })}
+                        />
+                      </td>
                       <td className="py-3 px-4 text-xs text-slate-400">
                         {formatDate(doc.imported_at)}
                       </td>
@@ -252,6 +263,15 @@ function LibraryContent() {
             </div>
           )}
         </div>
+
+        {/* Indexing Detail Modal */}
+        <IndexingDetailModal
+          isOpen={!!selectedDocForDetail}
+          onClose={() => setSelectedDocForDetail(null)}
+          documentId={selectedDocForDetail?.id ?? null}
+          fileName={selectedDocForDetail?.name}
+          onReindexTriggered={fetchDocuments}
+        />
       </div>
     </div>
   );

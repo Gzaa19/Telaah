@@ -124,9 +124,24 @@ def get_job_status(
     service = DocumentIndexingService(db=db)
     job = service.get_job_status(job_id=job_id, researcher_id=user_session.researcher_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Indexing job not found")
+        return JSONResponse(
+            status_code=404,
+            content={"error": "job_not_found", "message": "Indexing job not found"},
+        )
 
-    return JobStatusDTO.model_validate(job)
+    return JobStatusDTO(
+        job_id=job.id,
+        document_id=job.document_id,
+        index_version_id=job.index_version_id,
+        status=job.status,
+        current_stage=job.current_stage,
+        retry_count=job.retry_count,
+        failure_reason=job.failure_reason,
+        enqueued_at=job.enqueued_at,
+        started_at=job.started_at,
+        completed_at=job.completed_at,
+        heartbeat_at=job.heartbeat_at,
+    )
 
 
 @router.get(
@@ -158,29 +173,14 @@ def get_index_summary(
     user_session=Depends(get_current_user_session),
 ):
     service = DocumentIndexingService(db=db)
-    doc = service.repo.get_document_with_access(document_id, user_session.researcher_id)
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found or access denied")
+    summary = service.get_index_summary(doc_id=document_id, researcher_id=user_session.researcher_id)
+    if not summary:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "not_found", "message": "No index summary found for document"},
+        )
 
-    version = service.repo.get_active_index_version(document_id) or service.repo.get_latest_index_version(document_id)
-    if not version:
-        raise HTTPException(status_code=404, detail="No index version found for document")
-
-    return IndexSummaryDTO(
-        document_id=doc.id,
-        file_name=doc.file_name,
-        index_version_id=version.id,
-        status=version.status,
-        model_name=version.model_name,
-        model_version=version.model_version,
-        embedding_dimension=version.embedding_dimension,
-        chunk_size=version.chunk_size,
-        chunk_overlap=version.chunk_overlap,
-        total_chunks=version.total_chunks,
-        source_checksum=version.source_checksum,
-        completed_at=version.completed_at,
-        is_active=version.is_active,
-    )
+    return IndexSummaryDTO(**summary)
 
 
 @router.post(
