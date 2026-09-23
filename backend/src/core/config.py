@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     SESSION_EXPIRE_HOURS: int = 24
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
+    # UC-03 Document Indexing and Local Embedding Configurations
+    EMBEDDING_MODEL_NAME: str = "intfloat/multilingual-e5-base"
+    EMBEDDING_DIMENSION: int = 768
+    CHUNK_SIZE: int = 1200
+    CHUNK_OVERLAP: int = 150
+    BATCH_SIZE: int = 32
+    INDEXING_MAX_RETRIES: int = 3
+    HEARTBEAT_TIMEOUT_MINUTES: int = 5
+
     @property
     def sync_database_url(self) -> str:
         return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg2://")

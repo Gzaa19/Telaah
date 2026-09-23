@@ -37,10 +37,10 @@ flowchart TD
 
 **Purpose**: Scaffolding directories, configurations, and dependencies for local embedding and vector indexing.
 
-- [ ] T001 Configure Python backend dependencies (`sentence-transformers>=3.0.0`, `langchain-text-splitters>=0.3.0`, `pgvector>=0.3.0`, `torch>=2.2.0`, `transformers>=4.40.0`) in `backend/requirements.txt`
-- [ ] T002 [P] Configure environment settings in `backend/src/core/config.py` (`EMBEDDING_MODEL_NAME="intfloat/multilingual-e5-base"`, `EMBEDDING_DIMENSION=768`, `CHUNK_SIZE=1200`, `CHUNK_OVERLAP=150`, `BATCH_SIZE=32`, `INDEXING_MAX_RETRIES=3`, `HEARTBEAT_TIMEOUT_MINUTES=5`)
-- [ ] T003 [P] Configure TypeScript interface contracts and type definitions for indexing jobs, versions, chunks, and similarity search in `frontend/src/types/indexing.ts`
-- [ ] T004 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-03 dependencies, types, and directory layout"`
+- [X] T001 Configure Python backend dependencies (`sentence-transformers>=3.0.0`, `langchain-text-splitters>=0.3.0`, `pgvector>=0.3.0`, `torch>=2.2.0`, `transformers>=4.40.0`) in `backend/requirements.txt`
+- [X] T002 [P] Configure environment settings in `backend/src/core/config.py` (`EMBEDDING_MODEL_NAME="intfloat/multilingual-e5-base"`, `EMBEDDING_DIMENSION=768`, `CHUNK_SIZE=1200`, `CHUNK_OVERLAP=150`, `BATCH_SIZE=32`, `INDEXING_MAX_RETRIES=3`, `HEARTBEAT_TIMEOUT_MINUTES=5`)
+- [X] T003 [P] Configure TypeScript interface contracts and type definitions for indexing jobs, versions, chunks, and similarity search in `frontend/src/types/indexing.ts`
+- [X] T004 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-03 dependencies, types, and directory layout"`
 
 ---
 
