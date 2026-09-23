@@ -48,11 +48,11 @@ flowchart TD
 
 **Purpose**: Establish database schemas, entity models, and migration scripts required before use case controllers can run.
 
-- [ ] T005 Create Alembic migration script `backend/alembic/versions/003_indexing_schema.py` creating `document_index_versions`, `document_chunks`, and `indexing_jobs` tables with HNSW vector index `idx_chunks_embedding_hnsw USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 128)`, unique partial index `idx_div_active_per_doc ON document_index_versions(document_id) WHERE is_active = TRUE`, and status check constraints verbatim from `data-model.md`
-- [ ] T006 Implement Entity SQLModel classes (`DocumentIndexVersion`, `DocumentChunk`, `IndexingJob`) with constraints verbatim from `data-model.md` (`status IN ('queued','cleaning','chunking','embedding','storing','indexed','failed','archived')`, `embedding: Vector(768)`, `chunk_index >= 0`, `source_metadata: JSONB`) in `backend/src/indexing/models.py`
-- [ ] T007 [P] Implement base repository query methods for indexing records, jobs, and chunks (`find_by_fingerprint`, `create_index_version`, `create_indexing_job`, `update_job_status`, `save_chunks_transactional`, `archive_index_version`) in `backend/src/indexing/repository.py`
-- [ ] T008 Run migration in database environment (`alembic upgrade head`) and verify table creation, HNSW index, and foreign key relations to `documents.id` and `researchers.id` in PostgreSQL
-- [ ] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): setup UC-03 DB schema — document_index_versions, document_chunks, indexing_jobs"`
+- [X] T005 Create Alembic migration script `backend/alembic/versions/003_indexing_schema.py` creating `document_index_versions`, `document_chunks`, and `indexing_jobs` tables with HNSW vector index `idx_chunks_embedding_hnsw USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 128)`, unique partial index `idx_div_active_per_doc ON document_index_versions(document_id) WHERE is_active = TRUE`, and status check constraints verbatim from `data-model.md`
+- [X] T006 Implement Entity SQLModel classes (`DocumentIndexVersion`, `DocumentChunk`, `IndexingJob`) with constraints verbatim from `data-model.md` (`status IN ('queued','cleaning','chunking','embedding','storing','indexed','failed','archived')`, `embedding: Vector(768)`, `chunk_index >= 0`, `source_metadata: JSONB`) in `backend/src/indexing/models.py`
+- [X] T007 [P] Implement base repository query methods for indexing records, jobs, and chunks (`find_by_fingerprint`, `create_index_version`, `create_indexing_job`, `update_job_status`, `save_chunks_transactional`, `archive_index_version`) in `backend/src/indexing/repository.py`
+- [X] T008 Run migration in database environment (`alembic upgrade head`) and verify table creation, HNSW index, and foreign key relations to `documents.id` and `researchers.id` in PostgreSQL
+- [X] T009 **Git Major Commit**: `git add . && git commit -m "feat(core): setup UC-03 DB schema — document_index_versions, document_chunks, indexing_jobs"`
 
 **PDR Verification Checkpoint**: Entity models conform to Updated Domain Model in `plan.md` and `data-model.md`.
 
