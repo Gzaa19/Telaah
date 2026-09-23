@@ -17,6 +17,7 @@ from backend.src.core.config import settings
 from backend.src.auth.router import router as auth_router
 from backend.src.drive.router import router as drive_router
 from backend.src.documents.router import router as document_router
+from backend.src.indexing.router import router as indexing_router
 
 tags_metadata = [
     {
@@ -32,6 +33,10 @@ tags_metadata = [
         "description": "Import documents, background text extraction (PDF/DOCX), status tracking, and retry processing.",
     },
     {
+        "name": "Document Indexing & Search",
+        "description": "Document cleaning, local embedding generation (multilingual-e5-base), pgvector storage, and similarity search.",
+    },
+    {
         "name": "Health",
         "description": "System health and liveness checks.",
     },
@@ -40,7 +45,7 @@ tags_metadata = [
 app = FastAPI(
     title="Telaah API: AI Scientific Journal Paper & Manuscript Generator",
     description="Backend REST API for Telaah. Provides Google OAuth 2.0, Google Drive document import and text extraction (UC-02), and pgvector citation indexing.",
-    version="1.1.0",
+    version="1.2.0",
     debug=settings.DEBUG,
     openapi_tags=tags_metadata,
 )
@@ -58,6 +63,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(drive_router)
 app.include_router(document_router)
+app.include_router(indexing_router)
 
 
 @app.get("/health", tags=["Health"])

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 import sqlalchemy as sa
-from sqlalchemy import UniqueConstraint, CheckConstraint
+from sqlalchemy import UniqueConstraint, CheckConstraint, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import SQLModel, Field, Column, Text, DateTime
 from pgvector.sqlalchemy import Vector
@@ -12,9 +12,10 @@ class DocumentIndexVersion(SQLModel, table=True):
     __tablename__ = "document_index_versions"
     __table_args__ = (
         UniqueConstraint("index_fingerprint", name="uq_div_fingerprint"),
-        UniqueConstraint(
+        Index(
+            "uq_div_one_active_per_doc",
             "document_id",
-            name="uq_div_one_active_per_doc",
+            unique=True,
             postgresql_where=sa.text("is_active = TRUE"),
         ),
         CheckConstraint(
@@ -98,7 +99,7 @@ class DocumentChunk(SQLModel, table=True):
     section_name: Optional[str] = Field(default=None, max_length=255, nullable=True)
     source_metadata: Dict[str, Any] = Field(
         default_factory=dict,
-        sa_column=Column(JSONB, nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa_column=Column(sa.JSON().with_variant(JSONB, "postgresql"), nullable=False, server_default=sa.text("'{}'")),
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

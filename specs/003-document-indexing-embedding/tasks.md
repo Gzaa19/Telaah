@@ -64,34 +64,34 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_indexing_pipeline.py backend/tests/test_embedding_provider.py backend/tests/test_chunking_service.py`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T010 [P] [UC-03] Write unit tests for `TextCleaningService` covering control character removal, whitespace normalization, extraction artifact stripping, and scientific symbol preservation in `backend/tests/test_text_cleaner.py`
-- [ ] T011 [P] [UC-03] Write unit tests for `ChunkingService` covering `RecursiveCharacterTextSplitter`, size/overlap boundaries (`chunk_size=1200`, `chunk_overlap=150`), and `page_number`/`section_name` attribution in `backend/tests/test_chunking_service.py`
-- [ ] T012 [P] [UC-03] Write unit tests for `LocalEmbeddingProvider` verifying singleton instantiation, prefix `"passage: "` addition, batch inference, 768-dim output validation, and strict rejection of external Gemini APIs in `backend/tests/test_embedding_provider.py`
-- [ ] T013 [P] [UC-03] Write unit tests for `ChecksumService` verifying SHA-256 document checksum and deterministic index fingerprint computation in `backend/tests/test_indexing_fingerprint.py`
-- [ ] T014 [P] [UC-03] Write contract/integration tests for trigger endpoint `POST /api/indexing/documents/{document_id}` (handling 202 Accepted, 404 Not Found, 409 Duplicate Fingerprint, 422 Invalid Status) in `backend/tests/test_indexing_router.py`
-- [ ] T015 [UC-03] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T016 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add failing test suite for core indexing pipeline, embedding, and router"`
+- [x] T010 [P] [UC-03] Write unit tests for `TextCleaningService` covering control character removal, whitespace normalization, extraction artifact stripping, and scientific symbol preservation in `backend/tests/test_text_cleaner.py`
+- [x] T011 [P] [UC-03] Write unit tests for `ChunkingService` covering `RecursiveCharacterTextSplitter`, size/overlap boundaries (`chunk_size=1200`, `chunk_overlap=150`), and `page_number`/`section_name` attribution in `backend/tests/test_chunking_service.py`
+- [x] T012 [P] [UC-03] Write unit tests for `LocalEmbeddingProvider` verifying singleton instantiation, prefix `"passage: "` addition, batch inference, 768-dim output validation, and strict rejection of external Gemini APIs in `backend/tests/test_embedding_provider.py`
+- [x] T013 [P] [UC-03] Write unit tests for `ChecksumService` verifying SHA-256 document checksum and deterministic index fingerprint computation in `backend/tests/test_indexing_fingerprint.py`
+- [x] T014 [P] [UC-03] Write contract/integration tests for trigger endpoint `POST /api/indexing/documents/{document_id}` (handling 202 Accepted, 404 Not Found, 409 Duplicate Fingerprint, 422 Invalid Status) in `backend/tests/test_indexing_router.py`
+- [x] T015 [UC-03] Verify tests FAIL prior to implementation (Red stage)
+- [x] T016 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add failing test suite for core indexing pipeline, embedding, and router"`
 
 ### Step 3.2: Controller Layer (Services, Local Embedder & Background Worker)
-- [ ] T017 [P] [UC-03] Implement request/response Pydantic DTOs (`JobResponseDTO`, `JobStatusDTO`, `IndexStatusDTO`, `IndexSummaryDTO`, `SearchResultDTO`, `ReindexResponseDTO`) in `backend/src/indexing/schemas.py`
-- [ ] T018 [P] [UC-03] Implement `TextCleaningService` (`clean`, `remove_control_chars`, `normalize_whitespace`, `strip_extraction_artifacts`) in `backend/src/indexing/cleaner.py`
-- [ ] T019 [P] [UC-03] Implement `ChunkingService` using `RecursiveCharacterTextSplitter` preserving `page_number` and `section_name` in `backend/src/indexing/chunker.py`
-- [ ] T020 [P] [UC-03] Implement `LocalEmbeddingProvider` using `sentence-transformers` with lazy model loading, CPU batch embedding via `asyncio.to_thread()`, and dimension validation (768) in `backend/src/indexing/embedding.py`
-- [ ] T021 [P] [UC-03] Implement `ChecksumService` (`compute_document_checksum`, `compute_index_fingerprint`) in `backend/src/indexing/fingerprint.py`
-- [ ] T022 [UC-03] Implement `DocumentIndexingService` (`validate_document_access`, `check_duplicate_fingerprint`, `create_and_enqueue_job`, `update_status`, `finalize_and_notify`, `handle_failure`) in `backend/src/indexing/service.py`
-- [ ] T023 [UC-03] Implement background pipeline executor `run_indexing_pipeline` with status progression (`queued → cleaning → chunking → embedding → storing → indexed`), periodic heartbeat, and transactional chunk batch insertion in `backend/src/indexing/worker.py`
-- [ ] T024 [UC-03] Verify unit tests pass (Green stage)
-- [ ] T025 [UC-03] **Git Commit (Controller)**: `git add backend/src/indexing/ && git commit -m "feat(UC-03): implement cleaning, chunking, local embedding, and background pipeline executor"`
+- [x] T017 [P] [UC-03] Implement request/response Pydantic DTOs (`JobResponseDTO`, `JobStatusDTO`, `IndexStatusDTO`, `IndexSummaryDTO`, `SearchResultDTO`, `ReindexResponseDTO`) in `backend/src/indexing/schemas.py`
+- [x] T018 [P] [UC-03] Implement `TextCleaningService` (`clean`, `remove_control_chars`, `normalize_whitespace`, `strip_extraction_artifacts`) in `backend/src/indexing/cleaner.py`
+- [x] T019 [P] [UC-03] Implement `ChunkingService` using `RecursiveCharacterTextSplitter` preserving `page_number` and `section_name` in `backend/src/indexing/chunker.py`
+- [x] T020 [P] [UC-03] Implement `LocalEmbeddingProvider` using `sentence-transformers` with lazy model loading, CPU batch embedding via `asyncio.to_thread()`, and dimension validation (768) in `backend/src/indexing/embedding.py`
+- [x] T021 [P] [UC-03] Implement `ChecksumService` (`compute_document_checksum`, `compute_index_fingerprint`) in `backend/src/indexing/fingerprint.py`
+- [x] T022 [UC-03] Implement `DocumentIndexingService` (`validate_document_access`, `check_duplicate_fingerprint`, `create_and_enqueue_job`, `update_status`, `finalize_and_notify`, `handle_failure`) in `backend/src/indexing/service.py`
+- [x] T023 [UC-03] Implement background pipeline executor `run_indexing_pipeline` with status progression (`queued → cleaning → chunking → embedding → storing → indexed`), periodic heartbeat, and transactional chunk batch insertion in `backend/src/indexing/worker.py`
+- [x] T024 [UC-03] Verify unit tests pass (Green stage)
+- [x] T025 [UC-03] **Git Commit (Controller)**: `git add backend/src/indexing/ && git commit -m "feat(UC-03): implement cleaning, chunking, local embedding, and background pipeline executor"`
 
 ### Step 3.3: Boundary Layer (FastAPI API Router & Worker Wiring)
-- [ ] T026 [UC-03] Implement FastAPI Router endpoint `POST /api/indexing/documents/{document_id}` validating researcher session, verifying `import_status == extracted`, dispatching `run_indexing_pipeline` via `BackgroundTasks`, and returning HTTP 202 Accepted in `backend/src/indexing/router.py`
-- [ ] T027 [UC-03] Register `indexing_router` in `backend/src/main.py` with OpenAPI tags and route prefix
-- [ ] T028 [P] [UC-03] Implement frontend API client functions (`triggerIndexing`, `fetchIndexingJob`) in `frontend/src/lib/api/indexing.ts`
+- [x] T026 [UC-03] Implement FastAPI Router endpoint `POST /api/indexing/documents/{document_id}` validating researcher session, verifying `import_status == extracted`, dispatching `run_indexing_pipeline` via `BackgroundTasks`, and returning HTTP 202 Accepted in `backend/src/indexing/router.py`
+- [x] T027 [UC-03] Register `indexing_router` in `backend/src/main.py` with OpenAPI tags and route prefix
+- [x] T028 [P] [UC-03] Implement frontend API client functions (`triggerIndexing`, `fetchIndexingJob`) in `frontend/src/lib/api/indexing.ts`
 
 ### Step 3.4: BCE Audit & Major Milestone Checkpoint
-- [ ] T029 [UC-03] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations routed via `DocumentIndexingService` and `IndexingRepository`
-- [ ] T030 [UC-03] Run integration tests and confirm sunny-day indexing pipeline passes end-to-end with verified vectors stored in pgvector
-- [ ] T031 [UC-03] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03): complete core text cleaning, chunking, local embedding, and background indexing pipeline [MVP Milestone]"`
+- [x] T029 [UC-03] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations routed via `DocumentIndexingService` and `IndexingRepository`
+- [x] T030 [UC-03] Run integration tests and confirm sunny-day indexing pipeline passes end-to-end with verified vectors stored in pgvector
+- [x] T031 [UC-03] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03): complete core text cleaning, chunking, local embedding, and background indexing pipeline [MVP Milestone]"`
 
 **Checkpoint**: Core indexing pipeline (UC-03) is fully functional and delivers an independently testable MVP.
 
