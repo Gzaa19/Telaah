@@ -275,33 +275,73 @@ class ChunkMetadataRepository:
         doc_id: Optional[uuid.UUID] = None,
         top_k: int = 5,
     ) -> List[Dict[str, Any]]:
-        # Using pgvector cosine distance operator <=>
-        # Cosine similarity score = 1 - (embedding <=> query_vector)
-        distance_expr = DocumentChunk.embedding.cosine_distance(query_vector)
+        is_sqlite = False
+        try:
+            bind = self.db.get_bind()
+            if bind and bind.dialect.name == "sqlite":
+                is_sqlite = True
+        except Exception:
+            pass
 
-        statement = (
-            select(
-                DocumentChunk,
-                (1 - distance_expr).label("similarity_score"),
-                Document.file_name.label("document_title"),
+        if is_sqlite:
+            import math
+            def cosine_sim(v1, v2):
+                if not v1 or not v2:
+                    return 0.0
+                dot = sum(a * b for a, b in zip(v1, v2))
+                norm1 = math.sqrt(sum(a * a for a in v1))
+                norm2 = math.sqrt(sum(b * b for b in v2))
+                return (dot / (norm1 * norm2)) if (norm1 and norm2) else 0.0
+
+            statement = (
+                select(DocumentChunk, Document.file_name.label("document_title"))
+                .join(Document, Document.id == DocumentChunk.document_id)
+                .join(
+                    DocumentIndexVersion,
+                    DocumentIndexVersion.id == DocumentChunk.index_version_id,
+                )
+                .where(
+                    DocumentChunk.researcher_id == researcher_id,
+                    DocumentIndexVersion.is_active == True,
+                )
             )
-            .join(Document, Document.id == DocumentChunk.document_id)
-            .join(
-                DocumentIndexVersion,
-                DocumentIndexVersion.id == DocumentChunk.index_version_id,
+            if doc_id:
+                statement = statement.where(DocumentChunk.document_id == doc_id)
+
+            rows = self.db.exec(statement).all()
+            scored = []
+            for chunk, title in rows:
+                score = cosine_sim(chunk.embedding, query_vector)
+                scored.append((chunk, score, title))
+            scored.sort(key=lambda x: x[1], reverse=True)
+            results = scored[:top_k]
+        else:
+            # Using pgvector cosine distance operator <=>
+            # Cosine similarity score = 1 - (embedding <=> query_vector)
+            distance_expr = DocumentChunk.embedding.cosine_distance(query_vector)
+
+            statement = (
+                select(
+                    DocumentChunk,
+                    (1 - distance_expr).label("similarity_score"),
+                    Document.file_name.label("document_title"),
+                )
+                .join(Document, Document.id == DocumentChunk.document_id)
+                .join(
+                    DocumentIndexVersion,
+                    DocumentIndexVersion.id == DocumentChunk.index_version_id,
+                )
+                .where(
+                    DocumentChunk.researcher_id == researcher_id,
+                    DocumentIndexVersion.is_active == True,
+                )
             )
-            .where(
-                DocumentChunk.researcher_id == researcher_id,
-                DocumentIndexVersion.is_active == True,
-            )
-        )
 
-        if doc_id:
-            statement = statement.where(DocumentChunk.document_id == doc_id)
+            if doc_id:
+                statement = statement.where(DocumentChunk.document_id == doc_id)
 
-        statement = statement.order_by(distance_expr).limit(top_k)
-
-        results = self.db.exec(statement).all()
+            statement = statement.order_by(distance_expr).limit(top_k)
+            results = self.db.exec(statement).all()
         items = []
         for chunk, score, title in results:
             items.append({

@@ -160,16 +160,16 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_similarity_search.py`
 
 ### Step 7.1: Tests (TDD)
-- [ ] T056 [P] [UC-03] Write unit and integration tests for similarity search (`GET /api/search/similarity`), verifying query prefix `"query: "`, top-k ranking, threshold filtering, tenant isolation (`researcher_id`), and citation metadata completeness (`document_title`, `page_number`, `section_name`, `chunk_index`) in `backend/tests/test_similarity_search.py`
-- [ ] T057 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add test suite for pgvector similarity search verification"`
+- [x] T056 [P] [UC-03] Write unit and integration tests for similarity search (`GET /api/search/similarity`), verifying query prefix `"query: "`, top-k ranking, threshold filtering, tenant isolation (`researcher_id`), and citation metadata completeness (`document_title`, `page_number`, `section_name`, `chunk_index`) in `backend/tests/test_similarity_search.py`
+- [x] T057 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add test suite for pgvector similarity search verification"`
 
 ### Step 7.2: Controller & Boundary Implementation
-- [ ] T058 [UC-03] Implement `similarity_search` in `ChunkMetadataRepository` using pgvector cosine distance operator `<=>` with cosine similarity score conversion (`1 - (embedding <=> query_vector)`) in `backend/src/indexing/repository.py`
-- [ ] T059 [UC-03] Implement `similarity_search` service method in `DocumentIndexingService` encoding query with prefix `"query: "` via `LocalEmbeddingProvider` in `backend/src/indexing/service.py`
-- [ ] T060 [UC-03] Implement FastAPI Router endpoint `GET /api/search/similarity` with query parameters (`q`, `document_id`, `top_k`) in `backend/src/indexing/router.py`
-- [ ] T061 [P] [UC-03] Implement verification search test card component in `frontend/src/components/features/indexing/SimilaritySearchTest.tsx`
-- [ ] T062 [UC-03] **BCE Audit**: Confirm Boundary-Controller-Entity compliance for search flow
-- [ ] T063 [UC-03] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03): complete similarity search verification with citation attribution"`
+- [x] T058 [UC-03] Implement `similarity_search` in `ChunkMetadataRepository` using pgvector cosine distance operator `<=>` with cosine similarity score conversion (`1 - (embedding <=> query_vector)`) in `backend/src/indexing/repository.py`
+- [x] T059 [UC-03] Implement `similarity_search` service method in `DocumentIndexingService` encoding query with prefix `"query: "` via `LocalEmbeddingProvider` in `backend/src/indexing/service.py`
+- [x] T060 [UC-03] Implement FastAPI Router endpoint `GET /api/search/similarity` with query parameters (`q`, `document_id`, `top_k`) in `backend/src/indexing/router.py`
+- [x] T061 [P] [UC-03] Implement verification search test card component in `frontend/src/components/features/indexing/SimilaritySearchTest.tsx`
+- [x] T062 [UC-03] **BCE Audit**: Confirm Boundary-Controller-Entity compliance for search flow
+- [x] T063 [UC-03] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03): complete similarity search verification with citation attribution"`
 
 ---
 

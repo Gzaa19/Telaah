@@ -20,6 +20,7 @@ import {
 } from "@phosphor-icons/react";
 import { DocumentIndexingCell } from "@/components/features/indexing/DocumentIndexingCell";
 import { IndexingDetailModal } from "@/components/features/indexing/IndexingDetailModal";
+import { SimilaritySearchTest } from "@/components/features/indexing/SimilaritySearchTest";
 
 interface DocumentItem {
   id: string;
@@ -263,6 +264,9 @@ function LibraryContent() {
             </div>
           )}
         </div>
+
+        {/* Semantic Similarity Search Verification Panel */}
+        <SimilaritySearchTest />
 
         {/* Indexing Detail Modal */}
         <IndexingDetailModal
