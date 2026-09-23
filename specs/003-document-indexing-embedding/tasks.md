@@ -141,16 +141,16 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_reindex.py`
 
 ### Step 6.1: Tests (TDD)
-- [ ] T048 [P] [UC-03c] Write unit and integration tests for re-indexing flow (`POST /api/documents/{document_id}/reindex`), verifying version archival (`is_active=False, status=archived`), new version creation, and chunk isolation in `backend/tests/test_reindex.py`
-- [ ] T049 [UC-03c] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03c): add test suite for document re-indexing and version archival"`
+- [x] T048 [P] [UC-03c] Write unit and integration tests for re-indexing flow (`POST /api/documents/{document_id}/reindex`), verifying version archival (`is_active=False, status=archived`), new version creation, and chunk isolation in `backend/tests/test_indexing_reindex.py`
+- [x] T049 [UC-03c] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03c): add test suite for document re-indexing and version archival"`
 
 ### Step 6.2: Controller & Boundary Implementation
-- [ ] T050 [UC-03c] Implement `request_reindex` method in `DocumentIndexingService` (archiving current active index version, creating new `DocumentIndexVersion(status=queued, is_active=True)`, creating new `IndexingJob`, and adding task to `BackgroundTasks`) in `backend/src/indexing/service.py`
-- [ ] T051 [UC-03c] Implement endpoint `POST /api/documents/{document_id}/reindex` in `backend/src/indexing/router.py`
-- [ ] T052 [P] [UC-03c] Implement Re-index Confirmation Modal (`SCR-07`) explaining version archival and requesting user confirmation in `frontend/src/components/features/indexing/ReindexConfirmModal.tsx`
-- [ ] T053 [UC-03c] Wire "Re-index Dokumen" button in `IndexingDetailModal.tsx` to trigger `ReindexConfirmModal` and execute `requestReindex` mutation in `frontend/src/hooks/useReindex.ts`
-- [ ] T054 [UC-03c] **BCE Audit**: Confirm boundary and controller strict adherence
-- [ ] T055 [UC-03c] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03c): complete re-index and multi-version archive flow"`
+- [x] T050 [UC-03c] Implement `request_reindex` method in `DocumentIndexingService` (archiving current active index version, creating new `DocumentIndexVersion(status=queued, is_active=True)`, creating new `IndexingJob`, and adding task to `BackgroundTasks`) in `backend/src/indexing/service.py`
+- [x] T051 [UC-03c] Implement endpoint `POST /api/documents/{document_id}/reindex` in `backend/src/indexing/router.py`
+- [x] T052 [P] [UC-03c] Implement Re-index Confirmation Modal (`SCR-07`) explaining version archival and requesting user confirmation in `frontend/src/components/features/indexing/ReindexConfirmModal.tsx`
+- [x] T053 [UC-03c] Wire "Re-index Dokumen" button in `IndexingDetailModal.tsx` to trigger `ReindexConfirmModal` and execute `requestReindex` mutation in `frontend/src/hooks/useReindex.ts`
+- [x] T054 [UC-03c] **BCE Audit**: Confirm boundary and controller strict adherence
+- [x] T055 [UC-03c] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03c): complete re-index and multi-version archive flow"`
 
 ---
 

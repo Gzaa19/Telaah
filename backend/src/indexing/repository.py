@@ -219,6 +219,8 @@ class IndexingRepository:
 
         version.is_active = False
         version.status = "archived"
+        if ":archived" not in version.index_fingerprint:
+            version.index_fingerprint = f"{version.index_fingerprint}:archived:{int(datetime.now(timezone.utc).timestamp())}"
         self.db.add(version)
         self.db.commit()
         return True

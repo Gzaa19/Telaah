@@ -15,7 +15,9 @@ import {
   Hash,
 } from "@phosphor-icons/react";
 import { DocumentIndexSummaryResponse } from "@/types/indexing";
-import { fetchDocumentIndexSummary, requestReindex, triggerIndexing } from "@/lib/api/indexing";
+import { fetchDocumentIndexSummary, triggerIndexing } from "@/lib/api/indexing";
+import { ReindexConfirmModal } from "./ReindexConfirmModal";
+import { useReindex } from "@/hooks/useReindex";
 
 interface IndexingDetailModalProps {
   isOpen: boolean;
@@ -37,6 +39,22 @@ export function IndexingDetailModal({
   const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [showReindexConfirm, setShowReindexConfirm] = useState<boolean>(false);
+
+  const { reindex, isLoading: isReindexLoading } = useReindex({
+    onSuccess: () => {
+      setActionSuccess("Re-indexing berhasil dimulai.");
+      setShowReindexConfirm(false);
+      onReindexTriggered?.();
+      setTimeout(() => {
+        onClose();
+      }, 1200);
+    },
+    onError: (err) => {
+      setError(err.message || "Gagal memicu proses re-indexing.");
+      setShowReindexConfirm(false);
+    },
+  });
 
   useEffect(() => {
     if (!isOpen || !documentId) {
@@ -67,25 +85,6 @@ export function IndexingDetailModal({
   }, [isOpen, documentId]);
 
   if (!isOpen) return null;
-
-  const handleReindex = async () => {
-    if (!documentId) return;
-    setIsActionLoading(true);
-    setActionSuccess(null);
-    setError(null);
-    try {
-      await requestReindex(documentId);
-      setActionSuccess("Re-indexing berhasil dimulai.");
-      onReindexTriggered?.();
-      setTimeout(() => {
-        onClose();
-      }, 1200);
-    } catch (err: any) {
-      setError(err.message || "Gagal memicu proses re-indexing.");
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
 
   const handleRetry = async () => {
     if (!documentId) return;
@@ -275,16 +274,29 @@ export function IndexingDetailModal({
 
             <button
               type="button"
-              onClick={handleReindex}
-              disabled={isActionLoading || isLoading}
+              onClick={() => setShowReindexConfirm(true)}
+              disabled={isActionLoading || isReindexLoading || isLoading}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
             >
-              <ArrowClockwise weight="bold" className={`w-3.5 h-3.5 ${isActionLoading ? "animate-spin" : ""}`} />
+              <ArrowClockwise weight="bold" className={`w-3.5 h-3.5 ${isReindexLoading ? "animate-spin" : ""}`} />
               <span>Re-index Dokumen</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ReindexConfirmModal
+        isOpen={showReindexConfirm}
+        onClose={() => setShowReindexConfirm(false)}
+        onConfirm={() => {
+          if (documentId) {
+            reindex(documentId);
+          }
+        }}
+        fileName={fileName || summary?.file_name}
+        isLoading={isReindexLoading}
+      />
     </div>
   );
 }
