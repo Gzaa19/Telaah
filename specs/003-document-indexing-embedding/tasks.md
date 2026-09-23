@@ -123,15 +123,15 @@ flowchart TD
 **Independent Test**: `pytest backend/tests/test_indexing_retry.py`
 
 ### Step 5.1: Tests (TDD)
-- [ ] T041 [P] [UC-03b] Write unit and integration tests for retry logic (`POST /api/indexing/documents/{document_id}` on failed document) and stale job detection threshold check in `backend/tests/test_indexing_retry.py`
-- [ ] T042 [UC-03b] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03b): add test suite for indexing retry and stale job recovery"`
+- [x] T041 [P] [UC-03b] Write unit and integration tests for retry logic (`POST /api/indexing/documents/{document_id}` on failed document) and stale job detection threshold check in `backend/tests/test_indexing_retry.py`
+- [x] T042 [UC-03b] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03b): add test suite for indexing retry and stale job recovery"`
 
 ### Step 5.2: Controller & Boundary Implementation
-- [ ] T043 [UC-03b] Implement retry validation in `DocumentIndexingService.create_and_enqueue_job` (allowing retry for `failed` or stale jobs, incrementing `retry_count`, and resetting `status = queued`) in `backend/src/indexing/service.py`
-- [ ] T044 [P] [UC-03b] Implement `get_stale_jobs` query and automatic recovery trigger in `backend/src/indexing/repository.py`
-- [ ] T045 [P] [UC-03b] Implement "Coba Lagi / Retry Indexing" button and error message display in `frontend/src/components/features/indexing/IndexingStatusBadge.tsx` and `frontend/src/components/features/indexing/IndexingDetailModal.tsx`
-- [ ] T046 [UC-03b] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation in retry flow
-- [ ] T047 [UC-03b] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03b): complete retry failed indexing flow"`
+- [x] T043 [UC-03b] Implement retry validation in `DocumentIndexingService.create_and_enqueue_job` (allowing retry for `failed` or stale jobs, incrementing `retry_count`, and resetting `status = queued`) in `backend/src/indexing/service.py`
+- [x] T044 [P] [UC-03b] Implement `get_stale_jobs` query and automatic recovery trigger in `backend/src/indexing/repository.py`
+- [x] T045 [P] [UC-03b] Implement "Coba Lagi / Retry Indexing" button and error message display in `frontend/src/components/features/indexing/IndexingStatusBadge.tsx` and `frontend/src/components/features/indexing/IndexingDetailModal.tsx`
+- [x] T046 [UC-03b] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation in retry flow
+- [x] T047 [UC-03b] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC-03b): complete retry failed indexing flow"`
 
 ---
 

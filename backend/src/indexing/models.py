@@ -17,6 +17,7 @@ class DocumentIndexVersion(SQLModel, table=True):
             "document_id",
             unique=True,
             postgresql_where=sa.text("is_active = TRUE"),
+            sqlite_where=sa.text("is_active = 1"),
         ),
         CheckConstraint(
             "status IN ('queued','cleaning','chunking','embedding','storing','indexed','failed','archived')",

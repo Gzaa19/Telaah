@@ -22,6 +22,7 @@ from backend.src.indexing.service import (
     DocumentNotFoundError,
     InvalidDocumentStatusError,
     DuplicateFingerprintError,
+    MaxRetriesExceededError,
 )
 from backend.src.indexing.worker import run_indexing_pipeline
 
@@ -88,6 +89,11 @@ async def trigger_indexing(
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={"error": "invalid_document_status", "message": str(e)},
+        )
+    except MaxRetriesExceededError as e:
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"error": "max_retries_exceeded", "message": str(e)},
         )
     except DuplicateFingerprintError as e:
         return JSONResponse(

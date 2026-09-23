@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 from sqlmodel import Session
 
@@ -17,6 +18,10 @@ class DocumentNotFoundError(Exception):
 
 
 class InvalidDocumentStatusError(Exception):
+    pass
+
+
+class MaxRetriesExceededError(Exception):
     pass
 
 
@@ -92,32 +97,60 @@ class DocumentIndexingService:
         )
 
         existing = self.repo.find_by_fingerprint(fingerprint)
+        latest_job = self.repo.get_latest_job_for_document(target_doc_id)
+        latest_version = self.repo.get_latest_index_version(target_doc_id) or existing
+
+        is_retrying = (
+            is_retry
+            or (latest_job is not None and latest_job.status == "failed")
+            or (latest_version is not None and latest_version.status == "failed")
+        )
+
+        if is_retrying and latest_job is not None:
+            if latest_job.retry_count >= latest_job.max_retries:
+                raise MaxRetriesExceededError(
+                    f"Batas percobaan indexing telah tercapai (maksimal {latest_job.max_retries} kali). Silakan periksa kembali file atau hubungi administrator."
+                )
+
+            latest_job.retry_count += 1
+            latest_job.status = "queued"
+            latest_job.current_stage = None
+            latest_job.failure_reason = None
+            latest_job.enqueued_at = datetime.now(timezone.utc)
+            latest_job.started_at = None
+            latest_job.completed_at = None
+            self.db.add(latest_job)
+
+            if latest_version:
+                latest_version.status = "queued"
+                latest_version.failure_reason = None
+                self.db.add(latest_version)
+
+            self.db.commit()
+            self.db.refresh(latest_job)
+            if latest_version:
+                self.db.refresh(latest_version)
+
+            return latest_job, latest_version
+
         if existing and existing.status in ("indexed", "completed") and not is_retry:
             raise DuplicateFingerprintError(existing)
 
-        # Create new index version (or reuse if retrying failed)
-        if existing and existing.status == "failed" and is_retry:
-            version = existing
-            version.status = "queued"
-            version.failure_reason = None
-            self.db.add(version)
-            self.db.commit()
-            self.db.refresh(version)
-        else:
-            version = self.repo.create_index_version(
-                document_id=target_doc_id,
-                researcher_id=researcher_id,
-                model_name=model_meta["model_name"],
-                model_version=model_meta["model_version"],
-                model_commit_hash=model_meta["model_commit_hash"],
-                embedding_dimension=model_meta["embedding_dimension"],
-                chunk_size=chunk_config["chunk_size"],
-                chunk_overlap=chunk_config["chunk_overlap"],
-                source_checksum=source_checksum,
-                index_fingerprint=fingerprint,
-                is_active=False,
-                status="queued",
-            )
+        # Create new index version
+        version = self.repo.create_index_version(
+            document_id=target_doc_id,
+            researcher_id=researcher_id,
+            model_name=model_meta["model_name"],
+            model_version=model_meta["model_version"],
+            model_commit_hash=model_meta["model_commit_hash"],
+            embedding_dimension=model_meta["embedding_dimension"],
+            chunk_size=chunk_config["chunk_size"],
+            chunk_overlap=chunk_config["chunk_overlap"],
+            source_checksum=source_checksum,
+            index_fingerprint=fingerprint,
+            is_active=False,
+            status="queued",
+        )
 
         job = self.repo.create_indexing_job(
             document_id=target_doc_id,
