@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
@@ -92,9 +93,10 @@ def test_trigger_indexing_sunny_day(auth_client):
     db.add(extracted)
     db.commit()
 
-    response = client.post(f"/api/indexing/documents/{doc.id}")
-    assert response.status_code == 202
-    data = response.json()
-    assert data["status"] == "queued"
-    assert "job_id" in data
-    assert "index_version_id" in data
+    with patch("backend.src.indexing.router.run_indexing_pipeline"):
+        response = client.post(f"/api/indexing/documents/{doc.id}")
+        assert response.status_code == 202
+        data = response.json()
+        assert data["status"] == "queued"
+        assert "job_id" in data
+        assert "index_version_id" in data

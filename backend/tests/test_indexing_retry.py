@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone, timedelta
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
@@ -95,10 +96,11 @@ def test_retry_failed_job_success(auth_client):
     db.commit()
 
     # Trigger retry via POST /api/indexing/documents/{doc.id}
-    res = client.post(f"/api/indexing/documents/{doc.id}")
-    assert res.status_code == 202
-    data = res.json()
-    assert data["status"] == "queued"
+    with patch("backend.src.indexing.router.run_indexing_pipeline"):
+        res = client.post(f"/api/indexing/documents/{doc.id}")
+        assert res.status_code == 202
+        data = res.json()
+        assert data["status"] == "queued"
 
     # Verify db status was reset and retry_count incremented
     db.refresh(job)

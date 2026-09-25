@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
@@ -92,12 +93,13 @@ def test_reindex_active_document_success(auth_client):
     db.add(old_version)
     db.commit()
 
-    res = client.post(f"/api/documents/{doc.id}/reindex")
-    assert res.status_code == 202
-    data = res.json()
-    assert data["status"] == "queued"
-    assert data["document_id"] == str(doc.id)
-    assert data["archived_index_version_id"] == str(old_version.id)
+    with patch("backend.src.indexing.router.run_indexing_pipeline"):
+        res = client.post(f"/api/documents/{doc.id}/reindex")
+        assert res.status_code == 202
+        data = res.json()
+        assert data["status"] == "queued"
+        assert data["document_id"] == str(doc.id)
+        assert data["archived_index_version_id"] == str(old_version.id)
     assert "new_index_version_id" in data
     assert "job_id" in data
 
