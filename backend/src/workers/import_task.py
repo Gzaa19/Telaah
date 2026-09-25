@@ -69,6 +69,16 @@ async def import_document_task(ctx: dict, document_id: str, researcher_id: str):
             redis_pool = ctx.get("redis")
             if redis_pool:
                 await redis_pool.enqueue_job("index_document_task", str(doc.id))
+            else:
+                # ponytail: in local mode without Redis, auto-trigger local pgvector indexing pipeline in-process
+                try:
+                    from backend.src.indexing.service import DocumentIndexingService
+                    from backend.src.indexing.worker import run_indexing_pipeline
+                    indexing_service = DocumentIndexingService(db=db)
+                    job, _ = indexing_service.create_and_enqueue_job(doc_id=doc.id, researcher_id=researcher_uuid)
+                    run_indexing_pipeline(job.id)
+                except Exception as ex:
+                    logger.info(f"Local indexing trigger handled: {ex}")
 
         except ScannedPDFError as e:
             logger.warning(f"Document {doc.id} failed: Scanned PDF")

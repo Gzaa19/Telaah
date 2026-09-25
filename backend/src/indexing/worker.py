@@ -13,7 +13,7 @@ from backend.src.indexing.embedding import LocalEmbeddingProvider
 logger = logging.getLogger(__name__)
 
 
-async def run_indexing_pipeline(job_id: uuid.UUID, session: Optional[Session] = None) -> None:
+def run_indexing_pipeline(job_id: uuid.UUID, session: Optional[Session] = None) -> None:
     logger.info("Starting indexing pipeline for job_id=%s", job_id)
 
     def _execute(db: Session):

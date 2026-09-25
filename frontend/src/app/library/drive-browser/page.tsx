@@ -8,6 +8,7 @@ import { DriveFile } from "@/types/drive";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, GoogleLogo } from "@phosphor-icons/react";
 import { ImportConfirmModal } from "@/components/features/drive/ImportConfirmModal";
+import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 
 export default function DriveBrowserPage() {
   const router = useRouter();
@@ -25,30 +26,38 @@ export default function DriveBrowserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
-      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+    <WorkspaceLayout>
+      <div className="flex-1 w-full px-5 md:px-6 py-5 md:py-6 flex flex-col gap-6 bg-[#fcf9f8]">
         {/* Header navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e5e7eb]">
+          <div className="flex items-center gap-3 text-left">
             <Link href="/library">
-              <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg">
-                <ArrowLeft size={18} />
+              <Button variant="outline" size="sm" className="h-8.5 w-8.5 p-0 rounded border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] shadow-2xs">
+                <ArrowLeft size={16} />
               </Button>
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">
+                <h1 className="font-serif text-xl font-medium tracking-tight text-[#1c1b1b]">
                   Pilih Berkas dari Google Drive
                 </h1>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] px-2 py-0.5 rounded">
                   <GoogleLogo size={12} weight="bold" />
                   <span>Google Drive</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#434655] mt-0.5">
                 Pilih artikel riset atau manuskrip (format PDF / DOCX) untuk diimpor ke pustaka referensi Telaah.
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link href="/library">
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs border-[#e5e7eb] bg-white text-[#1c1b1b] hover:bg-[#f7f6f3] shadow-2xs rounded">
+                Pustaka Dokumen
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -60,7 +69,7 @@ export default function DriveBrowserPage() {
           />
         </div>
 
-        {/* Modal placeholder or wired component */}
+        {/* Modal wired component */}
         {selectedFile && (
           <ImportConfirmModal
             file={selectedFile}
@@ -70,6 +79,6 @@ export default function DriveBrowserPage() {
           />
         )}
       </div>
-    </div>
+    </WorkspaceLayout>
   );
 }

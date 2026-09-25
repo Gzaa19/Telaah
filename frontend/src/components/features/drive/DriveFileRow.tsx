@@ -44,25 +44,25 @@ export function DriveFileRow({
     return (
       <tr
         onClick={() => onOpenFolder?.(file.id, file.name)}
-        className="group cursor-pointer border-b border-slate-800/60 hover:bg-slate-800/40 transition-colors"
+        className="group cursor-pointer border-b border-[#f0eded] hover:bg-[#f7f6f3] transition-colors"
       >
-        <td className="py-3 px-4 w-10">
+        <td className="py-2.5 px-4 w-10">
           <DriveFileIcon isFolder={true} />
         </td>
-        <td className="py-3 px-4 text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
+        <td className="py-2.5 px-4 text-xs font-medium text-[#1c1b1b] group-hover:text-[#1d4ed8] transition-colors font-sans">
           <div className="flex items-center gap-2">
             <span>{file.name}</span>
           </div>
         </td>
-        <td className="py-3 px-4 text-xs text-slate-400">
-          <Badge variant="outline" className="border-slate-700/60 text-slate-400">
+        <td className="py-2.5 px-4 text-xs text-[#747686]">
+          <Badge variant="outline" className="border-[#e5e7eb] text-[#747686] bg-white font-mono text-[10px]">
             Folder
           </Badge>
         </td>
-        <td className="py-3 px-4 text-xs text-slate-400">-</td>
-        <td className="py-3 px-4 text-xs text-slate-400">{formatDate(file.modified_at)}</td>
-        <td className="py-3 px-4 text-right">
-          <CaretRight size={16} className="inline text-slate-500 group-hover:text-slate-300 transition-colors" />
+        <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">-</td>
+        <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatDate(file.modified_at)}</td>
+        <td className="py-2.5 px-4 text-right">
+          <CaretRight size={14} className="inline text-[#747686] group-hover:text-[#1c1b1b] transition-colors" />
         </td>
       </tr>
     );
@@ -70,54 +70,58 @@ export function DriveFileRow({
 
   return (
     <tr
-      className={`border-b border-slate-800/60 transition-colors ${
+      className={`border-b border-[#f0eded] transition-colors ${
         isSelected
-          ? "bg-blue-950/30 hover:bg-blue-950/40"
+          ? "bg-[#eff6ff] hover:bg-[#dbeafe]"
           : file.can_import
-          ? "hover:bg-slate-800/30"
+          ? "hover:bg-[#f7f6f3]"
           : "opacity-45 hover:bg-transparent"
       }`}
     >
-      <td className="py-3 px-4 w-10">
+      <td className="py-2.5 px-4 w-10">
         <DriveFileIcon mimeType={file.mime_type} fileType={file.file_type} />
       </td>
-      <td className="py-3 px-4 text-sm font-medium text-slate-200">
-        <span className={file.can_import ? "text-slate-100" : "text-slate-400"}>
+      <td className="py-2.5 px-4 text-xs font-medium text-[#1c1b1b]">
+        <span className={file.can_import ? "text-[#1c1b1b]" : "text-[#747686]"}>
           {file.name}
         </span>
       </td>
-      <td className="py-3 px-4 text-xs">
+      <td className="py-2.5 px-4 text-xs">
         {file.file_type === "pdf" && (
-          <Badge variant="default" className="bg-rose-500/20 text-rose-300 border-rose-500/30">
+          <Badge variant="secondary" className="bg-[#ffdad6]/60 text-[#ba1a1a] border border-[#ffdad6] font-mono text-[10px]">
             PDF
           </Badge>
         )}
         {file.file_type === "docx" && (
-          <Badge variant="default" className="bg-sky-500/20 text-sky-300 border-sky-500/30">
+          <Badge variant="secondary" className="bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-mono text-[10px]">
             DOCX
           </Badge>
         )}
         {!file.file_type && (
-          <Badge variant="outline" className="text-slate-500 border-slate-800">
+          <Badge variant="outline" className="text-[#747686] border-[#e5e7eb] font-mono text-[10px]">
             Lainnya
           </Badge>
         )}
       </td>
-      <td className="py-3 px-4 text-xs text-slate-400">{formatBytes(file.size_bytes)}</td>
-      <td className="py-3 px-4 text-xs text-slate-400">{formatDate(file.modified_at)}</td>
-      <td className="py-3 px-4 text-right">
+      <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatBytes(file.size_bytes)}</td>
+      <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatDate(file.modified_at)}</td>
+      <td className="py-2.5 px-4 text-right">
         {file.can_import ? (
           <Button
             size="sm"
-            variant={isSelected ? "default" : "secondary"}
+            variant={isSelected ? "default" : "outline"}
             onClick={() => onSelectFile?.(file)}
-            className="text-xs h-7 px-2.5 gap-1"
+            className={`text-xs h-6.5 px-2 gap-1 rounded ${
+              isSelected
+                ? "bg-[#1d4ed8] text-white"
+                : "border-[#e5e7eb] bg-white text-[#1c1b1b] hover:bg-[#f7f6f3]"
+            }`}
           >
             <span>{isSelected ? "Terpilih" : "Pilih"}</span>
-            <ArrowRight size={12} weight="bold" />
+            <ArrowRight size={11} weight="bold" />
           </Button>
         ) : (
-          <span className="text-[11px] text-slate-500 italic">Tidak didukung</span>
+          <span className="text-[10.5px] text-[#747686] italic font-mono">Tidak didukung</span>
         )}
       </td>
     </tr>

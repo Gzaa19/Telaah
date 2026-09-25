@@ -141,8 +141,7 @@ class IndexingRepository:
 
         now = datetime.now(timezone.utc)
         job.status = status
-        if stage is not None:
-            job.current_stage = stage
+        job.current_stage = stage
         if failure_reason is not None:
             job.failure_reason = failure_reason
         if heartbeat:
@@ -152,6 +151,7 @@ class IndexingRepository:
             job.started_at = now
         elif status in ("indexed", "completed", "failed"):
             job.completed_at = now
+            job.current_stage = None
 
         self.db.add(job)
 

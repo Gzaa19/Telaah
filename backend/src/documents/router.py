@@ -1,6 +1,8 @@
 import uuid
+import logging
+from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from sqlmodel import Session
 
@@ -14,8 +16,20 @@ from backend.src.documents.schemas import (
 )
 from backend.src.documents.service import DocumentService, DuplicateDocumentError
 from backend.src.workers.worker import get_redis_pool
+from backend.src.workers.import_task import import_document_task
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
+
+
+def run_import_background(document_id: str, researcher_id: str):
+    """ponytail: Run import & extraction task in-process using threadpool without Redis daemon."""
+    import asyncio
+    try:
+        asyncio.run(import_document_task({}, document_id, researcher_id))
+    except Exception as e:
+        logger.exception(f"Background in-process import task failed for {document_id}: {e}")
 
 
 def get_current_user_session(request: Request, db: Session = Depends(get_session)):
@@ -45,6 +59,7 @@ def get_current_user_session(request: Request, db: Session = Depends(get_session
 )
 async def import_document(
     request_body: ImportDocumentRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_session),
     user_session = Depends(get_current_user_session),
 ):
@@ -65,6 +80,14 @@ async def import_document(
             drive_md5_checksum=request_body.drive_md5_checksum,
             force_reimport=request_body.force_reimport,
         )
+
+        # ponytail: In local development without Redis, run via in-process BackgroundTasks
+        if not redis_pool:
+            background_tasks.add_task(
+                run_import_background,
+                str(doc.id),
+                str(user_session.researcher_id),
+            )
 
         return ImportDocumentResponse(
             document_id=str(doc.id),
@@ -91,6 +114,7 @@ async def import_document(
 )
 def get_document_status(
     document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_session),
     user_session = Depends(get_current_user_session),
 ):
@@ -106,6 +130,19 @@ def get_document_status(
             detail="Document not found.",
         )
 
+    # ponytail: Auto-rescue stale/stuck importing jobs (if stuck > 10 seconds in importing)
+    if status_response.import_status == "importing":
+        doc = service.repo.get_by_id(document_id, user_session.researcher_id)
+        if doc and doc.imported_at:
+            now = datetime.now(timezone.utc)
+            imp_at = doc.imported_at.replace(tzinfo=timezone.utc) if doc.imported_at.tzinfo is None else doc.imported_at
+            if (now - imp_at).total_seconds() > 10:
+                background_tasks.add_task(
+                    run_import_background,
+                    str(doc.id),
+                    str(user_session.researcher_id),
+                )
+
     return status_response
 
 
@@ -117,6 +154,7 @@ def get_document_status(
 )
 async def retry_import(
     document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_session),
     user_session = Depends(get_current_user_session),
 ):
@@ -132,6 +170,15 @@ async def retry_import(
             document_id=document_id,
             researcher_id=user_session.researcher_id,
         )
+
+        # ponytail: In local development without Redis, run via in-process BackgroundTasks
+        if not redis_pool:
+            background_tasks.add_task(
+                run_import_background,
+                str(doc.id),
+                str(user_session.researcher_id),
+            )
+
         return ImportDocumentResponse(
             document_id=str(doc.id),
             status=doc.import_status,

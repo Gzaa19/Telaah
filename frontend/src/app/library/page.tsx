@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,17 +10,21 @@ import { DriveFileIcon } from "@/components/features/drive/DriveFileIcon";
 import {
   Plus,
   Books,
-  FilePdf,
-  FileDoc,
   CircleNotch,
   WarningOctagon,
   CheckCircle,
   ArrowClockwise,
-  ArrowRight,
+  MagnifyingGlass,
+  Funnel,
+  ShieldCheck,
+  Database,
+  Cpu,
+  Info,
 } from "@phosphor-icons/react";
 import { DocumentIndexingCell } from "@/components/features/indexing/DocumentIndexingCell";
 import { IndexingDetailModal } from "@/components/features/indexing/IndexingDetailModal";
 import { SimilaritySearchTest } from "@/components/features/indexing/SimilaritySearchTest";
+import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 
 interface DocumentItem {
   id: string;
@@ -63,6 +67,9 @@ function LibraryContent() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedDocForDetail, setSelectedDocForDetail] = useState<{ id: string; name: string } | null>(null);
 
   const fetchDocuments = async () => {
@@ -89,45 +96,66 @@ function LibraryContent() {
     fetchDocuments();
   }, []);
 
+  const filteredDocuments = useMemo(() => {
+    return documents.filter((doc) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        doc.file_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || doc.import_status === statusFilter;
+      const matchesType =
+        typeFilter === "all" || doc.file_type.toLowerCase() === typeFilter.toLowerCase();
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [documents, searchQuery, statusFilter, typeFilter]);
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
-      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+    <WorkspaceLayout>
+      <div className="flex-1 w-full px-5 md:px-6 py-5 md:py-6 flex flex-col gap-6 bg-[#fcf9f8]">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e5e7eb]">
+          <div className="text-left">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-                <Books size={24} weight="duotone" />
+              <div className="w-9 h-9 rounded bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] flex items-center justify-center">
+                <Books size={20} weight="regular" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white">
+                <h1 className="font-serif text-2xl font-medium tracking-tight text-[#1c1b1b]">
                   Pustaka Literatur Riset
                 </h1>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#434655] mt-0.5">
                   Kelola dokumen ilmiah rujukan (PDF & DOCX) untuk sitasi manuskrip Anda.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="outline"
               size="sm"
               onClick={fetchDocuments}
               disabled={isLoading}
-              className="h-9 px-3 gap-1.5 text-xs"
+              className="h-8 px-3 gap-1.5 text-xs border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] cursor-pointer rounded shadow-2xs"
             >
-              <ArrowClockwise size={15} className={isLoading ? "animate-spin text-blue-400" : ""} />
+              <ArrowClockwise size={14} className={isLoading ? "animate-spin text-[#1d4ed8]" : ""} />
               <span>Segarkan</span>
             </Button>
             <Link href="/library/drive-browser">
-              <Button size="sm" variant="default" className="h-9 px-4 gap-1.5 text-xs shadow-lg shadow-blue-600/20">
-                <Plus size={16} weight="bold" />
+              <Button size="sm" variant="default" className="h-8 px-3.5 gap-1.5 text-xs shadow-2xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white cursor-pointer rounded">
+                <Plus size={14} weight="bold" />
                 <span>Tambah Dokumen</span>
               </Button>
             </Link>
           </div>
+        </div>
+
+        {/* Read-Only Drive Security Banner */}
+        <div className="p-3 bg-white border border-[#e5e7eb] rounded flex items-center gap-2.5 text-xs text-[#434655] shadow-2xs text-left">
+          <Info size={16} className="text-[#1d4ed8] shrink-0" weight="bold" />
+          <span>
+            <strong className="text-[#1c1b1b]">Akses Read-Only:</strong> Telaah hanya membaca aliran biner berkas dari Google Drive Anda untuk ekstraksi teks dan embedding lokal. Berkas asli Anda di Google Drive tidak akan pernah diubah atau dihapus.
+          </span>
         </div>
 
         {/* Active Import Progress Banner (if importing_id present) */}
@@ -141,41 +169,86 @@ function LibraryContent() {
           </div>
         )}
 
+        {/* Search & Filter Toolbar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded border border-[#e5e7eb] shadow-2xs">
+          <div className="relative flex-1 max-w-md">
+            <MagnifyingGlass size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#747686]" />
+            <input
+              type="text"
+              placeholder="Cari berdasarkan nama berkas, judul, kata kunci..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8.5 pr-3 py-1.5 bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] placeholder:text-[#747686] focus:outline-none focus:border-[#1d4ed8] focus:bg-white"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 text-xs text-[#747686] font-mono">
+              <Funnel size={12} />
+              <span>Status:</span>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-mono"
+            >
+              <option value="all">Semua Status</option>
+              <option value="extracted">Terekstrak</option>
+              <option value="extracting">Mengekstrak</option>
+              <option value="importing">Mengunduh</option>
+              <option value="failed">Gagal</option>
+            </select>
+
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-mono"
+            >
+              <option value="all">Semua Format</option>
+              <option value="pdf">PDF</option>
+              <option value="docx">DOCX</option>
+            </select>
+          </div>
+        </div>
+
         {/* Document List Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-200">
-              Daftar Dokumen Terimpor ({documents.length})
+        <div className="bg-white border border-[#e5e7eb] rounded overflow-hidden shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_-1px_rgba(15,23,42,0.02)]">
+          <div className="p-3.5 border-b border-[#e5e7eb] bg-[#f7f6f3] flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-[#1c1b1b] font-mono uppercase tracking-wider">
+              Daftar Dokumen Terimpor ({filteredDocuments.length}{filteredDocuments.length !== documents.length ? ` dari ${documents.length}` : ""})
             </h2>
+            <span className="text-[11px] font-mono text-[#747686]">
+              Model: intfloat/multilingual-e5-base (768-dim)
+            </span>
           </div>
 
           {isLoading && documents.length === 0 ? (
-            <div className="p-16 flex flex-col items-center justify-center text-slate-400 gap-3">
-              <CircleNotch size={32} className="animate-spin text-blue-500" />
-              <p className="text-sm">Memuat pustaka dokumen...</p>
+            <div className="p-16 flex flex-col items-center justify-center text-[#747686] gap-3">
+              <CircleNotch size={28} className="animate-spin text-[#1d4ed8]" />
+              <p className="text-xs">Memuat pustaka dokumen...</p>
             </div>
           ) : error ? (
             <div className="p-12 flex flex-col items-center justify-center text-center gap-3">
-              <WarningOctagon size={36} className="text-red-400" />
-              <p className="text-sm text-slate-300">{error}</p>
-              <Button size="sm" variant="outline" onClick={fetchDocuments} className="text-xs">
+              <WarningOctagon size={32} className="text-[#ba1a1a]" />
+              <p className="text-xs text-[#1c1b1b]">{error}</p>
+              <Button size="sm" variant="outline" onClick={fetchDocuments} className="text-xs cursor-pointer rounded">
                 Coba Lagi
               </Button>
             </div>
           ) : documents.length === 0 ? (
             <div className="p-16 flex flex-col items-center justify-center text-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-500">
-                <Books size={32} weight="thin" />
+              <div className="w-14 h-14 rounded bg-[#f7f6f3] border border-[#e5e7eb] flex items-center justify-center text-[#747686]">
+                <Books size={28} weight="thin" />
               </div>
               <div className="max-w-sm">
-                <h3 className="text-base font-semibold text-slate-200">Belum Ada Dokumen</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <h3 className="font-serif text-base font-medium text-[#1c1b1b]">Belum Ada Dokumen</h3>
+                <p className="text-xs text-[#434655] mt-1">
                   Impor dokumen artikel jurnal atau manuskrip (PDF / DOCX) dari Google Drive Anda untuk mulai menyusun draf paper.
                 </p>
               </div>
               <Link href="/library/drive-browser">
-                <Button size="sm" variant="default" className="text-xs gap-1.5">
-                  <Plus size={16} weight="bold" />
+                <Button size="sm" variant="default" className="text-xs gap-1.5 cursor-pointer rounded bg-[#1d4ed8] hover:bg-[#1e40af] text-white">
+                  <Plus size={15} weight="bold" />
                   <span>Impor dari Google Drive</span>
                 </Button>
               </Link>
@@ -184,46 +257,53 @@ function LibraryContent() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-900/40">
-                    <th className="py-3 px-4 w-10"></th>
-                    <th className="py-3 px-4">Nama Dokumen</th>
-                    <th className="py-3 px-4">Tipe</th>
-                    <th className="py-3 px-4">Ukuran</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Status Indexing</th>
-                    <th className="py-3 px-4">Tanggal Impor</th>
+                  <tr className="border-b border-[#e5e7eb] text-[10.5px] font-mono font-semibold text-[#747686] uppercase tracking-wider bg-[#f7f6f3]">
+                    <th className="py-2.5 px-3.5 w-10"></th>
+                    <th className="py-2.5 px-3.5">Nama Dokumen</th>
+                    <th className="py-2.5 px-3.5">Tipe</th>
+                    <th className="py-2.5 px-3.5">Ukuran</th>
+                    <th className="py-2.5 px-3.5">Status Ekstraksi</th>
+                    <th className="py-2.5 px-3.5">Status Indexing (pgvector)</th>
+                    <th className="py-2.5 px-3.5">Tanggal Impor</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {documents.map((doc) => (
+                  {filteredDocuments.map((doc) => (
                     <tr
                       key={doc.id}
-                      className="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
+                      className="border-b border-[#f0eded] hover:bg-[#f7f6f3] transition-colors"
                     >
-                      <td className="py-3 px-4 w-10">
+                      <td className="py-2.5 px-3.5 w-10">
                         <DriveFileIcon fileType={doc.file_type} />
                       </td>
-                      <td className="py-3 px-4 text-sm font-medium text-slate-200">
-                        <span>{doc.file_name}</span>
+                      <td className="py-2.5 px-3.5 text-xs font-medium text-[#1c1b1b]">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDocForDetail({ id: doc.id, name: doc.file_name })}
+                          className="hover:text-[#1d4ed8] text-left transition-colors cursor-pointer font-sans"
+                          title="Klik untuk melihat detail metadata dan index"
+                        >
+                          {doc.file_name}
+                        </button>
                       </td>
-                      <td className="py-3 px-4 text-xs">
+                      <td className="py-2.5 px-3.5 text-xs">
                         <Badge
-                          variant="default"
+                          variant="secondary"
                           className={
                             doc.file_type === "pdf"
-                              ? "bg-rose-500/20 text-rose-300 border-rose-500/30 font-mono text-[10px]"
-                              : "bg-sky-500/20 text-sky-300 border-sky-500/30 font-mono text-[10px]"
+                              ? "bg-[#ffdad6]/50 text-[#ba1a1a] border border-[#ffdad6] font-mono text-[10px]"
+                              : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-mono text-[10px]"
                           }
                         >
                           {doc.file_type.toUpperCase()}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-xs text-slate-400">
+                      <td className="py-2.5 px-3.5 text-[11px] font-mono text-[#747686]">
                         {formatBytes(doc.file_size_bytes)}
                       </td>
-                      <td className="py-3 px-4 text-xs">
+                      <td className="py-2.5 px-3.5 text-xs">
                         {doc.import_status === "extracted" && (
-                          <Badge variant="success" className="gap-1">
+                          <Badge variant="success" className="gap-1 bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0]">
                             <CheckCircle size={12} weight="fill" />
                             <span>Terekstrak</span>
                           </Badge>
@@ -235,26 +315,26 @@ function LibraryContent() {
                           </Badge>
                         )}
                         {doc.import_status === "extracting" && (
-                          <Badge variant="info" className="gap-1">
+                          <Badge variant="info" className="gap-1 bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]">
                             <CircleNotch size={12} className="animate-spin" />
                             <span>Mengekstrak</span>
                           </Badge>
                         )}
                         {doc.import_status === "importing" && (
-                          <Badge variant="secondary" className="gap-1 text-slate-300">
+                          <Badge variant="secondary" className="gap-1 text-[#434655]">
                             <CircleNotch size={12} className="animate-spin" />
                             <span>Mengunduh</span>
                           </Badge>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-xs">
+                      <td className="py-2.5 px-3.5 text-xs">
                         <DocumentIndexingCell
                           documentId={doc.id}
                           importStatus={doc.import_status}
                           onOpenDetail={(id) => setSelectedDocForDetail({ id, name: doc.file_name })}
                         />
                       </td>
-                      <td className="py-3 px-4 text-xs text-slate-400">
+                      <td className="py-2.5 px-3.5 text-[11px] font-mono text-[#747686]">
                         {formatDate(doc.imported_at)}
                       </td>
                     </tr>
@@ -266,7 +346,9 @@ function LibraryContent() {
         </div>
 
         {/* Semantic Similarity Search Verification Panel */}
-        <SimilaritySearchTest />
+        <div id="similarity">
+          <SimilaritySearchTest />
+        </div>
 
         {/* Indexing Detail Modal */}
         <IndexingDetailModal
@@ -277,7 +359,7 @@ function LibraryContent() {
           onReindexTriggered={fetchDocuments}
         />
       </div>
-    </div>
+    </WorkspaceLayout>
   );
 }
 
@@ -285,8 +367,8 @@ export default function LibraryPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-          <CircleNotch size={32} className="animate-spin text-blue-500" />
+        <div className="min-h-screen bg-[#fcf9f8] flex items-center justify-center text-[#747686]">
+          <CircleNotch size={32} className="animate-spin text-[#1d4ed8]" />
         </div>
       }
     >

@@ -1,21 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Newsreader, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Telaah - AI Scientific Journal Paper & Manuscript Generator",
+  title: "Telaah - Academic Research & Paper Workspace (iciCos / IEEE)",
   description:
-    "Asisten cerdas penyusun draf paper jurnal penelitian ilmiah berstandar publikasi (IEEE, Elsevier, Scopus, SINTA) berbasis RAG Google Drive & pgvector",
+    "Workspace akademik penyusun draf paper ilmiah standar iciCos/IEEE berbasis Google Drive, ekstraksi teks, dan penelusuran semantik lokal pgvector",
 };
 
 export default function RootLayout({
@@ -24,10 +33,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-slate-950 text-slate-100 min-h-screen selection:bg-blue-600 selection:text-white`}
-      >
+    <html
+      lang="id"
+      className={`${inter.variable} ${newsreader.variable} ${jetbrainsMono.variable} light`}
+    >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap"
+          precedence="default"
+        />
+      </head>
+      <body className="font-sans antialiased bg-[#fcf9f8] text-[#1c1b1b] min-h-screen selection:bg-[#0037b0] selection:text-white">
         {children}
       </body>
     </html>

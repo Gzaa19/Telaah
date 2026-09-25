@@ -52,32 +52,82 @@ Setelah UC-02 (Google Drive Connection and Document Import) berhasil mengekstrak
 
 ## 2. GUI Storyboards & Screen Navigation
 
-UC-03 berjalan sebagai background pipeline. Antarmuka pengguna hanya menyediakan visibilitas status dan hasil — peneliti tidak mengoperasikan pipeline secara langsung.
+UC-03 berjalan sebagai background pipeline. Antarmuka pengguna hanya menyediakan visibilitas status dan hasil — peneliti tidak mengoperasikan pipeline secara langsung. Seluruh elemen antarmuka mematuhi **Academic Editorial Canvas** ([DESIGN.md](file:///Users/gzaaa19/Telaah/DESIGN.md)) dan Konstitusi Telaah v1.3.0 Prinsip 7: kanvas kertas hangat (*warm paper* `#FCF9F8`), tipografi serif terkurasi (*Newsreader*), kontrol fungsional (*Inter*), data teknis & kode (*JetBrains Mono*), dan aksen *Scholarly Royal Blue* (`#1D4ED8`) serta *Archival Emerald* (`#006C4A`).
 
 ### Screen Inventory
 
 | Screen / View ID | Screen Name | Key UI Elements | Next Screen / Action Trigger |
 |---|---|---|---|
-| `SCR-05` | Library / Daftar Dokumen (extended) | Tabel dokumen terimport dengan kolom status indexing (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`), jumlah chunk, tombol "Retry Indexing" pada status `failed` | Klik "Retry Indexing" → restart pipeline UCT-03; Status berubah otomatis saat pipeline berjalan |
+| `SCR-05` | Library / Daftar Dokumen (extended) | Tabel dokumen terimport dengan kolom status indexing (`queued`, `cleaning`, `chunking`, `embedding`, `storing`, `indexed`, `failed`), jumlah chunk, tombol "Retry Indexing" pada status `failed` | Klik "Retry Indexing" → restart pipeline UC-03; Status berubah otomatis saat pipeline berjalan |
 | `SCR-06` | Indexing Detail | Ringkasan hasil indexing: total chunk, model embedding, dimensi vektor, waktu selesai; log status bertahap; tombol "Re-index Dokumen" | Klik "Re-index" → konfirmasi modal → restart pipeline |
 | `SCR-07` | Konfirmasi Re-index | Pesan konfirmasi bahwa index version baru akan dibuat dan index lama akan dipertahankan sementara sebagai `archived` untuk keperluan audit sebelum dibersihkan; tombol "Ya, Re-index" dan "Batal" | Konfirmasi → pipeline baru dijalankan, index lama diarsipkan; Batal → kembali ke SCR-06 |
+
+### Visual Design Specifications (Academic Editorial Canvas)
+
+Setiap layar mengimplementasikan sistem desain terstruktur sesuai token visual berikut:
+
+#### 1. SCR-05: Library / Pustaka Dokumen (Extended)
+- **Struktur Tata Letak**: Multi-pane layout asimetris dengan sidebar navigasi statis `#F7F6F3` (lebar 260px) dan kanvas pustaka utama `#FCF9F8` (fluid dengan max reading area 1120px) dibatasi oleh pembatas hairline 1px `#E5E7EB`.
+- **Tipografi**:
+  - Judul Halaman: `Newsreader` 2rem (`headline-lg`), font-weight 600, warna Deep Carbon Ink `#191919`.
+  - Subjudul / Panduan: `Inter` 0.875rem (`body-sm`), font-weight 400, warna Muted Slate `#64748B`.
+  - Judul Dokumen pada Baris Tabel: `Newsreader` 1.125rem, font-weight 500, warna Carbon Ink `#191919`.
+  - Metadata Dokumen (ukuran, ekstensi, timestamp): `Inter` 0.75rem (`label-sm`), warna `#64748B`.
+- **Indexing Status Cell (Badge Indeks)**:
+  - Mengadopsi karakter fisik kartu indeks katalog perpustakaan (*library index-card character*) dengan sudut `rounded-sm` (4px / 0.25rem), bukan pill bulat generik, font `JetBrains Mono` 0.75rem (`code-sm`):
+    - **`indexed`**: Latar `#ECFDF5`, border 1px `#A7F3D0`, teks `#065F46` (Archival Emerald), ikon `@phosphor-icons/react` `CheckCircle`, status pip 6px hijau padat.
+    - **`embedding` / `chunking` / `cleaning`**: Latar `#EFF6FF`, border 1px `#BFDBFE`, teks `#1D4ED8` (Academic Royal Blue), ikon `CircleNotch` dengan animasi rotasi kontinu.
+    - **`queued`**: Latar `#F8FAFC`, border 1px `#E2E8F0`, teks `#64748B` (Muted Slate), ikon `Clock`.
+    - **`failed`**: Latar `#FEF2F2`, border 1px `#FECACA`, teks `#B91C1C` (Archival Crimson), ikon `Warning`.
+- **Aksi Coba Lagi (Retry)**:
+  - Muncul otomatis pada baris dokumen berstatus `failed`.
+  - Tombol bertipe Ghost: border 1px `#E5E7EB`, latar `#FFFFFF`, teks `#191919`, hover `#F7F6F3`, ikon `ArrowClockwise` (`@phosphor-icons/react`), tinggi 28px, sudut 4px.
+
+#### 2. SCR-06: Indexing Detail (Modal / Inspector Panel)
+- **Permukaan (Surface)**: Modal dialog solid `#FFFFFF` dengan sudut terdisiplin `rounded-lg` (8px / 0.5rem), border hairline 1px `#E5E7EB`, dan lapisan latar *backdrop blur* `rgba(247, 246, 243, 0.8)`.
+- **Header Modal**:
+  - Judul Dokumen: `Newsreader` 1.5rem (`headline-md`), font-weight 600, warna `#191919`.
+  - Label Versi Aktif: Chip `JetBrains Mono` 0.75rem berlatar `#F1F5F9`, border `#E2E8F0`, teks `#475569`.
+- **Panel Metrik Telemetri (2x2 Grid)**:
+  - Kontainer metrik berlatar `#F8FAFC` dengan border 1px `#E2E8F0` dan sudut 4px:
+    - **Total Chunk**: Angka tebal dalam `JetBrains Mono` 1.5rem, label deskriptif "Potongan Vektor" dalam `Inter` 0.75rem.
+    - **Model Embedding**: Nama model `intfloat/multilingual-e5-base` dalam `JetBrains Mono` 0.8125rem dengan tag versi `v1`.
+    - **Dimensi Vektor**: Nilai `768 Dimensi` dan tipe indeks `HNSW pgvector Cosine (<=>)`.
+    - **Integritas Checksum**: SHA-256 fingerprint ditampilkan dalam blok `JetBrains Mono` 0.75rem ringkas dengan badge verifikasi hijau Archival Emerald.
+- **Tahapan Pipeline (Visual Progress Stepper)**:
+  - Stepper horizontal dengan garis hubung 1px `#E5E7EB` yang menghubungkan titik-titik tahapan: `queued` → `cleaning` → `chunking` → `embedding` → `storing` → `indexed`.
+  - Tahap aktif ditandai lingkaran biru Academic Royal Blue `#1D4ED8` dengan denyut halus (*ambient pulse*).
+- **Aksi Kontrol**:
+  - Tombol "Re-index Dokumen": Tombol Sekunder/Ghost, border 1px `#E5E7EB`, teks `#191919`, sudut 4px.
+  - Tombol "Uji Similarity Search": Tombol Primer Academic Royal Blue `#1D4ED8`, teks putih `#FFFFFF`, sudut 4px.
+
+#### 3. SCR-07: Konfirmasi Re-index (Confirmation Dialog)
+- **Permukaan**: Modal ringkas (lebar 440px) solid `#FFFFFF`, sudut `rounded-lg` (8px), border 1px `#E5E7EB`.
+- **Simbol Peringatan**: Ikon `Warning` (`@phosphor-icons/react`) berwarna Archival Amber `#D97706` dalam kontainer `#FEF3C7` (radius 6px).
+- **Tipografi Narasi**:
+  - Judul Konfirmasi: `Newsreader` 1.25rem (`headline-sm`), semibold, warna `#191919`.
+  - Isi Penjelasan: `Inter` 0.875rem (`body-md`), warna `#434655`.
+  - Kotak Jaminan Audit Ilmiah: Kontainer penjelasan berlatar `#F8FAFC` dengan border 1px `#E2E8F0`, sudut 4px, menguraikan bahwa versi lama ditandai sebagai `archived` dan potongan teks lama tetap dipertahankan untuk audit keterlacakan sitasi ilmiah tanpa penghapusan paksa.
+- **Tombol Keputusan**:
+  - "Ya, Re-index Dokumen": Tombol Primer Academic Royal Blue (`#1D4ED8`, teks putih, tinggi 34px, sudut 4px).
+  - "Batal": Tombol Sekunder Ghost (border `#E5E7EB`, teks `#191919`, hover `#F7F6F3`, sudut 4px).
 
 ### Storyboard Navigation Flow
 
 ```mermaid
 flowchart TD
     UC02["UC-02: extracted\n→ document_id dikirim ke UC-03"]
-    SCR05["SCR-05: Library / Daftar Dokumen\n(status indexing tampil di kolom)"]
-    SCR06["SCR-06: Indexing Detail"]
-    SCR07["SCR-07: Konfirmasi Re-index"]
-    DONE["Status: indexed\n→ Knowledge base siap untuk UC-04/UC-06"]
-    ERR["Status: failed\n→ Pesan error + tombol Retry"]
+    SCR05["SCR-05: Library / Daftar Dokumen\n(kanvas warm paper #FCF9F8, status badge index-card)"]
+    SCR06["SCR-06: Indexing Detail\n(modal #FFFFFF, metrik JetBrains Mono, judul Newsreader)"]
+    SCR07["SCR-07: Konfirmasi Re-index\n(dialog konfirmasi arsip versi, jaminan audit)"]
+    DONE["Status: indexed\n→ Knowledge base pgvector siap untuk UC-04/UC-06"]
+    ERR["Status: failed\n→ Pesan error ramah pengguna + tombol Retry Ghost"]
 
     UC02 -->|"Background: pipeline berjalan"| SCR05
     SCR05 -->|"Klik baris dokumen"| SCR06
     SCR06 -->|"Klik Re-index"| SCR07
-    SCR07 -->|"Konfirmasi"| SCR05
-    SCR07 -->|"Batal"| SCR06
+    SCR07 -->|"Konfirmasi: arsipkan versi lama"| SCR05
+    SCR07 -->|"Batal: kembali tanpa perubahan"| SCR06
     SCR05 -->|"Status: indexed"| DONE
     SCR05 -->|"Status: failed"| ERR
     ERR -->|"Klik Retry Indexing"| SCR05
@@ -361,7 +411,7 @@ classDiagram
 - **SC-005**: Indexing ulang dokumen yang sama (tanpa perubahan checksum) tidak menghasilkan chunk duplikat di database.
 - **SC-006**: Similarity search dasar (menggunakan prefix `"query: "`) menemukan setidaknya satu chunk relevan dari dokumen yang telah di-index untuk kueri uji yang representatif.
 - **SC-007**: Setiap hasil similarity search mengembalikan metadata sumber yang lengkap: `document_title`, `page_number` atau `section_name`, dan `chunk_index`.
-- **SC-008**: Implementasi mematuhi prinsip ICONIX (BCE architecture, TDD, sequence diagrams) dan Specification-Driven Development sesuai constitution proyek Telaah.
+- **SC-008**: Implementasi mematuhi prinsip ICONIX (BCE architecture, TDD, sequence diagrams), Specification-Driven Development, serta sistem desain Academic Editorial Canvas sesuai constitution proyek Telaah v1.3.0.
 - **SC-009**: Kegagalan indexing menampilkan pesan error yang dapat dibaca peneliti dan menyediakan opsi "Retry Indexing" — tanpa informasi teknis internal.
 - **SC-010**: Status indexing diperbarui dan tampil di antarmuka peneliti tanpa interval lebih dari 5 detik selama pipeline berjalan.
 

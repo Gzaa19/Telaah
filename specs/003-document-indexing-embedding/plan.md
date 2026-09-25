@@ -64,6 +64,57 @@ frontend/
         └── page.tsx                  ← SCR-05 extended
 ```
 
+### Frontend Styling System & @theme Mapping (Academic Editorial Canvas)
+
+Sesuai Konstitusi Telaah v1.3.0 Prinsip 7 dan [DESIGN.md](file:///Users/gzaaa19/Telaah/DESIGN.md), frontend Telaah mengimplementasikan sistem desain **Academic Editorial Canvas** yang dibangun di atas Tailwind CSS v4 dengan pemetaan token `@theme`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Typography Families */
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), Menlo, Monaco, Consolas, monospace;
+
+  /* Surfaces & Canvas */
+  --color-canvas-base: #fcf9f8;        /* Warm parchment document canvas */
+  --color-canvas-sidebar: #f7f6f3;     /* Warm-grey paper sidebar / inspector */
+  --color-canvas-card: #ffffff;        /* Pure card & dialog background */
+  --color-border-hairline: #e5e7eb;    /* 1px neutral structural rule */
+  --color-border-subtle: #e2e8f0;      /* Subtle inner divider */
+
+  /* Ink & Typography */
+  --color-ink-primary: #191919;        /* Deep Carbon Ink for headings & body */
+  --color-ink-secondary: #434655;      /* Sub-headings and active secondary text */
+  --color-ink-muted: #64748b;          /* Metadata labels, timestamp, line numbers */
+
+  /* Academic Accents & Semantic Signals */
+  --color-academic-blue: #1d4ed8;      /* Primary CTA, active tab, focus ring */
+  --color-academic-blue-hover: #1e40af;
+  --color-archival-emerald: #006c4a;   /* Indexed status, verified telemetry */
+  --color-archival-emerald-bg: #ecfdf5;
+  --color-archival-emerald-border: #a7f3d0;
+  --color-archival-amber: #d97706;     /* Reindex warning, retry signals */
+  --color-archival-amber-bg: #fef3c7;
+  --color-archival-crimson: #b91c1c;   /* Indexing failed status */
+  --color-archival-crimson-bg: #fef2f2;
+}
+```
+
+#### Component & Layout Mapping for UC-03
+1. **Font Loading & Injection** (`frontend/src/app/layout.tsx`):
+   - `Newsreader`: Headings, display titles, modal document titles (`--font-newsreader`).
+   - `Inter`: Running copy, table content, control buttons, status labels (`--font-inter`).
+   - `JetBrains Mono`: Dimensionality (768), vector metadata, chunk count, SHA-256 fingerprint (`--font-jetbrains-mono`).
+2. **Three-Pane Architecture**:
+   - Left Navigation (`260px`): `#F7F6F3` with 1px `#E5E7EB` right hairline.
+   - Main Document Library (`SCR-05`): `#FCF9F8` warm-paper canvas, max width `1120px`.
+   - Inspection Panel / Modals (`SCR-06`, `SCR-07`): `#FFFFFF` with 8px radius (`rounded-lg`) and 1px `#E5E7EB` border.
+3. **Index-Card Geometry**:
+   - Status badges use physical 4px corner geometry (`rounded-sm`), 6px solid status pips, and monospaced indicators.
+   - Strict ban on `lucide-react` is preserved; all UI icons utilize `@phosphor-icons/react`.
+
 ---
 
 ## 2. Updated Domain Model
@@ -571,7 +622,7 @@ classDiagram
 | **P4: AI-Assisted but Reviewable** | ✅ PASS | Spec Kit flow diikuti; code sensitif di-review |
 | **P5: Performance & Runtime** | ✅ PASS | FastAPI backend, Bun frontend, model loaded sekali |
 | **P6: Ponytail Engineering** | ✅ PASS | Hybrid LangChain (splitter+embedder only), YAGNI, minimal abstraksi |
-| **P7: Anti-Slop Frontend** | ✅ PASS | Next.js App Router, Tailwind, shadcn/ui, `@phosphor-icons/react` |
+| **P7: Anti-Slop Frontend** | ✅ PASS | Academic Editorial Canvas: Newsreader, Inter, JetBrains Mono, warm paper #FCF9F8, Royal Blue #1D4ED8, Archival Emerald #006C4A, @phosphor-icons/react (Constitution v1.3.0) |
 | **No Gemini Embedding** | ✅ ENFORCED | FR-010 + SC-003 + test assertion wajib |
 | **No Drive/OAuth in UC-03** | ✅ ENFORCED | UC-03 tidak mengakses Drive API |
 

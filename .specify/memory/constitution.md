@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report:
-- Version change: 1.1.0 → 1.2.0
+- Version change: 1.2.0 → 1.3.0
 - List of modified principles:
-  - Principle 6: Expanded "6. Ponytail Engineering (Simplicity, Anti-Overengineering & Agent Token Efficiency)" to mandate RTK CLI proxy and token-efficient terminal execution for AI agents.
+  - Principle 7: Redefined "7. Anti-Slop Frontend Design (Taste-Skill Compliance)" to "7. Anti-Slop Frontend Design (Academic Editorial Canvas & Taste-Skill Compliance)", transitioning design system from dark canvas Geist to Academic Editorial Canvas (Newsreader, Inter, JetBrains Mono, warm paper #fcf9f8, Royal Blue #1d4ed8, Archival Emerald #006c4a).
 - Added sections: None
 - Removed sections: None
 - Follow-up TODOs: None
@@ -51,19 +51,26 @@ Sync Impact Report:
   - Jika `rtk` tidak tersedia di environment tertentu (misal: CI/CD runner), AI agent MUST menggunakan flag hening/ringkas (seperti `-q`, `--compact`, atau piping spesifik) untuk mencegah *context buffer exhaustion*.
 - Rationale: Menjaga codebase tetap ringan, mudah dirawat (*maintainable*), cepat, serta menghemat konsumsi token konteks LLM hingga 60–90% selama siklus pengembangan agenik otonom.
 
-### 7. Anti-Slop Frontend Design (Taste-Skill Compliance)
+### 7. Anti-Slop Frontend Design (Academic Editorial Canvas & Taste-Skill Compliance)
+- **Desain Inti (Core Aesthetic)**: Antarmuka Telaah MUST menggunakan **Academic Editorial Canvas** yang terinspirasi dari estetika manuskrip dan jurnal ilmiah prestisius, menghadirkan suasana ruang baca riset yang hangat, elegan, dan berwibawa (*scholarly publishing house*).
 - **Teknologi Utama**: Frontend MUST menggunakan **Next.js App Router**, **Tailwind CSS**, dan **shadcn/ui**.
 - **Struktur Folder Komponen**:
   - Primitif antarmuka wajib berada di `src/components/ui/` mengikuti konvensi standar shadcn (`button.tsx`, `card.tsx`, `badge.tsx`, dll.).
   - Komponen fitur domain berada di `src/components/` atau `src/components/features/`.
+- **Tipografi Kurasi Akademis**:
+  - Judul dan Display Editorial wajib menggunakan font serif terkurasi **`Newsreader`** (via `next/font`), menghadirkan nuansa jurnal akademis klasik.
+  - Teks Isi (*Body Text*), tabel, dan elemen interaktif wajib menggunakan sans-serif **`Inter`** untuk keterbacaan (*legibility*) maksimal pada layar kerja panjang.
+  - Angka metrik, chunk ID, checksum, dan data teknis wajib menggunakan **`JetBrains Mono`**.
+- **Palet Warna & Kontras WCAG AA**:
+  - Latar belakang wajib menggunakan kanvas kertas hangat (*light warm paper surface* `#fcf9f8`, container `#f0eded` / `#f6f3f2`), bukan putih silau murni (*no harsh stark white #ffffff*) ataupun template AI dark theme generik.
+  - Tipografi wajib menggunakan tinta gelap pekat berkontras tinggi (*Deep Charcoal Ink* `#1c1b1b` dan slate `#434655`) yang memenuhi standar aksesibilitas WCAG AA (rasio kontras min 4.5:1).
+  - Aksen riset wajib berbasis **Scholarly Royal Blue** (`#0037b0` / `#1d4ed8`) untuk elemen interaktif primer dan **Archival Emerald** (`#006c4a` / `#82f5c1`) untuk status keberhasilan serta integritas terverifikasi.
+  - Larangan keras terhadap gradien ungu/pink AI murahan (*no AI-purple gradient slop*) dan palet cokelat/beige kusam yang tidak kontras.
 - **Larangan Ikon (Iconography Rule)**:
   - **STRICT BAN: Dilarang menggunakan `lucide-react`!**
   - Seluruh ikon wajib menggunakan **`@phosphor-icons/react`** (atau `@radix-ui/react-icons`).
-  - Wajib mempertahankan keseragaman satu keluarga ikon (*one family per project*) dengan *stroke weight* yang konsisten.
-- **Tipografi & Estetika Warna**:
-  - Tipografi wajib menggunakan font kurasi modern seperti **`Geist`** dan **`Geist Mono`** (via `next/font`), bukan generic Inter atau serif dekoratif sembarangan.
-  - Palet warna wajib berbasis kanvas gelap yang elegan (*Slate/Zinc dark canvas*), aksen tunggal berbobot kontras tinggi (*Electric Blue* atau *Emerald*), kontras teks memenuhi standar aksesibilitas WCAG AA (min 4.5:1), dan bebas dari gradien ungu/pink AI murahan (*no AI-purple gradient slop*) serta palet cokelat/beige kusam.
-- Rationale: Menghasilkan antarmuka bereputasi tinggi yang terasa presisi, akademis, profesional, dan tidak terlihat seperti template AI generik.
+  - Wajib mempertahankan keseragaman satu keluarga ikon (*one family per project*) dengan *stroke weight* yang konsisten (`regular`, `bold`, atau `duotone`).
+- Rationale: Menghasilkan antarmuka bereputasi tinggi yang terasa presisi, akademis, profesional, dan mencerminkan kualitas publikasi jurnal internasional tanpa kesan template AI murah.
 
 ## Additional Constraints
 
@@ -80,7 +87,7 @@ Sync Impact Report:
   2. `/speckit-plan` (Buat rencana arsitektur dan teknis implementasi ICONIX)
   3. `/speckit-tasks` (Rincikan tugas-tugas terukur dan sekuensial)
   4. `/speckit-implement` (Eksekusi implementasi kode berdasarkan tasks.md)
-- **Kepatuhan Desain & Kode**: Setiap PR/implementasi UI wajib diverifikasi terhadap Prinsip 6 (Ponytail & Agent Token Hygiene) dan Prinsip 7 (Taste-Skill).
+- **Kepatuhan Desain & Kode**: Setiap PR/implementasi UI wajib diverifikasi terhadap Prinsip 6 (Ponytail & Agent Token Hygiene) dan Prinsip 7 (Academic Editorial Canvas).
 
 ## Governance
 
@@ -91,4 +98,4 @@ Sync Impact Report:
   - **MINOR**: Penambahan prinsip baru (seperti Ponytail & Taste-Skill) atau pembaruan batasan arsitektur/operasional agent.
   - **PATCH**: Koreksi tipografi atau perbaikan kata minor.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-16 | **Last Amended**: 2026-09-21
+**Version**: 1.3.0 | **Ratified**: 2026-09-16 | **Last Amended**: 2026-09-25

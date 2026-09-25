@@ -180,7 +180,7 @@ flowchart TD
 - [x] T064 Run complete backend test suite (`rtk pytest backend/tests/ -v`) verifying 100% passing tests across auth, drive, documents, and indexing modules
 - [x] T065 Run frontend typecheck and build (`rtk bun x tsc --noEmit && rtk bun run build`) verifying zero compile errors
 - [x] T066 Validate all 9 scenarios in `specs/003-document-indexing-embedding/quickstart.md` (trigger, happy path, duplicate fingerprint 409, invalid status 422, status polling, retry failed, re-index archive, similarity search, tenant isolation)
-- [x] T067 [P] Verify constitution compliance: strictly NO external Gemini embedding API calls for indexing (P2/FR-010), NO `lucide-react` imports (P7), all icons use `@phosphor-icons/react`, dark canvas aesthetic maintained, and RTK CLI proxy used for terminal operations (P6)
+- [x] T067 [P] Verify constitution compliance: strictly NO external Gemini embedding API calls for indexing (P2/FR-010), NO `lucide-react` imports (P7), all icons use `@phosphor-icons/react`, Academic Editorial Canvas aesthetic maintained (Newsreader, Inter, JetBrains Mono, warm paper `#FCF9F8`, Royal Blue `#1D4ED8`, Archival Emerald `#006C4A` per Constitution v1.3.0), and RTK CLI proxy used for terminal operations (P6)
 - [x] T068 [P] Update API documentation in `backend/src/main.py` FastAPI OpenAPI metadata and create contract export in `specs/003-document-indexing-embedding/contracts/`
 - [x] T069 Code formatting, linting, and unused import cleanup across `backend/src/indexing/` and `frontend/src/components/features/indexing/`
 - [x] T070 **Git Major Commit (Release)**: `git add . && git commit -m "chore(release): complete UC-03 Document Indexing and Local Embedding verification and documentation"`

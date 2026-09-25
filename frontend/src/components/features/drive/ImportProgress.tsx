@@ -54,9 +54,9 @@ export function ImportProgress({
 
   if (!statusData && isLoading) {
     return (
-      <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-slate-400 gap-2">
-        <CircleNotch size={20} className="animate-spin text-blue-500" />
-        <span className="text-sm">Memuat status impor dokumen...</span>
+      <div className="p-5 bg-white border border-[#e5e7eb] rounded flex items-center justify-center text-[#747686] gap-2 shadow-2xs">
+        <CircleNotch size={18} className="animate-spin text-[#1d4ed8]" />
+        <span className="text-xs">Memuat status impor dokumen...</span>
       </div>
     );
   }
@@ -70,25 +70,24 @@ export function ImportProgress({
   const steps = [
     {
       id: "importing",
-      label: "Mengunduh dari Google Drive",
-      description: "Mengambil aliran biner berkas PDF/DOCX",
+      label: "1. Unduh Berkas",
+      description: "Mengambil data biner dari Google Drive",
     },
     {
       id: "extracting",
-      label: "Ekstraksi Teks & Metadata",
-      description: "Membedah teks per halaman dan struktur dokumen",
+      label: "2. Ekstraksi Teks",
+      description: "Mengekstrak teks halaman & metadata",
     },
     {
       id: "extracted",
-      label: "Siap untuk Sitasi & RAG",
-      description: "Teks tersimpan & diteruskan ke antrean indeks",
+      label: "3. Siap Dipakai",
+      description: "Teks tersedia untuk sitasi & penulisan",
     },
   ];
 
   const getStepState = (stepId: string) => {
-    if (import_status === "failed") {
-      if (stepId === "importing") return "completed";
-      return "failed";
+    if (isFailed) {
+      if (import_status === stepId) return "failed";
     }
     if (import_status === "extracted") return "completed";
     if (import_status === "extracting") {
@@ -104,34 +103,31 @@ export function ImportProgress({
   };
 
   return (
-    <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-xl flex flex-col gap-5 text-slate-100">
-      {/* File Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
-            <FileText size={20} weight="duotone" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-white truncate">{file_name}</h3>
-            <p className="text-[11px] text-slate-400 font-mono">ID: {documentId}</p>
-          </div>
+    <div className="p-4 bg-white border border-[#e5e7eb] rounded shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_-1px_rgba(15,23,42,0.02)] space-y-3 text-left">
+      {/* Header Info */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FileText size={16} weight="regular" className="text-[#1d4ed8]" />
+          <span className="text-xs font-semibold text-[#1c1b1b] truncate max-w-sm">
+            {file_name}
+          </span>
         </div>
         <div>
           {isCompleted && (
-            <Badge variant="success" className="gap-1">
-              <CheckCircle size={14} weight="fill" />
+            <Badge variant="success" className="gap-1 bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0]">
+              <CheckCircle size={12} weight="fill" />
               <span>Selesai Diekstrak</span>
             </Badge>
           )}
           {isFailed && (
-            <Badge variant="destructive" className="gap-1">
-              <WarningOctagon size={14} weight="fill" />
+            <Badge variant="destructive" className="gap-1 bg-[#ffdad6]/60 text-[#ba1a1a] border-[#ffdad6]">
+              <WarningOctagon size={12} weight="fill" />
               <span>Gagal</span>
             </Badge>
           )}
           {!isCompleted && !isFailed && (
-            <Badge variant="info" className="gap-1">
-              <CircleNotch size={14} className="animate-spin" />
+            <Badge variant="info" className="gap-1 bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]">
+              <CircleNotch size={12} className="animate-spin" />
               <span>Memproses...</span>
             </Badge>
           )}
@@ -139,41 +135,41 @@ export function ImportProgress({
       </div>
 
       {/* Progress Stepper */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {steps.map((step, idx) => {
           const state = getStepState(step.id);
           return (
             <div
               key={step.id}
-              className={`p-3.5 rounded-lg border flex flex-col gap-1.5 transition-all ${
+              className={`p-3 rounded border flex flex-col gap-1 transition-all ${
                 state === "completed"
-                  ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-300"
+                  ? "bg-[#ecfdf5] border-[#a7f3d0] text-[#065f46]"
                   : state === "active"
-                  ? "bg-blue-950/30 border-blue-500/50 text-blue-200 shadow-sm"
+                  ? "bg-[#eff6ff] border-[#bfdbfe] text-[#1d4ed8] shadow-2xs"
                   : state === "failed"
-                  ? "bg-red-950/20 border-red-500/30 text-red-300"
-                  : "bg-slate-800/30 border-slate-800 text-slate-500"
+                  ? "bg-[#ffdad6]/40 border-[#ffdad6] text-[#ba1a1a]"
+                  : "bg-[#f7f6f3] border-[#e5e7eb] text-[#747686]"
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono uppercase tracking-wider">
+                <span className="text-[10px] font-mono uppercase tracking-wider">
                   Langkah {idx + 1}
                 </span>
                 {state === "completed" && (
-                  <CheckCircle size={16} weight="fill" className="text-emerald-400" />
+                  <CheckCircle size={14} weight="fill" className="text-[#006c4a]" />
                 )}
                 {state === "active" && (
-                  <CircleNotch size={16} className="animate-spin text-blue-400" />
+                  <CircleNotch size={14} className="animate-spin text-[#1d4ed8]" />
                 )}
                 {state === "failed" && (
-                  <WarningOctagon size={16} weight="fill" className="text-red-400" />
+                  <WarningOctagon size={14} weight="fill" className="text-[#ba1a1a]" />
                 )}
-                {state === "pending" && <Clock size={16} className="text-slate-600" />}
+                {state === "pending" && <Clock size={14} className="text-[#747686]" />}
               </div>
-              <p className="text-xs font-semibold text-slate-200 leading-snug">
+              <p className="text-xs font-semibold leading-snug">
                 {step.label}
               </p>
-              <p className="text-[11px] text-slate-400 leading-tight">
+              <p className="text-[10.5px] opacity-80 leading-tight">
                 {step.description}
               </p>
             </div>
@@ -183,18 +179,18 @@ export function ImportProgress({
 
       {/* Failure reason and Retry button */}
       {isFailed && (
-        <div className="p-4 bg-red-950/30 border border-red-500/40 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <WarningOctagon size={20} weight="fill" className="text-red-400 shrink-0 mt-0.5" />
+        <div className="p-3 bg-[#ffdad6]/40 border border-[#ffdad6] rounded flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <WarningOctagon size={18} weight="fill" className="text-[#ba1a1a] shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-red-200">
+              <p className="text-xs font-semibold text-[#ba1a1a]">
                 Gagal Mengimpor Dokumen
               </p>
-              <p className="text-xs text-red-300/90 mt-0.5">
+              <p className="text-xs text-[#ba1a1a]/90 mt-0.5">
                 {failure_reason || "Terjadi kesalahan saat memproses berkas."}
               </p>
               {retryError && (
-                <p className="text-[11px] text-red-400 mt-1">{retryError}</p>
+                <p className="text-[11px] text-[#ba1a1a] mt-1">{retryError}</p>
               )}
             </div>
           </div>
@@ -203,12 +199,12 @@ export function ImportProgress({
             variant="destructive"
             onClick={handleRetry}
             disabled={isRetrying}
-            className="text-xs shrink-0 gap-1.5 h-8"
+            className="text-xs shrink-0 gap-1.5 h-7.5 rounded"
           >
             {isRetrying ? (
-              <CircleNotch size={14} className="animate-spin" />
+              <CircleNotch size={13} className="animate-spin" />
             ) : (
-              <ArrowClockwise size={14} weight="bold" />
+              <ArrowClockwise size={13} weight="bold" />
             )}
             <span>{isRetrying ? "Mengulang..." : "Coba Lagi"}</span>
           </Button>

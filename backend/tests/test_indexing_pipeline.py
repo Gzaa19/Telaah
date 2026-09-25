@@ -58,8 +58,7 @@ def sample_extracted_doc(db_session: Session):
     return researcher, doc
 
 
-@pytest.mark.anyio
-async def test_run_indexing_pipeline_end_to_end(sample_extracted_doc, db_session: Session):
+def test_run_indexing_pipeline_end_to_end(sample_extracted_doc, db_session: Session):
     researcher, doc = sample_extracted_doc
 
     # Enqueue job
@@ -79,7 +78,7 @@ async def test_run_indexing_pipeline_end_to_end(sample_extracted_doc, db_session
         mock_provider.validate_dimensions.return_value = None
         mock_get_instance.return_value = mock_provider
 
-        await run_indexing_pipeline(
+        run_indexing_pipeline(
             job_id=job.id,
             session=db_session,
         )

@@ -12,7 +12,8 @@ interface DriveWarningModalProps {
 }
 
 /**
- * ponytail: Modal dialog for Google Drive scope re-consent using Tailwind & Phosphor icons
+ * ponytail: Modal dialog for Google Drive scope re-consent
+ * Academic Editorial Canvas light styling
  */
 export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
   if (!isOpen) return null;
@@ -22,22 +23,22 @@ export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
+      <div className="relative w-full max-w-lg rounded border border-[#e5e7eb] bg-white p-6 shadow-2xl animate-in fade-in duration-150 text-left">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors p-1 rounded-md"
+          className="absolute top-4 right-4 text-[#747686] hover:text-[#1c1b1b] transition-colors p-1 rounded"
           aria-label="Tutup"
         >
-          <X size={18} weight="bold" />
+          <X size={16} weight="bold" />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Warning size={24} weight="duotone" />
+          <div className="p-2 rounded bg-[#fffbeb] text-[#b45309] border border-[#fed7aa]">
+            <Warning size={22} weight="regular" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-100">
+            <h3 className="font-serif text-lg font-medium text-[#1c1b1b]">
               Otorisasi Google Drive Diperlukan
             </h3>
             <Badge variant="warning" className="mt-1">
@@ -46,25 +47,35 @@ export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
           </div>
         </div>
 
-        <p className="text-sm text-slate-300 leading-relaxed mb-4">
+        <p className="text-xs text-[#434655] leading-relaxed mb-4">
           Platform membutuhkan akses baca (<em>read-only</em>) ke Google Drive Anda untuk mengekstrak literatur referensi,
           membuat indeks semantik vektor (<em>pgvector</em>), dan memvalidasi sitasi draf paper jurnal secara presisi.
         </p>
 
-        <div className="rounded-lg bg-slate-950 border border-slate-800/80 p-3.5 mb-6 flex items-start gap-2.5 text-xs text-slate-400">
-          <ShieldCheck size={20} weight="fill" className="text-emerald-400 shrink-0 mt-0.5" />
+        <div className="rounded bg-[#f7f6f3] border border-[#e5e7eb] p-3 mb-5 flex items-start gap-2.5 text-xs text-[#434655]">
+          <ShieldCheck size={18} weight="fill" className="text-[#006c4a] shrink-0 mt-0.5" />
           <span>
-            Scope <code className="text-blue-400 bg-slate-900 px-1 py-0.5 rounded">drive.readonly</code>: Platform <strong>hanya membaca</strong> dokumen yang Anda tentukan dan tidak dapat memodifikasi atau menghapus file Anda.
+            Scope <code className="text-[#1d4ed8] bg-white border border-[#e5e7eb] px-1 py-0.5 rounded font-mono text-[11px]">drive.readonly</code>: Platform <strong>hanya membaca</strong> dokumen yang Anda tentukan dan tidak dapat memodifikasi atau menghapus file Anda.
           </span>
         </div>
 
-        <div className="flex items-center justify-end gap-3">
-          <Button variant="ghost" onClick={onClose}>
+        <div className="flex items-center justify-end gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="text-xs border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b]"
+          >
             Nanti Saja
           </Button>
-          <Button variant="default" onClick={handleGrantAccess} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleGrantAccess}
+            className="text-xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white gap-1.5"
+          >
             <span>Beri Izin Akses Drive</span>
-            <ArrowRight size={16} weight="bold" />
+            <ArrowRight size={13} weight="bold" />
           </Button>
         </div>
       </div>

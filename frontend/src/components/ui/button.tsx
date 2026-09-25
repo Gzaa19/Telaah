@@ -3,32 +3,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * ponytail: Clean shadcn button primitive with high-contrast, WCAG-compliant variants
+ * ponytail: Academic Editorial Canvas button primitive with disciplined 4px radius and high-contrast WCAG colors
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1d4ed8] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0 cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white shadow hover:bg-blue-700 active:translate-y-[1px]",
+          "bg-[#1d4ed8] text-white shadow-xs hover:bg-[#1e40af] active:translate-y-[1px]",
         destructive:
-          "bg-red-600 text-white shadow-sm hover:bg-red-700 active:translate-y-[1px]",
+          "bg-[#ba1a1a] text-white shadow-xs hover:bg-[#93000a] active:translate-y-[1px]",
         outline:
-          "border border-slate-700 bg-transparent text-slate-200 shadow-sm hover:bg-slate-800 hover:text-white hover:border-slate-600",
+          "border border-[#e5e7eb] bg-white text-[#1c1b1b] shadow-2xs hover:bg-[#f7f6f3] hover:text-[#0f172a] hover:border-[#c4c5d7]",
         secondary:
-          "bg-slate-800 text-slate-100 shadow-sm hover:bg-slate-700",
+          "bg-[#f0eded] text-[#1c1b1b] shadow-2xs hover:bg-[#eae7e7] border border-[#e5e2e1]",
         ghost:
-          "text-slate-300 hover:bg-slate-800 hover:text-white",
-        link: "text-blue-400 underline-offset-4 hover:underline",
+          "text-[#434655] hover:bg-[#f7f6f3] hover:text-[#1c1b1b]",
+        link: "text-[#1d4ed8] underline-offset-4 hover:underline",
         google:
-          "bg-white text-slate-900 shadow-sm hover:bg-slate-100 border border-slate-200 font-semibold",
+          "bg-white text-[#1c1b1b] shadow-xs hover:bg-[#f7f6f3] border border-[#e5e7eb] font-semibold",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-md px-6 text-base",
-        icon: "h-9 w-9",
+        default: "h-8 px-3.5 py-1.5 text-xs rounded",
+        sm: "h-7 rounded px-2.5 text-[11px]",
+        lg: "h-10 rounded px-5 text-sm",
+        icon: "h-8 w-8 rounded",
       },
     },
     defaultVariants: {

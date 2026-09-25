@@ -23,6 +23,11 @@ interface IndexingStatusBadgeProps {
   compact?: boolean;
 }
 
+/**
+ * ponytail: Academic Editorial Canvas IndexingStatusBadge
+ * Follows 4px rounded radius, Archival Emerald for indexed, Royal Blue for processing,
+ * and high-contrast WCAG-compliant tags.
+ */
 export function IndexingStatusBadge({
   status,
   stage,
@@ -31,20 +36,19 @@ export function IndexingStatusBadge({
   onClick,
   compact = false,
 }: IndexingStatusBadgeProps) {
-  // Normalize display configuration
   switch (status) {
     case "indexed":
       return (
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0] hover:bg-[#d1fae5] transition-colors cursor-pointer"
           title="Dokumen telah diindeks ke pgvector. Klik untuk melihat detail."
         >
-          <CheckCircle weight="fill" className="w-3.5 h-3.5 text-emerald-600" />
+          <CheckCircle weight="fill" className="w-3.5 h-3.5 text-[#006c4a]" />
           <span>Terindeks</span>
           {typeof totalChunks === "number" && !compact && (
-            <span className="text-[10px] bg-emerald-200/60 px-1.5 py-0.2 rounded-full font-mono">
+            <span className="text-[10px] bg-[#a7f3d0]/60 text-[#065f46] px-1.5 py-0 rounded font-mono">
               {totalChunks} chunk
             </span>
           )}
@@ -57,10 +61,10 @@ export function IndexingStatusBadge({
           <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100 transition-colors cursor-pointer"
-            title="Indexing gagal. Klik untuk rincian."
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#ffdad6]/60 text-[#ba1a1a] border border-[#ffdad6] hover:bg-[#ffdad6] transition-colors cursor-pointer"
+            title="Proses indexing gagal. Klik untuk melihat alasan kegagalan."
           >
-            <WarningCircle weight="fill" className="w-3.5 h-3.5 text-rose-600" />
+            <WarningCircle weight="fill" className="w-3.5 h-3.5 text-[#ba1a1a]" />
             <span>Gagal</span>
           </button>
           {onRetry && (
@@ -70,11 +74,11 @@ export function IndexingStatusBadge({
                 e.stopPropagation();
                 onRetry();
               }}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-rose-700 bg-rose-100 hover:bg-rose-200 transition-colors cursor-pointer border border-rose-300"
-              title="Coba lagi proses indexing"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-medium bg-white text-[#1c1b1b] border border-[#e5e7eb] hover:bg-[#f7f6f3] transition-colors cursor-pointer"
+              title="Coba ulang proses indexing"
             >
-              <ArrowClockwise weight="bold" className="w-3 h-3" />
-              <span>Retry</span>
+              <ArrowsClockwise weight="bold" className="w-3 h-3 text-[#1d4ed8]" />
+              <span>Coba Lagi</span>
             </button>
           )}
         </div>
@@ -85,10 +89,10 @@ export function IndexingStatusBadge({
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200/80 animate-pulse cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors cursor-pointer"
         >
-          <Sparkle weight="bold" className="w-3.5 h-3.5 text-sky-600 animate-spin" />
-          <span>Membersihkan teks...</span>
+          <Sparkle weight="bold" className="w-3 h-3 text-[#1d4ed8] animate-pulse" />
+          <span>Pembersihan Teks</span>
         </button>
       );
 
@@ -97,10 +101,10 @@ export function IndexingStatusBadge({
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/80 animate-pulse cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors cursor-pointer"
         >
-          <Scissors weight="bold" className="w-3.5 h-3.5 text-amber-600" />
-          <span>Memotong chunk...</span>
+          <Scissors weight="bold" className="w-3 h-3 text-[#1d4ed8] animate-pulse" />
+          <span>Memotong Chunk</span>
         </button>
       );
 
@@ -109,10 +113,10 @@ export function IndexingStatusBadge({
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/80 animate-pulse cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors cursor-pointer"
         >
-          <Cpu weight="bold" className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
-          <span>Embedding lokal (E5)...</span>
+          <Cpu weight="bold" className="w-3 h-3 text-[#1d4ed8] animate-pulse" />
+          <span>Embedding Lokal (E5)</span>
         </button>
       );
 
@@ -121,10 +125,10 @@ export function IndexingStatusBadge({
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200/80 animate-pulse cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors cursor-pointer"
         >
-          <Database weight="bold" className="w-3.5 h-3.5 text-teal-600" />
-          <span>Menyimpan pgvector...</span>
+          <Database weight="bold" className="w-3 h-3 text-[#1d4ed8] animate-pulse" />
+          <span>Menyimpan pgvector</span>
         </button>
       );
 
@@ -133,32 +137,19 @@ export function IndexingStatusBadge({
         <button
           type="button"
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0] hover:bg-[#e2e8f0] transition-colors cursor-pointer"
         >
-          <Clock weight="bold" className="w-3.5 h-3.5 text-slate-500 animate-spin" />
-          <span>Antrean</span>
+          <Clock weight="regular" className="w-3 h-3 text-[#475569]" />
+          <span>Dalam Antrean</span>
         </button>
       );
 
-    case "archived":
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-50 text-stone-600 border border-stone-200">
-          <Clock weight="regular" className="w-3.5 h-3.5 text-stone-400" />
-          <span>Diarsipkan</span>
-        </span>
-      );
-
-    case "not_indexed":
     default:
       return (
-        <button
-          type="button"
-          onClick={onClick}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-50 text-zinc-600 border border-zinc-200 hover:bg-zinc-100 transition-colors cursor-pointer"
-        >
-          <Sparkle weight="regular" className="w-3.5 h-3.5 text-zinc-400" />
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#f7f6f3] text-[#747686] border border-[#e5e7eb]">
+          <Clock weight="regular" className="w-3 h-3" />
           <span>Belum Diindeks</span>
-        </button>
+        </span>
       );
   }
 }

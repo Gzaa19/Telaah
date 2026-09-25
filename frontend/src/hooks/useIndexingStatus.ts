@@ -52,11 +52,10 @@ export function useIndexingStatus({
     setError(null);
     try {
       await triggerIndexing(documentId);
-      await refetch();
     } catch (err: any) {
       setError(err.message || "Gagal memulai proses indexing");
-      throw err;
     } finally {
+      await refetch();
       setIsTriggering(false);
     }
   }, [documentId, refetch]);

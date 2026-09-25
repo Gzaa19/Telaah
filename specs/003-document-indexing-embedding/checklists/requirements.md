@@ -39,4 +39,5 @@
 - Status pipeline UC-03: `queued → cleaning → chunking → embedding → storing → indexed | failed`.
 - Deduplikasi berdasarkan kombinasi `document_id`, checksum, model version, dan konfigurasi chunking (FR-015).
 - UC-03a, UC-03b, UC-03c adalah sub-use-case di dalam UC-03 — bukan use case terpisah setara UC-01 s/d UC-08.
+- 2026-09-25: Spesifikasi visual diperbarui untuk menyelaraskan SCR-05, SCR-06, dan SCR-07 dengan sistem desain Academic Editorial Canvas (DESIGN.md) dan Konstitusi v1.3.0 Prinsip 7.
 - Spec ini siap untuk diteruskan ke `/speckit-clarify` atau langsung ke `/speckit-plan`.
