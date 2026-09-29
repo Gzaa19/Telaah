@@ -66,42 +66,74 @@ flowchart TD
 
     ACTOR["Actor: [Actor Name]"]:::actor
 
-    B1[/"Boundary: [UI Screen / View Name]"/]:::boundary
-    B2[/"Boundary: [REST API Router Endpoint]"/]:::boundary
-    B3[/"Boundary: [Confirmation / Result View]"/]:::boundary
+    B1[/"Boundary: [Client UI Screen / Page Name]"/]:::boundary
+    B2[/"Boundary: [Confirmation / Result Modal / View]"/]:::boundary
 
     C1(["Controller: [Verb: Validate Input Request]"]):::controller
     C2(["Controller: [Verb: Process Business Logic]"]):::controller
-    C3(["Controller: [Verb: Evaluate Authorization / Scope]"]):::controller
+    C3(["Controller: [Verb: Evaluate Authorization / Business Rule]"]):::controller
 
     E1[("Entity: [Domain Model Entity 1]")]:::entity
     E2[("Entity: [Domain Model Entity 2]")]:::entity
 
     ACTOR -->|"1. [Actor Action]"| B1
-    B1 -->|"2. [Triggers API Request]"| B2
-    B2 -->|"3. [Dispatches Request]"| C1
-    C1 -->|"4. [Processes Validated Data]"| C2
-    C2 -->|"5. [Mutates / Reads State]"| E1
-    C2 -->|"6. [Checks State / Rules]"| C3
-    C3 -->|"Sunny Day: Success"| B3
-    C3 -->|"Rainy Day: Validation / Auth Failure"| B1
-    B3 -->|"7. [Renders Output]"| ACTOR
+    B1 -->|"2. [Dispatches Request]"| C1
+    C1 -->|"3. [Processes Validated Data]"| C2
+    C2 -->|"4. [Mutates / Reads State]"| E1
+    C2 -->|"5. [Checks State / Rules]"| C3
+    C3 -->|"6. [Mutates Associated State]"| E2
+    C3 -->|"Sunny Day: Success"| B2
+    C3 -->|"Rainy Day: Validation / Rule Failure"| B1
+    B2 -->|"7. [Renders Output]"| ACTOR
 ```
+
+<details>
+<summary><b>Canonical PlantUML: Robustness Diagram (Native BCE Icons)</b></summary>
+
+```plantuml
+@startuml
+left to right direction
+skinparam handwritten false
+skinparam monochrome false
+skinparam shadowing false
+
+actor "[Actor Name]" as ACTOR
+boundary "[Client UI Screen / Page Name]" as B1
+boundary "[Confirmation / Result Modal / View]" as B2
+
+control "[Validate Input Request]" as C1
+control "[Process Business Logic]" as C2
+control "[Evaluate Business Rule]" as C3
+
+entity "[Domain Model Entity 1]" as E1
+entity "[Domain Model Entity 2]" as E2
+
+ACTOR --> B1 : [Actor Action]
+B1 --> C1 : [Dispatches Request]
+C1 --> C2 : [Processes Validated Data]
+C2 --> E1 : [Mutates / Reads State]
+C2 --> C3 : [Checks Rules]
+C3 --> E2 : [Mutates State]
+C3 --> B2 : [Sunny Day: Success]
+C3 --> B1 : [Rainy Day: Rule Failure]
+B2 --> ACTOR : [Renders Output]
+@enduml
+```
+</details>
 
 ### Boundary-Controller-Entity (BCE) Inventory & Method Allocation
 <!-- Controllers represent verbs/behavior that get allocated to class methods during Detailed Design -->
 
 | BCE Type | Element Name | Responsibility / Concrete Implementation Allocation |
 |---|---|---|
-| **Boundary** | `[Screen / Modal Name]` | Frontend UI Component (`frontend/...`). |
-| **Boundary** | `[API Route Endpoint]` | Backend Router Endpoint (`backend/...`). |
+| **Boundary** | `[Screen / Modal Name]` | Frontend Client UI Component / Page (`frontend/...`). |
 | **Controller** | `[Verb: Action Name]` | Allocated to `[ServiceClass.method_name()]`. |
-| **Entity** | `[Domain Entity Name]` | Persisted Database Model (`backend/.../models.py`). |
+| **Entity** | `[Domain Entity Name]` | Persisted Domain Model Entity matching database schema (`backend/.../models.py`). |
 
 ### BCE Rule Compliance Audit (Doug Rosenberg Rules)
-- [x] **Rule 1 (Actors talk only to Boundaries)**: Confirmed user interacts exclusively with UI boundary objects.
-- [x] **Rule 2 (Boundaries talk only to Controllers and Actors)**: Confirmed UI and API boundaries dispatch logic to controllers.
-- [x] **Rule 3 (Entities talk only to Controllers)**: Confirmed domain entity tables are accessed and mutated exclusively via controllers.
+- [x] **Rule 1 (Actors talk only to Boundaries)**: Confirmed user interacts exclusively with Client UI boundary objects.
+- [x] **Rule 2 (Boundaries talk only to Controllers and Actors)**: Confirmed UI boundaries dispatch logic directly to controllers.
+- [x] **Rule 3 (Entities talk only to Controllers)**: Confirmed domain entity models are accessed and mutated exclusively via controllers.
 - [x] **Rule 4 (Controllers talk to Boundaries, Controllers, Entities; not to Actors)**: Confirmed controllers do not touch actors directly.
 - [x] **Zero Direct Boundary-to-Entity Links**: Confirmed NO direct links from Boundary to Entity exist.
 
@@ -127,31 +159,59 @@ flowchart TD
 <!--
   Rosenberg Phase: Detailed Design.
   Sequence diagrams allocate methods to classes discovered in robustness analysis.
+  Participant count & types MUST match Robustness Diagram 1-to-1.
+  Do NOT use technical HTTP CRUD (GET/POST/DELETE) or raw SQL queries; use OO method invocations.
 -->
 
 ### Sequence Diagram: UC-[ID]
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Actor
-    participant GUI as Boundary: Frontend Modal
-    participant Router as Boundary: FastAPI Router
-    participant Service as Controller: SchemeService
-    participant Repo as Controller: SchemeRepository
-    participant DB as Entity: Database Table
+    actor User as Actor: [Actor Name]
+    participant GUI as Boundary: [Client UI Screen / Modal]
+    participant Service as Controller: [DomainService]
+    participant Entity1 as Entity: [DomainModelEntity1]
+    participant Entity2 as Entity: [DomainModelEntity2]
+    participant ResultGUI as Boundary: [Result / Output Screen]
 
-    User->>GUI: Click 'Apply Filter'
-    GUI->>Router: POST /api/schemes/filter (FilterRequestDTO)
-    Router->>Service: filter_schemes(params: FilterCriteria)
-    Service->>Repo: query_matching(budget, categories)
-    Repo->>DB: SELECT * FROM schemes WHERE ...
-    DB-->>Repo: List[SchemeRecord]
-    Repo-->>Service: List[SchemeEntity]
-    Service->>Service: apply_ranking_and_formatting()
-    Service-->>Router: FilterResponseDTO
-    Router-->>GUI: 200 OK (JSON payload)
-    GUI-->>User: Render updated scheme cards
+    User->>GUI: apply_filter(criteria)
+    GUI->>Service: filter_records(criteria)
+    Service->>Entity1: query_matching(budget, categories)
+    Entity1-->>Service: matching_records
+    Service->>Entity2: load_associated_metadata(record_ids)
+    Entity2-->>Service: metadata_records
+    Service->>Service: rank_and_format(matching_records, metadata_records)
+    Service->>ResultGUI: display_results(formatted_results)
+    ResultGUI-->>User: render_results_view()
 ```
+
+<details>
+<summary><b>Canonical PlantUML: Sequence Diagram (Native BCE Lifeline Icons)</b></summary>
+
+```plantuml
+@startuml
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor "[Actor Name]" as User
+boundary "[Client UI Screen / Modal]" as GUI
+control "[DomainService]" as Service
+entity "[DomainModelEntity1]" as Entity1
+entity "[DomainModelEntity2]" as Entity2
+boundary "[Result / Output Screen]" as ResultGUI
+
+User -> GUI : apply_filter(criteria)
+GUI -> Service : filter_records(criteria)
+Service -> Entity1 : query_matching(budget, categories)
+Entity1 --> Service : matching_records
+Service -> Entity2 : load_associated_metadata(record_ids)
+Entity2 --> Service : metadata_records
+Service -> Service : rank_and_format(matching_records, metadata_records)
+Service -> ResultGUI : display_results(formatted_results)
+ResultGUI --> User : render_results_view()
+@enduml
+```
+</details>
 
 ---
 
