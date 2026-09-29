@@ -16,34 +16,26 @@
 
 ---
 
-## Clarifications & Decisions Resolution
+## Clarifications
 
-Berdasarkan konfirmasi kebutuhan penelitian akademis dan gaya selingkung publikasi iciCos/IEEE:
+### Baseline Architectural & Scope Decisions (Ratified)
+1. **Framework Exclusion**: Framework A (atau metodologi reverse-engineering terpisah) TIDAK DIGUNAKAN. Outline semata-mata merupakan sintesis dari struktur template + konten terekstraksi dari dokumen riset utama terindeks yang diisi LLM di bawah batasan ketat template.
+2. **Template Source**: Berkas template adalah berkas statis di direktori proyek (`backend/src/templates/`), bukan berkas yang diunggah oleh pengguna (*no user-uploaded templates*).
+3. **Format & Precedence**: Disediakan format ganda DOCX dan LaTeX. Struktur dan urutan seksi outline didefinisikan oleh DOCX; struktur ekspor (document class, bibliography setup) didefinisikan oleh LaTeX.
+4. **Section Invariance**: Seksi wajib template DILARANG KERAS ditambah, dihapus, diubah namanya, atau diubah urutannya oleh LLM.
+5. **Anti-Hallucination**: Informasi yang tidak memiliki bukti dukung pada dokumen sumber ditandai secara transparan sebagai `[NEEDS INPUT]`, tidak boleh dikarang (*never invented*).
+6. **Explicit Approval & Versioning**: Peneliti wajib menyetujui (*explicit approval*) outline sebelum dianggap final; regenerasi outline menciptakan versi baru dan tidak menimpa versi approved.
+7. **Tech Stack Boundaries**: Pemilihan framework, library, dan detail teknologi diserahkan sepenuhnya ke tahap perancangan teknis (`/speckit-plan`), bukan pada spesifikasi kebutuhan.
 
-- **Decision 1 (Q1: Struktur Direktori & Penempatan Berkas Template)**:
-  - Berkas template diorganisasikan per subdirektori template:
-    ```text
-    backend/src/templates/
-    └── icicos/
-        ├── template.docx
-        ├── template.tex
-        └── outline-sections.yaml
-    ```
-  - **Rasional**: Memastikan berkas DOCX dan LaTeX berada pada lokasi yang kohesif, memudahkan penambahan template baru (seperti Elsevier, Springer, atau format institusi) tanpa konflik nama berkas, serta menyediakan berkas `outline-sections.yaml` untuk mendeklarasikan seksi inti penelitian (Introduction, Methodology, Results, Conclusion) yang umumnya tidak dimuat eksplisit dalam berkas template IEEE mentah.
-- **Decision 2 (Q2: Kebijakan Bahasa Sintesis / Multi-Language Policy)**:
-  - Antarmuka pemilihan parameter generasi menyediakan pemilih bahasa outline (*Outline Language*):
-    - `English — Academic IEEE style` (Default acuan target iciCos)
-    - `Bahasa Indonesia` (Untuk penelaahan awal dan bimbingan akademik)
-  - **Aturan Pemisahan Bahasa**:
-    - **Bahasa Heading/Judul Seksi**: Selalu mengikuti bahasa resmi template (misal: "I. INTRODUCTION", "II. METHODOLOGY").
-    - **Bahasa Isi/Kandidat Konten**: Mengikuti pilihan peneliti (English atau Bahasa Indonesia).
-    - **Preservasi Istilah Teknis**: Nama proper, istilah teknis baku, nama variabel, dan citation keys DILARANG diterjemahkan secara sembarangan (*strictly preserved*).
-- **Decision 3 (Q3: Penanganan Seksi Editan Manual Saat Regenerasi Outline)**:
-  - Sistem menerapkan kebijakan pelestarian revisi manual (*preservation of human edits*):
-    - Seksi dengan status **`Edited`** (telah disunting manual oleh peneliti) **tetap dipertahankan** saat peneliti melakukan *Regenerate Outline*.
-    - Seksi dengan status **`Filled`** atau **`Needs Input`** akan **dibuat ulang oleh LLM**.
-    - Disediakan opsi eksplisit **"Reset All Sections"** (dengan dialog konfirmasi) jika peneliti menghendaki pembuatan ulang seluruh outline dari awal secara menyeluruh.
-  - **Rasional**: Menghargai revisi berharga peneliti, mendukung alur bimbingan bertahap, dan mematuhi prinsip *human-in-the-loop*.
+### Session 2026-09-29
+- Q: Template Directory Structure & Multi-File Organization? → A: Subdirektori per template `backend/src/templates/icicos/` yang memuat `template.docx`, `template.tex`, dan `outline-sections.yaml`.
+- Q: Multi-Language Policy? → A: Judul seksi mengikuti template (English), isi seksi mengikuti pilihan bahasa di antarmuka (default English, opsi Bahasa Indonesia), nama proper dan citation key tidak diterjemahkan.
+- Q: Preservation of Manually Edited Sections on Regeneration? → A: Seksi berstatus `Edited` dipertahankan secara default saat regenerasi outline, seksi non-edited dibuat ulang oleh LLM, dan opsi "Reset All Sections" disediakan untuk reset total.
+- Q: Definisi Seksi Batang Tubuh Manuskrip yang Tidak Diresepkan Eksplisit di DOCX? → A: Komponen bawaan template DOCX (Title, Abstract, Keywords, Acknowledgment, References) dipertahankan sebagai komponen wajib, digabungkan dengan definisi seksi batang tubuh default (Introduction, Related Work, Methodology, Results and Discussion, Conclusion) yang dideklarasikan secara eksternal melalui berkas `outline-sections.yaml` di samping berkas template tanpa perubahan kode logika.
+- Q: Granularitas & Batasan Format Konten Seksi Outline? → A: Format sub-elemen terstruktur kaku per seksi (didefinisikan dalam `outline-sections.yaml`, misal Introduction memuat field: Background, Problem Statement, Research Gap, Objective; Methodology memuat field: Dataset/Materials, Proposed Method, Evaluation Metrics; Results memuat field: Key Findings, Comparison; Conclusion memuat field: Summary, Future Work). Setiap field dibatasi ringkas (1–3 kalimat terarah per field) dan wajib memiliki keterlacakan sumber individual (*chunk reference*) atau ditandai `[NEEDS INPUT]`.
+- Q: Strategi Penyediaan Konteks Dokumen untuk Dokumen Panjang? → A: Pengambilan chunk terarah (*section- & field-targeted retrieval*) berbasis tipe seksi, kata kunci field, metadata bab, dan skor kemiripan dari indeks UC-03. Hanya kumpulan chunk terpilih yang relevan dan metadatanya yang dikirimkan sebagai konteks LLM untuk menghasilkan 1–2 bullet point per field, menjamin efisiensi token, latensi cepat, dan keterlacakan presisi (*source page & chunk reference*) tanpa mengirimkan teks mentah seluruh dokumen.
+- Q: Perilaku Penyuntingan pada Outline yang Berstatus Approved? → A: Imutabilitas versi approved (*immutable versioning*). Versi Approved dikunci (*read-only*). Setiap upaya penyuntingan oleh peneliti akan memicu pembuatan draf versi baru (*fork to new draft* vX+1), menjaga versi approved sebelumnya tetap utuh dan stabil di riwayat.
+- Q: Pemanfaatan Berkas Template Eksisting di Folder Backend? → A: Template acuan iciCos memanfaatkan aset resmi IEEE yang telah tersedia di `backend/src/templates/` (khususnya `conference-template-a4.docx` dan berkas bibliografi `IEEEtran.bst`, `IEEEabrv.bib`) yang diselaraskan dengan berkas LaTeX `conference-template.tex` dan skema deklaratif `outline-sections.yaml`.
 
 ---
 
@@ -160,8 +152,8 @@ flowchart LR
 | 1 | Peneliti memilih dokumen riset utama (`Indexed`), memilih template `iciCos`, dan memilih bahasa outline (default: `English — Academic IEEE style` atau `Bahasa Indonesia`). | Sistem memverifikasi kepemilikan workspace, ketersediaan dokumen sumber, dan kelengkapan subfolder template `backend/src/templates/icicos/`. Menampilkan ringkasan template dan mengaktifkan tombol "Generate Outline". |
 | 2 | Peneliti menekan tombol "Generate Outline". | Sistem menampilkan modal kemajuan (`SCR-02`) dengan status awal: `Preparing template`. |
 | 3 | - | Sistem memuat berkas template (`template.docx`, `template.tex`, `outline-sections.yaml`), memeriksa integritasnya, dan menghasilkan *Normalized Outline Definition*. Memperbarui status: `Reading document`. |
-| 4 | - | Sistem membaca konten dokumen terindeks dari basis data lokal (output UC-03) yang terkait dengan dokumen riset utama tersebut. Memperbarui status: `Generating outline`. |
-| 5 | - | Sistem mengirimkan konteks dokumen, aturan seksi template, dan instruksi bahasa ke LLM Engine dengan batasan deterministik: judul seksi mempertahankan bahasa template, konten kandidat disusun dalam bahasa yang dipilih (misal English IEEE style), istilah teknis baku dan citation keys dipertahankan tanpa distorsi, seksi tanpa data ditandai `[NEEDS INPUT]`, dan referensi chunk/halaman dicatat. Dilarang mengarang angka, sitasi, atau mengubah urutan seksi. |
+| 4 | - | Sistem melakukan pengambilan chunk terarah (*section- & field-targeted retrieval*) dari indeks dokumen UC-03 berdasarkan tipe seksi, kata kunci field, metadata bab, dan kemiripan semantik untuk setiap field target. Memperbarui status: `Generating outline`. |
+| 5 | - | Sistem mengirimkan pasangan chunk terpilih beserta aturan seksi dan batasan field template ke LLM Engine: menghasilkan 1–2 bullet point terarah per field dalam bahasa pilihan (default: English), mencatat referensi chunk dan nomor halaman sumber, menandai field tanpa bukti sebagai `[NEEDS INPUT]`, dan mempertahankan istilah teknis tanpa distorsi. |
 | 6 | - | Sistem menerima respons LLM dan memperbarui status menjadi `Validating`. Sistem memvalidasi struktur output terhadap *Normalized Outline Definition*: memastikan seluruh seksi wajib hadir, urutan konsisten, dan format field valid. |
 | 7 | - | Sistem menyimpan hasil generasi sebagai `PaperOutline` baru berstatus `Draft` (versi `v1`) yang terikat pada workspace peneliti beserta preferensi bahasa outline. |
 | 8 | - | Sistem memperbarui status modal menjadi `Ready for review` dan mengalihkan tampilan ke Academic Outline Editorial Canvas (`SCR-03`). |
@@ -262,6 +254,11 @@ flowchart LR
 3. Peneliti mengonfirmasi persetujuan.
 4. Sistem memperbarui status draf outline menjadi `Approved`, mencatat waktu persetujuan (*approved_at*), dan menampilkan badge visual *Approved* di antarmuka.
 
+##### Alternate Courses (Rainy Day Flows)
+- **Alt-1: Penyuntingan Setelah Berstatus Approved**
+  - **Pemicu**: Peneliti mencoba menyunting field/seksi pada outline yang berstatus `Approved`.
+  - **Respons Sistem**: Sistem mengunci outline approved (*read-only*), memunculkan notifikasi/dialog konfirmasi: *"Outline ini telah disetujui. Menyunting akan membuat versi draf baru (vX+1)."* Setelah dikonfirmasi, sistem membuat salinan draf baru (`vX+1`, status `Draft`), membuka draf baru tersebut di editor canvas `SCR-03`, dan mencatat perubahan di draf baru tanpa memutasi versi `Approved` asli.
+
 ---
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
@@ -331,10 +328,16 @@ classDiagram
         +section_id: String
         +title: String
         +order_index: Integer
-        +candidate_content: String
         +section_status: SectionStatusEnum
         +is_needs_input: Boolean
         +is_edited: Boolean
+    }
+
+    class SectionField {
+        +field_id: String
+        +field_label: String
+        +content: String
+        +is_needs_input: Boolean
     }
 
     class SourceReference {
@@ -352,19 +355,21 @@ classDiagram
     PaperTemplate "1" --> "1" OutlineDefinition : produces
     OutlineDefinition "1" --> "1..*" TemplateSectionRule : defines
     PaperOutline "1" --> "1..*" OutlineSection : contains
-    OutlineSection "1" --> "*" SourceReference : traces_to
+    OutlineSection "1" --> "1..*" SectionField : contains
+    SectionField "1" --> "*" SourceReference : traces_to
 ```
 
 ### Domain Concept Definitions
 
 - **`PaperWorkspace`**: Lingkungan kerja digital seorang peneliti yang menampung artikel ilmiah yang sedang disusun, dokumen riset utama yang digunakan, konfigurasi template target, serta riwayat versi draf outline dan manuskrip.
 - **`ResearchDocument`**: Berkas riset utama milik peneliti yang telah diimpor dari Google Drive (UC-02) dan berhasil diproses serta diindeks ke dalam basis data embedding lokal (UC-03).
-- **`PaperTemplate`**: Konfigurasi template statis yang tersimpan dalam sistem dalam subdirektori per template (`backend/src/templates/<template_id>/`, diawali dengan `icicos`). Mengacu pada sepasang berkas fisik: berkas DOCX (`template.docx`), berkas LaTeX (`template.tex`), dan berkas deklarasi seksi penelitian (`outline-sections.yaml`).
+- **`PaperTemplate`**: Konfigurasi template statis yang tersimpan dalam sistem dalam subdirektori per template (`backend/src/templates/<template_id>/`, diawali dengan `icicos`). Mengacu pada aset template resmi IEEE yang telah tersedia di folder `backend/src/templates/` (berkas DOCX `conference-template-a4.docx`, berkas bibliografi `IEEEtran.bst`, `IEEEabrv.bib`), dipadukan dengan berkas LaTeX (`conference-template.tex`), dan berkas deklarasi seksi penelitian (`outline-sections.yaml`).
 - **`OutlineDefinition`**: Definisi skema outline ternormalisasi yang dihasilkan dari pemindaian dan penggabungan berkas template DOCX, LaTeX, dan konfigurasi deklaratif `outline-sections.yaml`. Menjadi acuan tunggal (*Single Source of Truth*) bagi susunan seksi artikel ilmiah.
 - **`TemplateSectionRule`**: Aturan seksi individu dalam definisi template, mendefinisikan pengenal seksi (`section_id`), judul resmi template (`title`), urutan seksi (`order_index`), sifat wajib/opsional (`is_required`), panduan penulisan resmi template (`guidance_notes`), dan daftar subseksi jika ada.
 - **`PaperOutline`**: Objek draf outline artikel ilmiah pada workspace tertentu. Memiliki versi eksplisit (`version_number`), preferensi bahasa (`language_choice`: `en_ieee` atau `id_formal`), status pembuatan (`generation_status`: *Preparing*, *Reading*, *Generating*, *Validating*, *Ready for Review*, *Failed*), serta status persetujuan (`approval_status`: *Draft*, *Approved*).
-- **`OutlineSection`**: Butir seksi nyata dalam draf outline yang memuat teks kandidat yang disintesis LLM atau disunting manual oleh peneliti, serta status seksi (`Filled`, `Needs Input`, `Edited`).
-- **`SourceReference`**: Rekaman bukti dukung keterlacakan (*provenance record*) yang mengaitkan teks kandidat seksi ke lokasi fisik dokumen sumber: ID dokumen, nomor halaman asli, dan ID chunk embedding dari UC-03.
+- **`OutlineSection`**: Butir seksi nyata dalam draf outline yang memuat kumpulan sub-field terstruktur (`SectionField`) yang disintesis LLM atau disunting manual oleh peneliti, serta status seksi (`Filled`, `Needs Input`, `Edited`).
+- **`SectionField`**: Butir isian terstruktur dalam seksi outline (misal `Research Problem`, `Methodology`, `Key Results`) yang dibatasi ringkas (1–3 kalimat) dengan keterlacakan sumber individual.
+- **`SourceReference`**: Rekaman bukti dukung keterlacakan (*provenance record*) yang mengaitkan teks kandidat field ke lokasi fisik dokumen sumber: ID dokumen, nomor halaman asli, dan ID chunk embedding dari UC-03.
 
 ---
 
@@ -376,7 +381,7 @@ classDiagram
 - **FR-002 (Target Template Selection & Modular Directory Structure)**: Sistem HARUS mengorganisasikan berkas template ke dalam subdirektori per template di `backend/src/templates/<template_id>/` (dimulai dengan `icicos/` yang memuat `template.docx`, `template.tex`, dan `outline-sections.yaml`). Penambahan template baru di masa mendatang HANYA memerlukan penambahan subfolder baru tanpa mengubah logika bisnis aplikasi. *(Ditelusuri ke UC-04.1 Step 1, Decision 1)*
 - **FR-003 (Template Parsing & Validation)**: Sistem HARUS membaca berkas template DOCX, LaTeX, dan `outline-sections.yaml` serta menghasilkan `OutlineDefinition` yang ternormalisasi. Jika berkas template hilang, tidak lengkap, atau rusak, sistem HARUS memblokir proses generasi dan menampilkan pesan kesalahan yang jelas dan dapat ditindaklanjuti. *(Ditelusuri ke UC-04.1 Step 3, Alt-2)*
 - **FR-004 (Template Precedence Rule on Inconsistency)**: Jika terjadi perbedaan struktur seksi antara berkas DOCX dan LaTeX pada template yang sama, sistem HARUS mencatat laporan inkonsistensi tersebut dan menerapkan aturan preseden baku: berkas DOCX (didukung `outline-sections.yaml`) menentukan struktur dan urutan seksi penulisan outline, sedangkan berkas LaTeX menentukan struktur perintah ekspor dokumen. *(Ditelusuri ke UC-04.1 Step 3, Alt-3)*
-- **FR-005 (Document-to-Section Content Synthesis & Language Policy)**: Sistem HARUS memanfaatkan konten terekstraksi dari dokumen riset utama untuk mengisi setiap seksi template dengan kandidat konten yang relevan. Judul seksi HARUS selalu mengikuti bahasa resmi template, sedangkan isi ringkasan disusun dalam bahasa yang dipilih peneliti (`English — Academic IEEE style` [default] atau `Bahasa Indonesia`). Sistem DILARANG menerjemahkan nama proper, istilah teknis baku, atau citation key secara sembarangan. *(Ditelusuri ke UC-04.1 Step 4-5, Alt-5, Decision 2)*
+- **FR-005 (Document-to-Section Content Synthesis, Sub-Field Granularity & Language Policy)**: Sistem HARUS memanfaatkan konten terekstraksi dari dokumen riset utama untuk mengisi setiap seksi template dengan struktur sub-field kaku yang didefinisikan dalam `outline-sections.yaml` (misal: Background, Problem Statement, Research Gap, Objective untuk Introduction; Dataset/Materials, Proposed Method, Evaluation Metrics untuk Methodology). Setiap field berukuran ringkas (1–3 kalimat terarah), wajib memiliki keterlacakan sumber individual, atau diberi penanda `[NEEDS INPUT]`. Judul seksi HARUS selalu mengikuti bahasa resmi template, sedangkan isi ringkasan disusun dalam bahasa yang dipilih peneliti (`English — Academic IEEE style` [default] atau `Bahasa Indonesia`). Sistem DILARANG menerjemahkan nama proper, istilah teknis baku, atau citation key secara sembarangan. *(Ditelusuri ke UC-04.1 Step 4-5, Alt-5, Decision 2, Decision Q2)*
 - **FR-006 (Strict Template Section Invariance)**: Outline yang dihasilkan HARUS memuat seluruh seksi wajib dari template dalam urutan yang tepat sesuai `TemplateSectionRule`. Mesin LLM DILARANG menambah seksi baru di luar template, menghapus seksi wajib, mengubah nama judul seksi resmi, atau mengubah urutan seksi. *(Ditelusuri ke UC-04.1 Step 5-6)*
 - **FR-007 (Transparent Needs Input Marker)**: Jika dokumen riset sumber tidak memuat informasi atau bukti dukung untuk suatu seksi atau butir isian tertentu, sistem HARUS membubuhkan penanda eksplisit `[NEEDS INPUT]` dan DILARANG KERAS mengarang (*hallucinating/inventing*) konten fiktif. *(Ditelusuri ke UC-04.1 Step 5, Alt-4)*
 - **FR-008 (Source Provenance Tracking)**: Setiap butir kandidat konten yang berhasil diisi HARUS mencatat dan menampilkan metadata lokasi sumbernya pada dokumen asli: nama/ID dokumen, nomor halaman asli, dan referensi chunk UC-03, sehingga peneliti dapat memverifikasi keabsahannya. *(Ditelusuri ke UC-04.1 Step 5, UC-04.2 Step 3)*
@@ -384,7 +389,7 @@ classDiagram
 - **FR-010 (Pre-Display Structure Validation & Limited Retry)**: Sistem HARUS memvalidasi draf outline hasil generasi terhadap `OutlineDefinition` (kehadiran seluruh seksi wajib, urutan, tipe data field) sebelum menampilkannya ke peneliti. Jika validasi gagal, sistem HARUS mencoba ulang secara otomatis maksimal 2 kali; jika tetap gagal, sistem beralih ke status `Failed` dengan tombol coba lagi (*retry*). *(Ditelusuri ke UC-04.1 Step 6, Alt-6)*
 - **FR-011 (Interactive Editorial & Preservation of Edited Sections)**: Peneliti DAPAT meninjau konten, menyunting teks seksi secara manual (menandai status `Edited`), meminta regenerasi per seksi tunggal, atau meregenerasi seluruh outline. Pada regenerasi seluruh outline, seksi berstatus `Edited` HARUS dipertahankan secara default, kecuali jika peneliti secara eksplisit mencentang opsi "Reset All Sections". *(Ditelusuri ke UC-04.2, UC-04.3, Decision 3)*
 - **FR-012 (Explicit Human Approval Gate)**: Tidak ada draf outline yang dianggap final sebelum disetujui secara sadar dan eksplisit oleh peneliti melalui tindakan *Approve Outline*. *(Ditelusuri ke UC-04.4)*
-- **FR-013 (Immutable Versioning & Overwrite Prevention)**: Draf outline yang disetujui HARUS disimpan sebagai versi permanen dalam Paper Workspace. Tindakan regenerasi berikutnya HARUS menciptakan versi draf baru (misal `v2`) dan DILARANG menimpa secara diam-diam (*silent overwrite*) versi draf yang telah disetujui. *(Ditelusuri ke UC-04.3, UC-04.4)*
+- **FR-013 (Immutable Versioning, Post-Approval Protection & Overwrite Prevention)**: Draf outline yang disetujui HARUS disimpan secara permanen dan imutabel (*read-only*). Setiap upaya penyuntingan maupun tindakan regenerasi setelah outline disetujui HARUS menciptakan versi draf baru (misal `v2`) dan DILARANG KERAS menimpa atau memutasi secara langsung (*no in-place mutation / silent overwrite*) versi draf yang telah disetujui. *(Ditelusuri ke UC-04.3, UC-04.4 Alt-1)*
 - **FR-014 (Workspace Authorization & Tenant Isolation)**: Peneliti HANYA dapat melihat, membuat, mengedit, meregenerasi, dan menyetujui outline dari Paper Workspace miliknya sendiri. Akses terhadap outline milik peneliti lain HARUS ditolak secara tegas. *(Ditelusuri ke Batasan Sistem)*
 - **FR-015 (Visible Generation Progress Telemetry)**: Proses pembuatan outline HARUS menampilkan indikator status kemajuan secara real-time dan berurutan: `Preparing template` → `Reading document` → `Generating outline` → `Validating` → `Ready for review` (atau `Failed`). *(Ditelusuri ke UC-04.1 Step 2-8)*
 
