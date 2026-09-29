@@ -57,8 +57,8 @@ auto_commit:
     enabled: true
     message: "feat(specs): add UC-04 Template-Based Paper Outline Generation specification"
   after_clarify:
-    enabled: false
-    message: "[Spec Kit] Clarify specification"
+    enabled: true
+    message: "docs(spec): resolve template structure, multi-language, and regeneration clarifications for UC-04"
   after_plan:
     enabled: true
     message: "docs(plan): add UC-03 implementation plan and technical design artifacts"
