@@ -137,8 +137,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       href: "/workspace/outline",
       icon: ListNumbers,
       isActive: pathname.startsWith("/workspace/outline"),
-      badge: "UC-04",
-      badgeType: "green-pill",
+      badge: null,
     },
     {
       label: "Draf Paper IMRaD",
@@ -153,8 +152,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       href: "/library#similarity",
       icon: Sparkle,
       isActive: false,
-      badge: "pgvector",
-      badgeType: "blue",
+      badge: null,
     },
     {
       label: "<> LaTeX / BibTeX",
@@ -339,15 +337,29 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     if (pathname.startsWith("/library/drive-browser")) {
       return {
         section: "Pustaka Literatur",
-        current: "Google Drive Browser",
-        badge: "Read-Only Drive",
+        current: "Google Drive",
+        badge: "Pustaka Riset",
       };
     }
     if (pathname.startsWith("/library")) {
       return {
         section: "Pustaka Literatur",
         current: "Basis Pengetahuan",
-        badge: docCount !== null ? `${docCount} Dokumen` : "E5 Embedding",
+        badge: docCount !== null ? `${docCount} Dokumen` : "Pustaka",
+      };
+    }
+    if (pathname.match(/^\/workspace\/outline\/[^/]+/)) {
+      return {
+        section: "Alur Penulisan",
+        current: "Editor Outline",
+        badge: "iciCos / IEEE",
+      };
+    }
+    if (pathname.startsWith("/workspace/outline")) {
+      return {
+        section: "Alur Penulisan",
+        current: "Outline Generator",
+        badge: "iciCos / IEEE",
       };
     }
     if (pathname.startsWith("/workspace/paper")) {
@@ -366,7 +378,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     }
     return {
       section: "Menu Utama",
-      current: "Dashboard Ringkasan",
+      current: "Dashboard",
       badge: "iciCos / IEEE",
     };
   };
@@ -396,7 +408,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           <div className="flex items-center gap-2 font-mono text-[10.5px] text-[#747686] shrink-0">
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-[#e5e7eb] bg-white text-[#006c4a] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-[#006c4a]" />
-              <span className="hidden xs:inline">pgvector</span> Aktif
+              <span>Aktif</span>
             </span>
             <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded border border-[#e5e7eb] bg-white text-[#434655]">
               {breadcrumb.badge}

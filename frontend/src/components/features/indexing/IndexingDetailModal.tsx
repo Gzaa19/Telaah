@@ -207,31 +207,31 @@ export function IndexingDetailModal({
                   <p className="font-semibold text-slate-800 text-sm">
                     {summary.embedding_dimension} Dimensi
                   </p>
-                  <p className="text-[10px] text-teal-600 mt-0.5">HNSW pgvector Cosine</p>
+                  <p className="text-[10px] text-teal-600 mt-0.5">Penelusuran Semantik Presisi</p>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                   <div className="text-xs text-slate-500 flex items-center gap-1.5 mb-1">
                     <Scissors className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Total Chunk</span>
+                    <span>Bagian Teks</span>
                   </div>
                   <p className="font-semibold text-slate-800 text-sm">
-                    {summary.total_chunks ?? 0} Potongan
+                    {summary.total_chunks ?? 0} Bagian
                   </p>
                   <p className="text-[10px] text-slate-400 mt-0.5">
-                    Ukuran: {summary.chunk_size} char (overlap: {summary.chunk_overlap})
+                    Ukuran rata-rata: {summary.chunk_size} karakter
                   </p>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                   <div className="text-xs text-slate-500 flex items-center gap-1.5 mb-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Checksum SHA-256</span>
+                    <span>Integritas Berkas</span>
                   </div>
                   <p className="font-mono text-[10px] text-slate-700 truncate" title={summary.source_checksum}>
                     {summary.source_checksum}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Integritas terverifikasi</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Integritas dokumen valid</p>
                 </div>
               </div>
 

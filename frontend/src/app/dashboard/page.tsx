@@ -83,7 +83,7 @@ export default function DashboardPage() {
             </h1>
 
             <p className="text-xs text-[#434655] font-sans leading-relaxed max-w-xl">
-              Kelola literatur riset dari Google Drive, telusuri knowledge base vektor pgvector, dan susun draf paper IMRaD dengan asistensi akademik berstandar publikasi.
+              Kelola literatur riset dari Google Drive, telusuri pustaka ilmiah, dan susun kerangka serta draf paper berstandar publikasi.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                 className="text-xs border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] gap-1.5 h-8 px-3 shadow-2xs rounded-md font-sans"
               >
                 <Books size={13} weight="regular" />
-                <span>Pustaka & Status Indexing</span>
+                <span>Pustaka Literatur</span>
               </Button>
             </Link>
             <Link href="/library/drive-browser">
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                 className="text-xs bg-[#0037b0] hover:bg-[#1d4ed8] text-white gap-1.5 shadow-2xs h-8 px-3 cursor-pointer rounded-md font-sans"
               >
                 <Plus size={12} weight="bold" />
-                <span>+ Impor dari Google Drive</span>
+                <span>Impor dari Google Drive</span>
               </Button>
             </Link>
           </div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-[#1c1b1b] font-sans">
-                  Google Drive Literatur
+                  Google Drive Riset
                 </span>
                 <div className="p-1.5 rounded-md bg-[#82f5c1]/30 text-[#006c4a]">
                   <FolderOpen size={15} weight="regular" />
@@ -131,7 +131,7 @@ export default function DashboardPage() {
               </div>
 
               <p className="text-[11.5px] text-[#434655] leading-relaxed mt-1.5 font-sans">
-                Penyimpanan riset tersinkronisasi otomatis dengan subdirektori /Research_Papers_2026.
+                Penyimpanan tersinkronisasi otomatis dengan folder riset di Google Drive Anda.
               </p>
             </div>
 
@@ -140,18 +140,18 @@ export default function DashboardPage() {
                 href="/library/drive-browser"
                 className="text-xs font-medium text-[#0037b0] hover:text-[#1d4ed8] flex items-center gap-1 hover:underline font-sans"
               >
-                <span>Jelajahi File Google Drive</span>
+                <span>Buka Berkas Google Drive</span>
                 <ArrowRight size={11} />
               </Link>
             </div>
           </Card>
 
-          {/* Card 2: Knowledge Base & Indexing */}
+          {/* Card 2: Pustaka & Pengindeksan */}
           <Card className="p-3.5 flex flex-col justify-between border-[#e5e7eb] bg-white text-left hover:border-[#c4c5d7] transition-all shadow-2xs rounded-lg">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-[#1c1b1b] font-sans">
-                  Knowledge Base & Indexing
+                  Pustaka Terindeks
                 </span>
                 <div className="p-1.5 rounded-md bg-[#dce1ff] text-[#0037b0]">
                   <Database size={15} weight="regular" />
@@ -168,11 +168,11 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-mono text-[9px] text-[#747686] uppercase tracking-wider block font-medium">
-                    TERDAFTAR
+                  <span className="font-mono text-[9px] text-[#006c4a] uppercase tracking-wider block font-semibold">
+                    TERVERIFIKASI
                   </span>
                   <span className="font-mono text-[9px] text-[#747686] uppercase tracking-wider block font-medium">
-                    (PGVECTOR)
+                    SIAP DIRUJUK
                   </span>
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
               <div className="h-[2px] bg-[#0037b0] rounded-full w-full my-2"></div>
 
               <p className="text-[11.5px] text-[#434655] leading-relaxed font-sans">
-                Embeddings: text-embedding-3-large (1536 dim) terindeks penuh.
+                Dokumen telah dianalisis dan siap dijadikan sitasi dan rujukan outline.
               </p>
             </div>
 
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                 href="/library"
                 className="text-xs font-medium text-[#0037b0] hover:text-[#1d4ed8] flex items-center gap-1 hover:underline font-sans"
               >
-                <span>Buka Pustaka & Status Indexing</span>
+                <span>Lihat Pustaka Literatur</span>
                 <ArrowRight size={11} />
               </Link>
             </div>
@@ -220,14 +220,14 @@ export default function DashboardPage() {
               </div>
 
               <p className="text-[11.5px] text-[#434655] leading-relaxed mt-1.5 font-sans">
-                Otentikasi multi-tenant dengan proteksi sandbox kueri ilmiah.
+                Sesi login aktif untuk menjaga keamanan data riset Anda.
               </p>
             </div>
 
             <div className="pt-3 flex items-center justify-between">
               <span className="font-mono text-[10px] text-[#747686] flex items-center gap-1">
                 <Lock size={11} weight="bold" />
-                <span>Enkripsi Token AES-256</span>
+                <span>Sesi Terenkripsi</span>
               </span>
               <span className="bg-[#82f5c1] text-[#005137] px-1.5 py-0.2 rounded text-[9.5px] font-semibold font-sans">
                 Aktif
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                 href="/library"
                 className="text-xs font-medium text-[#0037b0] hover:underline flex items-center gap-1 font-sans"
               >
-                <span>Buka Knowledge Base (pgvector)</span>
+                <span>Buka Pustaka Literatur</span>
                 <ArrowUpRight size={12} weight="bold" />
               </Link>
             </div>
@@ -398,9 +398,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="h-1 bg-[#0037b0] rounded-full w-full"></div>
                   <p className="text-[9.5px] font-mono text-[#434655] leading-snug">
-                    State-Space Equation
+                    Metodologi Riset
                     <br />
-                    Formulated
+                    Tervalidasi
                   </p>
                 </div>
 
@@ -412,9 +412,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="h-1 bg-[#dcd9d9] rounded-full w-full"></div>
                   <p className="text-[9.5px] font-mono text-[#747686] leading-snug">
-                    Benchmarking GPU
+                    Hasil Analisis
                     <br />
-                    Runtimes
+                    Eksperimen
                   </p>
                 </div>
 
@@ -426,25 +426,25 @@ export default function DashboardPage() {
                   </div>
                   <div className="h-1 bg-[#dcd9d9] rounded-full w-full"></div>
                   <p className="text-[9.5px] font-mono text-[#747686] leading-snug">
-                    Sintesis Komparasi
+                    Pembahasan &
                     <br />
-                    Empiris
+                    Kesimpulan
                   </p>
                 </div>
               </div>
             </div>
           </Card>
 
-          {/* Right: Validasi Akademik AI (col-span-4) */}
+          {/* Right: Validasi Orisinalitas (col-span-4) */}
           <Card className="lg:col-span-4 p-4 border-[#e5e7eb] bg-white flex flex-col justify-between shadow-2xs rounded-lg text-left">
             <div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#1c1b1b] font-sans">
                 <ShieldCheck size={15} weight="fill" className="text-[#006c4a]" />
-                <span>Validasi Akademik AI</span>
+                <span>Validasi Orisinalitas Paper</span>
               </div>
 
               <p className="text-xs text-[#434655] font-sans leading-relaxed mt-1.5">
-                Skor orisinalitas manuskrip terhadap pustaka arXiv & IEEE Xplore:
+                Tingkat orisinalitas manuskrip terhadap pustaka literatur ilmiah:
               </p>
 
               <div className="mt-3 flex items-center">
@@ -453,17 +453,17 @@ export default function DashboardPage() {
                 </span>
                 <div className="font-mono text-[10px] text-[#747686] ml-2 flex flex-col leading-tight">
                   <span>Similarity</span>
-                  <span>Safe</span>
+                  <span>Aman</span>
                 </div>
               </div>
             </div>
 
             <div className="pt-3">
               <Link
-                href="/workspace/latex-preview"
+                href="/workspace/paper"
                 className="text-xs font-medium text-[#0037b0] hover:text-[#1d4ed8] flex items-center gap-1 hover:underline font-sans"
               >
-                <span>Lihat Laporan Vektor Lengkap</span>
+                <span>Buka Draf Manuskrip</span>
                 <ArrowUpRight size={12} weight="bold" />
               </Link>
             </div>

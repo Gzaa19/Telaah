@@ -48,8 +48,8 @@ export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
         </div>
 
         <p className="text-xs text-[#434655] leading-relaxed mb-4">
-          Platform membutuhkan akses baca (<em>read-only</em>) ke Google Drive Anda untuk mengekstrak literatur referensi,
-          membuat indeks semantik vektor (<em>pgvector</em>), dan memvalidasi sitasi draf paper jurnal secara presisi.
+          Platform membutuhkan akses baca (<em>read-only</em>) ke Google Drive Anda untuk membaca literatur referensi,
+          menyusun indeks penelusuran dokumen, dan memvalidasi sitasi draf paper jurnal secara presisi.
         </p>
 
         <div className="rounded bg-[#f7f6f3] border border-[#e5e7eb] p-3 mb-5 flex items-start gap-2.5 text-xs text-[#434655]">

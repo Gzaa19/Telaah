@@ -43,7 +43,7 @@ export function IndexingStatusBadge({
           type="button"
           onClick={onClick}
           className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0] hover:bg-[#d1fae5] transition-colors cursor-pointer"
-          title="Dokumen telah diindeks ke pgvector. Klik untuk melihat detail."
+          title="Dokumen telah diindeks. Klik untuk melihat detail."
         >
           <CheckCircle weight="fill" className="w-3.5 h-3.5 text-[#006c4a]" />
           <span>Terindeks</span>
@@ -128,7 +128,7 @@ export function IndexingStatusBadge({
           className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] hover:bg-[#dbeafe] transition-colors cursor-pointer"
         >
           <Database weight="bold" className="w-3 h-3 text-[#1d4ed8] animate-pulse" />
-          <span>Menyimpan pgvector</span>
+          <span>Menyimpan Indeks</span>
         </button>
       );
 

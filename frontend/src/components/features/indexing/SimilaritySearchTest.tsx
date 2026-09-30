@@ -57,10 +57,10 @@ export function SimilaritySearchTest({
           </div>
           <div className="text-left">
             <h3 className="text-sm font-semibold text-[#1c1b1b]">
-              Verifikasi Semantic Similarity Search (pgvector HNSW)
+              Uji Penelusuran Semantik Dokumen
             </h3>
             <p className="text-xs text-[#434655]">
-              Uji coba penelusuran semantik lokal menggunakan model embedding multilingual E5
+              Temukan kutipan dan pembahasan relevan dari seluruh dokumen ilmiah yang telah diindeks.
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export function SimilaritySearchTest({
               ) : (
                 <MagnifyingGlass weight="bold" className="w-3.5 h-3.5" />
               )}
-              <span>Cari Vektor</span>
+              <span>Cari Relevansi</span>
             </button>
           </form>
 
@@ -109,16 +109,13 @@ export function SimilaritySearchTest({
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between text-xs text-[#434655]">
                 <span>
-                  Ditemukan <strong>{results.total_results}</strong> potongan chunk relevan:
-                </span>
-                <span className="text-[11px] font-mono text-[#747686]">
-                  Model: intfloat/multilingual-e5-base
+                  Ditemukan <strong>{results.total_results}</strong> kutipan relevan:
                 </span>
               </div>
 
               {results.results.length === 0 ? (
                 <div className="p-8 text-center text-[#747686] text-xs">
-                  Tidak ada chunk yang cocok dengan skor kemiripan memadai.
+                  Tidak ada kutipan yang cocok dengan kata kunci pencarian.
                 </div>
               ) : (
                 <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">

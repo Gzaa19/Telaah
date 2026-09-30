@@ -36,26 +36,26 @@ interface StepItem {
 const STEPS: StepItem[] = [
   {
     id: "preparing",
-    title: "1. Pembacaan Format & Template",
-    description: "Membaca heading DOCX, struktur ekspor LaTeX, dan konfigurasi seksi YAML.",
+    title: "1. Persiapan Format Template",
+    description: "Membaca susunan bab dan format prosiding publikasi.",
     icon: Article,
   },
   {
     id: "reading",
-    title: "2. Seleksi Konteks Dokumen Utama",
-    description: "Memilih potongan teks dokumen utama yang relevan untuk setiap field outline.",
+    title: "2. Penelusuran Dokumen Rujukan",
+    description: "Menghubungkan konteks literatur riset dengan topik bahasan.",
     icon: Database,
   },
   {
     id: "generating",
-    title: "3. Sintesis Field Terstruktur (Bullet Points)",
-    description: "Menyusun 1–2 bullet points ringkas per field dan menyematkan [NEEDS INPUT] jika tidak ada bukti.",
+    title: "3. Penyusunan Poin Outline",
+    description: "Menyusun poin-poin ringkas berbasis sumber literatur yang terverifikasi.",
     icon: Cpu,
   },
   {
     id: "validating",
-    title: "4. Validasi Struktur & Integritas",
-    description: "Memverifikasi seluruh heading mandatory dan urutan sekuensial sesuai template.",
+    title: "4. Pemeriksaan Kelengkapan",
+    description: "Memastikan seluruh bagian wajib telah lengkap dan terstruktur.",
     icon: ShieldCheck,
   },
 ];
@@ -92,24 +92,24 @@ export function GenerationProgressModal({
   const isReady = status === "ready";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#fcf9f8] rounded-2xl shadow-2xl border border-[#d1c7bd] overflow-hidden text-left">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-[#e5e7eb] overflow-hidden text-left">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#e8e2dc] bg-[#f9f5f2] flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-[#e5e7eb] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#e8effd] text-[#0037b0] flex items-center justify-center">
-              <Sparkle size={20} weight="fill" />
+            <div className="w-8 h-8 rounded bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] flex items-center justify-center">
+              <Sparkle size={18} weight="fill" />
             </div>
             <div>
-              <h3 className="font-serif text-lg font-semibold text-[#2c2623]">
+              <h3 className="text-sm font-semibold text-[#1c1b1b]">
                 {isReady
-                  ? "Outline Terstruktur Selesai"
+                  ? "Outline Siap Ditinjau"
                   : isFailed
                   ? "Penyusunan Outline Gagal"
-                  : "Menyusun Outline Terstruktur"}
+                  : "Menyusun Kerangka Paper"}
               </h3>
-              <p className="text-xs text-[#786f66] font-mono">
-                Format: iciCos DOCX/LaTeX + outline-sections.yaml
+              <p className="text-xs text-[#747686]">
+                Template: iciCos 2024 (IEEE Format)
               </p>
             </div>
           </div>
@@ -117,16 +117,16 @@ export function GenerationProgressModal({
           {(isReady || isFailed) && (
             <button
               onClick={onClose}
-              className="text-[#8c827a] hover:text-[#2c2623] p-1.5 rounded-lg hover:bg-[#ede7e1] transition-colors"
+              className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition-colors"
             >
-              <X size={18} />
+              <X size={16} weight="bold" />
             </button>
           )}
         </div>
 
         {/* Stepper Content */}
-        <div className="p-6 space-y-4">
-          <div className="space-y-3">
+        <div className="p-5 space-y-3.5">
+          <div className="space-y-2.5">
             {STEPS.map((step) => {
               const state = getStepStatus(step.id);
               const StepIcon = step.icon;
@@ -134,48 +134,48 @@ export function GenerationProgressModal({
               return (
                 <div
                   key={step.id}
-                  className={`flex items-start gap-3.5 p-3 rounded-xl border transition-all ${
+                  className={`flex items-start gap-3 p-2.5 rounded-lg border transition-all ${
                     state === "active"
-                      ? "bg-white border-[#0037b0]/30 shadow-sm"
+                      ? "bg-[#eff6ff]/50 border-[#bfdbfe]"
                       : state === "completed"
-                      ? "bg-[#f5f9f6] border-[#006c4a]/20"
+                      ? "bg-[#f0fdf4]/50 border-[#bbf7d0]"
                       : state === "failed"
-                      ? "bg-[#fff5f5] border-[#ba1a1a]/30"
-                      : "bg-[#fbf9f6] border-[#e8e2dc]/60 opacity-60"
+                      ? "bg-[#fff1f2] border-[#fecdd3]"
+                      : "bg-[#f7f6f3] border-[#e5e7eb] opacity-60"
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">
                     {state === "completed" && (
-                      <CheckCircle size={20} className="text-[#006c4a]" weight="fill" />
+                      <CheckCircle size={18} className="text-[#166534]" weight="fill" />
                     )}
                     {state === "active" && (
-                      <CircleNotch size={20} className="text-[#0037b0] animate-spin" />
+                      <CircleNotch size={18} className="text-[#1d4ed8] animate-spin" />
                     )}
                     {state === "failed" && (
-                      <WarningCircle size={20} className="text-[#ba1a1a]" weight="fill" />
+                      <WarningCircle size={18} className="text-[#e11d48]" weight="fill" />
                     )}
                     {state === "pending" && (
-                      <div className="w-5 h-5 rounded-full border-2 border-[#d1c7bd] flex items-center justify-center text-[10px] font-mono text-[#8c827a]">
-                        <StepIcon size={12} />
+                      <div className="w-4.5 h-4.5 rounded-full border border-[#d4d4d8] flex items-center justify-center text-[9px] text-[#71717a]">
+                        <StepIcon size={11} />
                       </div>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm font-semibold leading-tight ${
+                      className={`text-xs font-semibold leading-tight ${
                         state === "active"
-                          ? "text-[#0037b0]"
+                          ? "text-[#1d4ed8]"
                           : state === "completed"
-                          ? "text-[#006c4a]"
+                          ? "text-[#166534]"
                           : state === "failed"
-                          ? "text-[#ba1a1a]"
-                          : "text-[#544c45]"
+                          ? "text-[#e11d48]"
+                          : "text-[#52525b]"
                       }`}
                     >
                       {step.title}
                     </p>
-                    <p className="text-xs text-[#786f66] mt-0.5 leading-relaxed">
+                    <p className="text-[11px] text-[#71717a] mt-0.5 leading-relaxed">
                       {step.description}
                     </p>
                   </div>
@@ -186,65 +186,67 @@ export function GenerationProgressModal({
 
           {/* Current Status Banner */}
           {!isFailed && !isReady && (
-            <div className="p-3.5 rounded-xl bg-[#e8effd]/50 border border-[#0037b0]/15 flex items-center gap-2.5">
-              <CircleNotch size={18} className="text-[#0037b0] animate-spin shrink-0" />
-              <p className="text-xs text-[#0037b0] font-medium font-mono">
-                {progressLabel || "Sedang memproses langkah..."}
+            <div className="p-2.5 rounded-md bg-[#eff6ff] border border-[#bfdbfe] flex items-center gap-2">
+              <CircleNotch size={14} className="text-[#1d4ed8] animate-spin shrink-0" />
+              <p className="text-xs text-[#1d4ed8] font-medium">
+                {progressLabel || "Sedang memproses outline..."}
               </p>
             </div>
           )}
 
           {/* Failure message */}
           {isFailed && (
-            <div className="p-4 rounded-xl bg-[#fff5f5] border border-[#ba1a1a]/30 space-y-2">
-              <div className="flex items-center gap-2 text-[#ba1a1a]">
-                <WarningCircle size={18} weight="fill" />
-                <span className="text-xs font-semibold">Kesalahan Pemrosesan</span>
+            <div className="p-3 rounded-md bg-[#fff1f2] border border-[#fecdd3] space-y-1">
+              <div className="flex items-center gap-1.5 text-[#e11d48]">
+                <WarningCircle size={15} weight="fill" />
+                <span className="text-xs font-semibold">Gagal Menyusun Outline</span>
               </div>
-              <p className="text-xs text-[#544c45] font-mono break-all leading-relaxed">
-                {failureReason || "Terjadi kesalahan saat berkomunikasi dengan LLM synthesizer atau membaca template."}
+              <p className="text-xs text-[#71717a] leading-relaxed">
+                {failureReason || "Terjadi kendala saat menyusun outline. Silakan periksa dokumen atau coba kembali."}
               </p>
             </div>
           )}
 
           {/* Ready notification */}
           {isReady && (
-            <div className="p-4 rounded-xl bg-[#f0fdf4] border border-[#006c4a]/30 space-y-1">
-              <div className="flex items-center gap-2 text-[#006c4a]">
-                <CheckCircle size={18} weight="fill" />
-                <span className="text-xs font-semibold">Outline Terstruktur Siap untuk Ditinjau</span>
+            <div className="p-3 rounded-md bg-[#f0fdf4] border border-[#bbf7d0] space-y-1">
+              <div className="flex items-center gap-1.5 text-[#166534]">
+                <CheckCircle size={15} weight="fill" />
+                <span className="text-xs font-semibold">Kerangka Outline Selesai</span>
               </div>
-              <p className="text-xs text-[#544c45] leading-relaxed">
-                Field outline telah berhasil diisi dengan bullet points dan referensi sumber (provenance). Anda dapat mulai menelaah dan mengedit tiap field di Academic Editorial Canvas.
+              <p className="text-xs text-[#52525b] leading-relaxed">
+                Kerangka outline telah siap beserta kutipan rujukan dokumen. Anda dapat mulai meninjau dan mengedit tiap bagian di kanvas editor.
               </p>
             </div>
           )}
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-[#e8e2dc] bg-[#f9f5f2] flex items-center justify-between">
-          <span className="text-xs text-[#8c827a] font-mono">
-            {isReady ? "Status: Selesai" : isFailed ? "Status: Gagal" : "Estimasi: ~15-30 detik"}
+        <div className="px-5 py-3 border-t border-[#e5e7eb] bg-[#f7f6f3] flex items-center justify-between">
+          <span className="text-[11px] text-[#71717a]">
+            {isReady ? "Selesai" : isFailed ? "Gagal" : "Estimasi: ~15-30 detik"}
           </span>
 
           <div className="flex items-center gap-2">
             {isFailed && onRetry && (
               <button
+                type="button"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#ba1a1a] text-white text-xs font-semibold hover:bg-[#931515] transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors"
               >
-                <ArrowClockwise size={16} />
+                <ArrowClockwise size={13} />
                 <span>Coba Lagi</span>
               </button>
             )}
 
             {isReady && onNavigateToCanvas && (
               <button
+                type="button"
                 onClick={onNavigateToCanvas}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0037b0] text-white text-xs font-semibold hover:bg-[#002b8a] transition-colors shadow-sm"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded bg-[#0037b0] hover:bg-[#1d4ed8] text-white text-xs font-semibold transition-colors shadow-2xs"
               >
-                <span>Buka di Canvas Editor</span>
-                <ArrowRight size={16} />
+                <span>Buka Editor Outline</span>
+                <ArrowRight size={13} />
               </button>
             )}
           </div>

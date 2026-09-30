@@ -226,7 +226,7 @@ export default function PaperWorkspacePage() {
                     <Bookmarks size={14} className="text-[#1d4ed8]" />
                     <span>Sitasi IEEE Tersemat di Bagian Ini</span>
                   </span>
-                  <span>2 Sumber Terindeks pgvector</span>
+                  <span>2 Sumber Rujukan</span>
                 </div>
                 <div className="space-y-1.5 text-xs">
                   <div className="p-2.5 bg-[#f7f6f3] border border-[#e5e7eb] rounded flex items-center justify-between">
@@ -237,7 +237,7 @@ export default function PaperWorkspacePage() {
                       </span>
                     </div>
                     <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
-                      Hal. 17 (Traceable)
+                      Hal. 17 (Tertelusuri)
                     </Badge>
                   </div>
 
@@ -249,7 +249,7 @@ export default function PaperWorkspacePage() {
                       </span>
                     </div>
                     <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
-                      Hal. 2 (Traceable)
+                      Hal. 2 (Tertelusuri)
                     </Badge>
                   </div>
                 </div>
@@ -262,10 +262,10 @@ export default function PaperWorkspacePage() {
             <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
               <span className="text-xs font-mono font-semibold text-[#1c1b1b] flex items-center gap-1.5">
                 <Database size={14} className="text-[#1d4ed8]" />
-                <span>Sumber Relevan (pgvector)</span>
+                <span>Sumber Terkait</span>
               </span>
               <span className="text-[10px] font-mono text-[#006c4a] bg-[#ecfdf5] border border-[#a7f3d0] px-1.5 py-0.5 rounded font-medium">
-                Cosine HNSW
+                Relevansi Tinggi
               </span>
             </div>
 
@@ -410,7 +410,7 @@ export default function PaperWorkspacePage() {
                   </div>
                 ) : (
                   <div className="p-6 text-center text-xs text-[#747686] border border-dashed border-[#e5e7eb] rounded">
-                    Klik &ldquo;Buat Draf Paragraf&rdquo; untuk menyintesis teks berdasarkan chunk pgvector terpilih.
+                    Klik &ldquo;Buat Draf Paragraf&rdquo; untuk menyusun teks berdasarkan kutipan literatur terpilih.
                   </div>
                 )}
               </div>

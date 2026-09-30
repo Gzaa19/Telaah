@@ -3,21 +3,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Sparkle,
-  Books,
+  ListNumbers,
   FileDoc,
-  Translate,
   CircleNotch,
   WarningCircle,
   ArrowRight,
-  Info,
   CheckCircle,
-  Check,
-  Clock,
-  ShieldCheck,
+  Sparkle,
   Wrench,
 } from "@phosphor-icons/react";
 import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { TemplateSelectionCard } from "@/components/features/outline/TemplateSelectionCard";
 import { TemplateDiagnosticModal } from "@/components/features/outline/TemplateDiagnosticModal";
 import { GenerationProgressModal } from "@/components/features/outline/GenerationProgressModal";
@@ -29,9 +26,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface DocumentWithIndex extends DocumentItem {
   isFullyIndexed: boolean;
-  indexStatusText: string;
   chunkCount: number;
-  hasPageMetadata: boolean;
 }
 
 export default function OutlineSetupPage() {
@@ -51,7 +46,7 @@ export default function OutlineSetupPage() {
   const [diagnosticsOpen, setDiagnosticsOpen] = useState<boolean>(false);
   const [currentOutlineId, setCurrentOutlineId] = useState<string | null>(null);
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>("preparing");
-  const [progressLabel, setProgressLabel] = useState<string>("Menyiapkan konteks generasi...");
+  const [progressLabel, setProgressLabel] = useState<string>("Menyiapkan kerangka...");
   const [failureReason, setFailureReason] = useState<string | null>(null);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,7 +58,6 @@ export default function OutlineSetupPage() {
         setLoadingDocs(true);
         const docs = await fetchDocuments();
 
-        // Check index status for each document
         const docsWithIndex: DocumentWithIndex[] = await Promise.all(
           docs.map(async (doc) => {
             try {
@@ -76,9 +70,7 @@ export default function OutlineSetupPage() {
                 return {
                   ...doc,
                   isFullyIndexed: isIndexed,
-                  indexStatusText: isIndexed ? "Indexed" : "Not Indexed",
                   chunkCount: indexData.total_chunks || 124,
-                  hasPageMetadata: true,
                 };
               }
             } catch {
@@ -89,16 +81,13 @@ export default function OutlineSetupPage() {
             return {
               ...doc,
               isFullyIndexed: isExtracted,
-              indexStatusText: isExtracted ? "Indexed" : "Importing",
               chunkCount: 124,
-              hasPageMetadata: true,
             };
           })
         );
 
         setDocuments(docsWithIndex);
 
-        // Pre-select first indexed document
         const firstIndexed = docsWithIndex.find((d) => d.isFullyIndexed);
         if (firstIndexed) {
           setSelectedDocId(firstIndexed.id);
@@ -135,31 +124,28 @@ export default function OutlineSetupPage() {
 
         if (res.generation_status === "ready") {
           if (pollingRef.current) clearInterval(pollingRef.current);
-          // Auto redirect after 1.8s
           setTimeout(() => {
             router.push(`/workspace/outline/${outlineId}`);
-          }, 1800);
+          }, 1500);
         } else if (res.generation_status === "failed") {
           if (pollingRef.current) clearInterval(pollingRef.current);
-          setFailureReason(res.failure_reason || "Penyusunan outline gagal saat validasi template.");
+          setFailureReason(res.failure_reason || "Gagal menyusun outline.");
         }
       } catch (err: any) {
         console.error("Polling error:", err);
       }
-    }, 3000);
+    }, 2500);
   };
 
   const handleStartGeneration = async () => {
     if (!selectedDocId) {
-      setSubmitError("Silakan pilih dokumen utama terlebih dahulu.");
+      setSubmitError("Silakan pilih dokumen rujukan terlebih dahulu.");
       return;
     }
 
     const doc = documents.find((d) => d.id === selectedDocId);
     if (doc && !doc.isFullyIndexed) {
-      setSubmitError(
-        "Dokumen yang dipilih belum selesai diindeks. Harap tunggu hingga proses pengindeksan selesai di Pustaka Literatur."
-      );
+      setSubmitError("Dokumen yang dipilih belum selesai diindeks.");
       return;
     }
 
@@ -168,7 +154,7 @@ export default function OutlineSetupPage() {
       setSubmitError(null);
       setFailureReason(null);
       setGenerationStatus("preparing");
-      setProgressLabel("Memulai penyusunan outline terstruktur...");
+      setProgressLabel("Memulai penyusunan outline...");
       setModalOpen(true);
 
       const response = await generateOutline({
@@ -181,208 +167,139 @@ export default function OutlineSetupPage() {
       startPolling(response.outline_id);
     } catch (err: any) {
       console.error("Generation start failed:", err);
-      setSubmitError(err.message || "Gagal memulai penyusunan outline.");
+      setSubmitError(err.message || "Gagal memulai pembuatan outline.");
       setModalOpen(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleRetry = () => {
-    setFailureReason(null);
-    handleStartGeneration();
-  };
-
   const selectedDoc = documents.find((d) => d.id === selectedDocId);
 
   return (
     <WorkspaceLayout>
-      <div className="min-h-screen bg-[#fcf9f8] text-[#2c2623] px-6 py-8 md:px-12 max-w-5xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-8 border-b border-[#e8e2dc] pb-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-[#0037b0] mb-2 uppercase tracking-widest">
-            <span>Telaah Research Engine</span>
-            <span>•</span>
-            <span>UC-04 Paper Outline Generation</span>
+      <main className="flex-1 max-w-4xl mx-auto px-5 md:px-6 py-5 w-full space-y-4 bg-[#fcf9f8] text-left">
+        {/* Header matching Dashboard and Library */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e5e7eb]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] flex items-center justify-center shrink-0">
+              <ListNumbers size={20} weight="regular" />
+            </div>
+            <div>
+              <h1 className="font-serif text-2xl font-bold tracking-tight text-[#1c1b1b]">
+                Outline Generator
+              </h1>
+              <p className="text-xs text-[#434655] mt-0.5">
+                Susun kerangka artikel ilmiah berbasis dokumen rujukan dan template prosiding.
+              </p>
+            </div>
           </div>
-          <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#2c2623]">
-            Generator Outline Jurnal Ilmiah
-          </h1>
-          <p className="mt-2 text-[#544c45] text-sm md:text-base max-w-2xl leading-relaxed">
-            Menyusun outline terstruktur berbasis dokumen riset utama terindeks dan berkas template resmi
-            konferensi iciCos (IEEE). Mesin AI mengisi kotak field dengan <strong className="text-[#2c2623]">1–2 bullet points ringkas</strong> dan
-            referensi sumber (provenance), tanpa menulis draf paragraf lengkap.
-          </p>
         </div>
 
         {submitError && (
-          <div className="mb-6 p-4 rounded-xl bg-[#fff5f5] border border-[#ba1a1a]/30 flex items-start gap-3">
-            <WarningCircle size={20} className="text-[#ba1a1a] shrink-0 mt-0.5" weight="fill" />
-            <div className="text-xs text-[#544c45]">
-              <p className="font-semibold text-[#ba1a1a]">Perhatian</p>
-              <p className="mt-0.5">{submitError}</p>
-            </div>
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs flex items-center gap-2">
+            <WarningCircle size={16} weight="fill" className="shrink-0" />
+            <span>{submitError}</span>
           </div>
         )}
 
-        <div className="space-y-8">
-          {/* Step 1: Document Selection */}
-          <section className="bg-white rounded-2xl p-6 border border-[#d1c7bd] shadow-sm">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#f0ece7] text-[#5c544d] flex items-center justify-center font-serif font-bold text-sm">
-                1
-              </div>
+        {/* Form Cards */}
+        <div className="space-y-3.5">
+          {/* Section 1: Dokumen Utama */}
+          <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                  Pilih Dokumen Utama
+                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+                  Dokumen Rujukan
                 </h2>
-                <p className="text-xs text-[#786f66]">
-                  Hanya dokumen dengan status <span className="font-mono text-[#006c4a] font-semibold">Indexed</span> yang dapat digunakan.
+                <p className="text-xs text-[#747686] mt-0.5">
+                  Pilih dokumen dari pustaka literatur Anda yang telah terindeks.
                 </p>
               </div>
+
+              {selectedDoc && selectedDoc.isFullyIndexed && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#f0fdf4] text-[#166534] text-[11px] font-medium border border-[#bbf7d0]">
+                  <CheckCircle size={13} weight="fill" />
+                  <span>Siap ({selectedDoc.chunkCount} bagian)</span>
+                </span>
+              )}
             </div>
 
             {loadingDocs ? (
-              <div className="py-6 flex items-center justify-center gap-2 text-xs text-[#786f66]">
-                <CircleNotch size={18} className="animate-spin text-[#0037b0]" />
-                <span>Memuat daftar dokumen dari repositori...</span>
+              <div className="py-4 flex items-center gap-2 text-xs text-[#747686]">
+                <CircleNotch size={14} className="animate-spin text-[#1d4ed8]" />
+                <span>Memuat dokumen...</span>
               </div>
             ) : documents.length === 0 ? (
-              <div className="p-4 rounded-xl bg-[#fbf9f6] border border-[#e8e2dc] text-xs text-[#786f66]">
-                Belum ada dokumen di repositori. Silakan impor dan indeks dokumen riset terlebih dahulu melalui menu Pustaka Literatur.
-              </div>
+              <p className="text-xs text-[#747686]">
+                Belum ada dokumen. Silakan impor dokumen terlebih dahulu melalui Pustaka Literatur.
+              </p>
             ) : (
-              <div className="space-y-3">
-                <select
-                  value={selectedDocId}
-                  onChange={(e) => setSelectedDocId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-[#d1c7bd] bg-[#fcfbf9] text-sm text-[#2c2623] focus:outline-none focus:ring-2 focus:ring-[#0037b0]/20 focus:border-[#0037b0] transition-colors font-medium"
-                >
-                  {documents.map((doc) => (
-                    <option
-                      key={doc.id}
-                      value={doc.id}
-                      disabled={!doc.isFullyIndexed}
-                    >
-                      {doc.file_name} — [{doc.isFullyIndexed ? "Indexed" : "Belum Diindeks"}]
-                    </option>
-                  ))}
-                </select>
-
-                {selectedDoc && !selectedDoc.isFullyIndexed && (
-                  <div className="flex items-center gap-2 text-xs text-[#8c4b3e] bg-[#fdf5f3] px-3.5 py-2.5 rounded-xl border border-[#8c4b3e]/20">
-                    <Info size={16} className="shrink-0" />
-                    <span>
-                      Dokumen ini belum berstatus Indexed di pgvector. Silakan buka menu Pustaka Literatur untuk menyelesaikan pengindeksan.
-                    </span>
-                  </div>
-                )}
-
-                {selectedDoc && selectedDoc.isFullyIndexed && (
-                  <div className="p-4 rounded-xl bg-[#f0fbf5] border border-[#006c4a]/20 space-y-2.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-[#006c4a]">
-                      <CheckCircle size={16} weight="fill" />
-                      <span>Kesiapan Dokumen Utama Terverifikasi</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#544c45] font-mono">
-                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
-                        <Check size={14} className="text-[#006c4a]" />
-                        <span>Teks berhasil diekstrak</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
-                        <Check size={14} className="text-[#006c4a]" />
-                        <span>{selectedDoc.chunkCount} chunk tersedia</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
-                        <Check size={14} className="text-[#006c4a]" />
-                        <span>Metadata halaman tersedia</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-[#544c45] pt-0.5">
-                      Dokumen siap digunakan sebagai sumber pengisian field outline.
-                    </p>
-                  </div>
-                )}
-              </div>
+              <select
+                value={selectedDocId}
+                onChange={(e) => setSelectedDocId(e.target.value)}
+                className="w-full px-3 py-2 bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] focus:outline-none focus:border-[#1d4ed8] focus:bg-white transition-colors"
+              >
+                {documents.map((doc) => (
+                  <option key={doc.id} value={doc.id} disabled={!doc.isFullyIndexed}>
+                    {doc.file_name} {doc.isFullyIndexed ? "" : "(Belum diindeks)"}
+                  </option>
+                ))}
+              </select>
             )}
-          </section>
+          </Card>
 
-          {/* Step 2: Template Selection */}
-          <section className="bg-white rounded-2xl p-6 border border-[#d1c7bd] shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#f0ece7] text-[#5c544d] flex items-center justify-center font-serif font-bold text-sm">
-                  2
-                </div>
-                <div>
-                  <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                    Pilih Template Paper
-                  </h2>
-                  <p className="text-xs text-[#786f66]">
-                    Struktur template berasal dari DOCX/LaTeX. Seksi isi penelitian dikonfigurasi melalui <span className="font-mono text-[#2c2623]">outline-sections.yaml</span>.
-                  </p>
-                </div>
+          {/* Section 2: Format Template */}
+          <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+                  Format Template
+                </h2>
+                <p className="text-xs text-[#747686] mt-0.5">
+                  Struktur kerangka mengikuti gaya selingkung publikasi target.
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setDiagnosticsOpen(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f9f5f2] hover:bg-[#ede7e1] text-[#2c2623] text-xs font-mono font-medium transition-colors border border-[#d1c7bd]"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-[#52525b] hover:text-[#1c1b1b] bg-[#f7f6f3] hover:bg-[#ede7e1] border border-[#e5e7eb] rounded transition-colors"
               >
-                <Wrench size={14} />
-                <span>Template Diagnostics</span>
+                <Wrench size={12} />
+                <span>Detail Template</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TemplateSelectionCard
-                id="icicos"
-                name="iciCos Conference Template"
-                organization="IEEE Section Indonesia"
-                description="Template iciCos / IEEE untuk struktur heading, metadata paper, dan aturan format publikasi."
-                sectionsCount={11}
-                isSelected={selectedTemplateId === "icicos"}
-                onSelect={() => setSelectedTemplateId("icicos")}
-                onOpenDiagnostics={() => setDiagnosticsOpen(true)}
-                tags={["IEEE Format", "DOCX + LaTeX", "YAML Sections"]}
-              />
+            <TemplateSelectionCard
+              id="icicos"
+              name="iciCos 2024 (IEEE Conference Format)"
+              organization="IEEE Section Indonesia"
+              formatBadge="IEEE A4 2-Column"
+              description="Format standar prosiding IEEE dengan struktur IMRaD (Introduction, Methodology, Results, Conclusion)."
+              isSelected={selectedTemplateId === "icicos"}
+              onSelect={() => setSelectedTemplateId("icicos")}
+              onOpenDiagnostics={() => setDiagnosticsOpen(true)}
+            />
+          </Card>
 
-              <div className="p-6 rounded-2xl border border-dashed border-[#d1c7bd] bg-[#fbf9f6] flex flex-col justify-center items-center text-center opacity-70">
-                <FileDoc size={32} className="text-[#8c827a] mb-2" />
-                <h4 className="font-serif font-semibold text-sm text-[#544c45]">
-                  Template Lainnya (Akan Datang)
-                </h4>
-                <p className="text-xs text-[#8c827a] mt-1 max-w-xs">
-                  Dukungan template prosiding institusional lainnya akan ditambahkan sesuai spesifikasi berkas template fisik.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Step 3: Outline Language Selection */}
-          <section className="bg-white rounded-2xl p-6 border border-[#d1c7bd] shadow-sm">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#f0ece7] text-[#5c544d] flex items-center justify-center font-serif font-bold text-sm">
-                3
-              </div>
-              <div>
-                <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                  Pilih Bahasa Outline
-                </h2>
-                <p className="text-xs text-[#786f66]">
-                  Bahasa ini digunakan untuk mengisi bullet points pada field outline. Heading tetap mengikuti bahasa template.
-                </p>
-              </div>
+          {/* Section 3: Bahasa Outline */}
+          <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
+            <div>
+              <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+                Bahasa Penulisan
+              </h2>
+              <p className="text-xs text-[#747686] mt-0.5">
+                Pilih bahasa pengantar untuk isian poin-poin outline.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <label
-                className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedLanguage === "en_ieee"
-                    ? "bg-[#e8effd]/40 border-[#0037b0] ring-1 ring-[#0037b0]"
-                    : "bg-[#fcfbf9] border-[#d1c7bd] hover:bg-white"
+                    ? "bg-[#eff6ff]/60 border-[#1d4ed8] text-[#1c1b1b]"
+                    : "bg-[#f7f6f3] border-[#e5e7eb] hover:bg-white text-[#52525b]"
                 }`}
               >
                 <input
@@ -391,23 +308,19 @@ export default function OutlineSetupPage() {
                   value="en_ieee"
                   checked={selectedLanguage === "en_ieee"}
                   onChange={() => setSelectedLanguage("en_ieee")}
-                  className="mt-1 text-[#0037b0] focus:ring-[#0037b0]"
+                  className="text-[#1d4ed8] focus:ring-[#1d4ed8]"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-[#2c2623]">
-                    English — IEEE Academic Style
-                  </p>
-                  <p className="text-xs text-[#786f66] mt-0.5 leading-relaxed">
-                    Mengisi bullet points dalam bahasa Inggris formal akademik IEEE. Menjaga terminologi teknis baku.
-                  </p>
+                  <span className="text-xs font-semibold block">English (IEEE Style)</span>
+                  <span className="text-[11px] text-[#747686]">Rekomendasi untuk konferensi internasional</span>
                 </div>
               </label>
 
               <label
-                className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedLanguage === "id_formal"
-                    ? "bg-[#e8effd]/40 border-[#0037b0] ring-1 ring-[#0037b0]"
-                    : "bg-[#fcfbf9] border-[#d1c7bd] hover:bg-white"
+                    ? "bg-[#eff6ff]/60 border-[#1d4ed8] text-[#1c1b1b]"
+                    : "bg-[#f7f6f3] border-[#e5e7eb] hover:bg-white text-[#52525b]"
                 }`}
               >
                 <input
@@ -416,65 +329,51 @@ export default function OutlineSetupPage() {
                   value="id_formal"
                   checked={selectedLanguage === "id_formal"}
                   onChange={() => setSelectedLanguage("id_formal")}
-                  className="mt-1 text-[#0037b0] focus:ring-[#0037b0]"
+                  className="text-[#1d4ed8] focus:ring-[#1d4ed8]"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-[#2c2623]">
-                    Bahasa Indonesia — Gaya Akademik Formal
-                  </p>
-                  <p className="text-xs text-[#786f66] mt-0.5 leading-relaxed">
-                    Mengisi bullet points dalam bahasa Indonesia baku (PUEBI). Heading seksi tetap mengikuti template.
-                  </p>
+                  <span className="text-xs font-semibold block">Bahasa Indonesia</span>
+                  <span className="text-[11px] text-[#747686]">Gaya penulisan akademik formal</span>
                 </div>
               </label>
             </div>
-          </section>
+          </Card>
 
-          {/* Action Button Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 text-xs text-[#786f66] font-mono">
-                <ShieldCheck size={16} className="text-[#006c4a]" />
-                <span>NFR-001 Execution Target: &lt; 45 Detik</span>
-              </div>
-              <p className="text-xs text-[#544c45] italic">
-                Mengisi field outline dengan bullet points berbasis dokumen. Tidak menghasilkan draft paragraf paper.
-              </p>
-            </div>
+          {/* Action Bar */}
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-[#747686]">
+              Setiap bagian dapat ditinjau dan diedit kembali setelah dibuat.
+            </span>
 
-            <button
+            <Button
               onClick={handleStartGeneration}
               disabled={isSubmitting || !selectedDoc?.isFullyIndexed}
-              className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all shadow-md shrink-0 ${
-                isSubmitting || !selectedDoc?.isFullyIndexed
-                  ? "bg-[#d1c7bd] text-[#786f66] cursor-not-allowed"
-                  : "bg-[#0037b0] text-white hover:bg-[#002b8a] hover:shadow-lg active:scale-[0.98]"
-              }`}
+              className="h-8.5 px-4 gap-2 text-xs bg-[#0037b0] hover:bg-[#1d4ed8] text-white rounded-md shadow-2xs font-sans cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <CircleNotch size={18} className="animate-spin" />
-                  <span>Menyusun Outline...</span>
+                  <CircleNotch size={14} className="animate-spin" />
+                  <span>Memproses...</span>
                 </>
               ) : (
                 <>
-                  <Sparkle size={18} weight="fill" />
-                  <span>Generate Structured Outline</span>
-                  <ArrowRight size={16} />
+                  <Sparkle size={14} weight="fill" />
+                  <span>Buat Kerangka Outline</span>
+                  <ArrowRight size={14} />
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* SCR-02 Outline Generation Progress Modal */}
+        {/* Modals */}
         <GenerationProgressModal
           isOpen={modalOpen}
           status={generationStatus}
           progressLabel={progressLabel}
           failureReason={failureReason}
           onClose={() => setModalOpen(false)}
-          onRetry={handleRetry}
+          onRetry={handleStartGeneration}
           onNavigateToCanvas={() => {
             if (currentOutlineId) {
               router.push(`/workspace/outline/${currentOutlineId}`);
@@ -482,13 +381,12 @@ export default function OutlineSetupPage() {
           }}
         />
 
-        {/* SCR-05 Template Diagnostic Modal */}
         <TemplateDiagnosticModal
           isOpen={diagnosticsOpen}
           templateId={selectedTemplateId}
           onClose={() => setDiagnosticsOpen(false)}
         />
-      </div>
+      </main>
     </WorkspaceLayout>
   );
 }

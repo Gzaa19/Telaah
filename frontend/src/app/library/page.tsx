@@ -154,7 +154,7 @@ function LibraryContent() {
         <div className="p-3 bg-white border border-[#e5e7eb] rounded flex items-center gap-2.5 text-xs text-[#434655] shadow-2xs text-left">
           <Info size={16} className="text-[#1d4ed8] shrink-0" weight="bold" />
           <span>
-            <strong className="text-[#1c1b1b]">Akses Read-Only:</strong> Telaah hanya membaca aliran biner berkas dari Google Drive Anda untuk ekstraksi teks dan embedding lokal. Berkas asli Anda di Google Drive tidak akan pernah diubah atau dihapus.
+            <strong className="text-[#1c1b1b]">Akses Read-Only:</strong> Berkas di Google Drive Anda aman. Telaah hanya membaca isi dokumen untuk analisis teks tanpa pernah mengubah atau menghapus berkas asli Anda.
           </span>
         </div>
 
@@ -217,8 +217,9 @@ function LibraryContent() {
             <h2 className="text-xs font-semibold text-[#1c1b1b] font-mono uppercase tracking-wider">
               Daftar Dokumen Terimpor ({filteredDocuments.length}{filteredDocuments.length !== documents.length ? ` dari ${documents.length}` : ""})
             </h2>
-            <span className="text-[11px] font-mono text-[#747686]">
-              Model: intfloat/multilingual-e5-base (768-dim)
+            <span className="text-[11px] font-sans text-[#006c4a] flex items-center gap-1.5 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#006c4a]" />
+              <span>Pengindeksan Siap</span>
             </span>
           </div>
 
@@ -263,7 +264,7 @@ function LibraryContent() {
                     <th className="py-2.5 px-3.5">Tipe</th>
                     <th className="py-2.5 px-3.5">Ukuran</th>
                     <th className="py-2.5 px-3.5">Status Ekstraksi</th>
-                    <th className="py-2.5 px-3.5">Status Indexing (pgvector)</th>
+                    <th className="py-2.5 px-3.5">Status Pengindeksan</th>
                     <th className="py-2.5 px-3.5">Tanggal Impor</th>
                   </tr>
                 </thead>
