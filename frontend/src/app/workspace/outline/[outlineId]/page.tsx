@@ -285,11 +285,7 @@ export default function OutlineCanvasPage({ params }: PageProps) {
   if (loading) {
     return (
       <WorkspaceLayout>
-        <div className="flex-1 flex flex-col items-center justify-center p-12 bg-[#fcf9f8] text-[#747686] font-sans">
-          <CircleNotch size={32} className="animate-spin text-[#0037b0] mb-3" />
-          <p className="text-sm font-semibold text-[#1c1b1b]">Memuat Canvas Editorial Kerangka...</p>
-          <p className="text-xs text-[#747686] mt-1">Mengambil struktur sections dan chunk sitasi rujukan.</p>
-        </div>
+        <OutlineCanvasSkeleton />
       </WorkspaceLayout>
     );
   }
@@ -330,16 +326,31 @@ export default function OutlineCanvasPage({ params }: PageProps) {
               <span className="font-sans font-semibold text-sm text-[#1c1b1b] truncate max-w-sm">
                 Kerangka Naskah ({outline.template_id.toUpperCase()})
               </span>
-              <Badge
-                variant="outline"
-                className={`text-[10px] font-sans font-medium shrink-0 ${
-                  isApproved
-                    ? "border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]"
-                    : "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]"
-                }`}
-              >
-                {isApproved ? "Disetujui (Approved)" : `v${outline.version_number} (Draft)`}
-              </Badge>
+              {versions.length > 1 ? (
+                <select
+                  value={outline.outline_id}
+                  aria-label="Pilih versi kerangka"
+                  onChange={(e) => router.push(`/workspace/outline/${e.target.value}`)}
+                  className="text-[11px] font-sans font-medium bg-[#f7f6f3] border border-[#e5e7eb] rounded px-2 py-0.5 text-[#434655] cursor-pointer hover:border-[#0037b0] transition-colors"
+                >
+                  {versions.map((v) => (
+                    <option key={v.outline_id} value={v.outline_id}>
+                      v{v.version_number} {v.approval_status === "approved" ? "(Disetujui)" : "(Draft)"}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] font-sans font-medium shrink-0 ${
+                    isApproved
+                      ? "border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]"
+                      : "border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]"
+                  }`}
+                >
+                  {isApproved ? "Disetujui (Approved)" : `v${outline.version_number} (Draft)`}
+                </Badge>
+              )}
               {totalNeedsInput > 0 && !isApproved && (
                 <Badge
                   variant="outline"
