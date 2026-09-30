@@ -25,6 +25,8 @@ import { DocumentIndexingCell } from "@/components/features/indexing/DocumentInd
 import { IndexingDetailModal } from "@/components/features/indexing/IndexingDetailModal";
 import { SimilaritySearchTest } from "@/components/features/indexing/SimilaritySearchTest";
 import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LibraryPageSkeleton } from "@/components/features/skeletons/LibraryPageSkeleton";
 
 interface DocumentItem {
   id: string;
@@ -224,9 +226,23 @@ function LibraryContent() {
           </div>
 
           {isLoading && documents.length === 0 ? (
-            <div className="p-16 flex flex-col items-center justify-center text-[#747686] gap-3">
-              <CircleNotch size={28} className="animate-spin text-[#1d4ed8]" />
-              <p className="text-xs font-sans">Memuat pustaka dokumen...</p>
+            <div className="divide-y divide-[#f0eded]">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="px-4 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-6 h-6 rounded" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-3.5 w-64 rounded" />
+                      <Skeleton className="h-2.5 w-32 rounded" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <Skeleton className="h-5 w-16 rounded" />
+                    <Skeleton className="h-5 w-24 rounded-full" />
+                    <Skeleton className="h-4 w-20 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="p-12 flex flex-col items-center justify-center text-center gap-3">
@@ -368,9 +384,9 @@ export default function LibraryPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#fcf9f8] flex items-center justify-center text-[#747686]">
-          <CircleNotch size={32} className="animate-spin text-[#1d4ed8]" />
-        </div>
+        <WorkspaceLayout>
+          <LibraryPageSkeleton />
+        </WorkspaceLayout>
       }
     >
       <LibraryContent />

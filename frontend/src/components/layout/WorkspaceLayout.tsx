@@ -27,10 +27,15 @@ import {
 import { fetchCurrentUser, logout, ResearcherProfile, getGoogleLoginUrl } from "@/lib/api/auth";
 import { DriveWarningModal } from "@/components/DriveWarningModal";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode;
 }
+
+// In-memory cache across client navigations to prevent sidebar unmounting/flicker
+let cachedProfile: ResearcherProfile | null = null;
+let cachedDocCount: number | null = null;
 
 /**
  * tasteskill: WorkspaceLayout precisely styled to match the Academic Editorial Canvas (DESIGN.md)
@@ -43,20 +48,23 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [profile, setProfile] = useState<ResearcherProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<ResearcherProfile | null>(cachedProfile);
+  const [loading, setLoading] = useState(!cachedProfile);
   const [showDriveWarning, setShowDriveWarning] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [docCount, setDocCount] = useState<number | null>(null);
+  const [docCount, setDocCount] = useState<number | null>(cachedDocCount);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function initUser() {
       const user = await fetchCurrentUser();
       if (!user) {
+        cachedProfile = null;
+        cachedDocCount = null;
         router.push("/");
         return;
       }
+      cachedProfile = user;
       setProfile(user);
       setLoading(false);
 
@@ -71,7 +79,9 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         );
         if (res.ok) {
           const docs = await res.json();
-          setDocCount(Array.isArray(docs) ? docs.length : 0);
+          const count = Array.isArray(docs) ? docs.length : 0;
+          cachedDocCount = count;
+          setDocCount(count);
         }
       } catch {
         // Non-blocking
@@ -87,23 +97,17 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await logout();
+    cachedProfile = null;
+    cachedDocCount = null;
     router.push("/");
   };
 
-  if (loading || !profile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#fcf9f8] text-[#434655]">
-        <CircleNotch size={32} className="animate-spin text-[#0037b0]" />
-      </div>
-    );
-  }
-
-  const sessionExpiry = profile.session_expires_at
+  const sessionExpiry = profile?.session_expires_at
     ? new Date(profile.session_expires_at).toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }) + " WIB"
-    : "20.18 WIB";
+    : "Aktif";
 
   const navItems = [
     {
@@ -126,8 +130,8 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       href: "/library/drive-browser",
       icon: HardDrive,
       isActive: pathname.startsWith("/library/drive-browser"),
-      badge: profile.is_drive_granted ? "• Tersambung" : "Izin",
-      badgeType: profile.is_drive_granted ? "green-pill" : "warning",
+      badge: profile?.is_drive_granted ? "• Tersambung" : "Izin",
+      badgeType: profile?.is_drive_granted ? "green-pill" : "warning",
     },
   ];
 
@@ -303,25 +307,35 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
         {/* User Profile Bar matching reference */}
         <div className="flex items-center justify-between pt-2 border-t border-[#e5e7eb]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7.5 h-7.5 rounded-full bg-[#0037b0] text-white flex items-center justify-center shrink-0 text-xs font-medium">
-              <User size={15} weight="bold" />
+          {profile ? (
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7.5 h-7.5 rounded-full bg-[#0037b0] text-white flex items-center justify-center shrink-0 text-xs font-medium">
+                <User size={15} weight="bold" />
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <span className="text-xs font-semibold text-[#1c1b1b] truncate font-sans">
+                  {profile?.full_name || "Peneliti"}
+                </span>
+                <span className="text-[10.5px] text-[#747686] font-sans truncate">
+                  Sesi: {sessionExpiry}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left min-w-0">
-              <span className="text-xs font-semibold text-[#1c1b1b] truncate font-sans">
-                {profile.full_name}
-              </span>
-              <span className="text-[10.5px] text-[#747686] font-sans truncate">
-                Sesi: {sessionExpiry}
-              </span>
+          ) : (
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Skeleton className="w-7.5 h-7.5 rounded-full" />
+              <div className="flex flex-col text-left min-w-0 space-y-1">
+                <Skeleton className="h-3 w-28 rounded" />
+                <Skeleton className="h-2.5 w-16 rounded" />
+              </div>
             </div>
-          </div>
+          )}
 
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            disabled={isLoggingOut}
+            disabled={isLoggingOut || !profile}
             title="Keluar dari akun"
             className="h-7 w-7 p-0 text-[#747686] hover:text-[#ba1a1a] hover:bg-[#ffdad6]/40 shrink-0 rounded"
           >

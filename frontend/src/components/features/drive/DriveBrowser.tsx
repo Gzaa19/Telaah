@@ -5,6 +5,7 @@ import { useDriveFiles } from "@/hooks/useDriveFiles";
 import { DriveFile } from "@/types/drive";
 import { DriveFileRow } from "./DriveFileRow";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   MagnifyingGlass,
   ArrowClockwise,
@@ -175,9 +176,23 @@ export function DriveBrowser({ onSelectFile, selectedFileId }: DriveBrowserProps
             </Button>
           </div>
         ) : isLoading && files.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-[#747686] h-full">
-            <CircleNotch size={28} className="animate-spin text-[#1d4ed8] mb-2" />
-            <p className="text-xs">Memuat daftar berkas dari Google Drive...</p>
+          <div className="divide-y divide-[#e5e7eb] min-h-[350px]">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-5 h-5 rounded" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-3.5 w-60 rounded" />
+                    <Skeleton className="h-2.5 w-32 rounded" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  <Skeleton className="h-3.5 w-16 rounded hidden sm:block" />
+                  <Skeleton className="h-3.5 w-24 rounded hidden md:block" />
+                  <Skeleton className="h-7 w-16 rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredFiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-[#747686] h-full">

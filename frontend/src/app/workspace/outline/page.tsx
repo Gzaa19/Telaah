@@ -21,6 +21,7 @@ import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TemplateSelectionCard } from "@/components/features/outline/TemplateSelectionCard";
 import { TemplateDiagnosticModal } from "@/components/features/outline/TemplateDiagnosticModal";
 import { GenerationProgressModal } from "@/components/features/outline/GenerationProgressModal";
@@ -258,9 +259,12 @@ export default function OutlineSetupPage() {
 
               <div className="pl-0 sm:pl-7 space-y-3">
                 {loadingDocs ? (
-                  <div className="py-5 flex items-center gap-2 text-xs text-[#747686] font-sans">
-                    <CircleNotch size={16} className="animate-spin text-[#0037b0]" />
-                    <span>Memuat daftar dokumen terindeks...</span>
+                  <div className="space-y-2 py-1">
+                    <Skeleton className="h-9 w-full rounded border border-[#e5e7eb]" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-3.5 w-44 rounded" />
+                      <Skeleton className="h-3.5 w-24 rounded" />
+                    </div>
                   </div>
                 ) : documents.length === 0 ? (
                   <div className="p-4 bg-[#f7f6f3] border border-dashed border-[#e5e7eb] rounded text-center text-xs text-[#747686] space-y-2 font-sans">
