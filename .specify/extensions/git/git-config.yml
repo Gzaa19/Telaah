@@ -63,8 +63,8 @@ auto_commit:
     enabled: true
     message: "docs(plan): add UC-03 implementation plan and technical design artifacts"
   after_tasks:
-    enabled: false
-    message: "[Spec Kit] Add tasks"
+    enabled: true
+    message: "docs(plan,tasks): add UC-04 implementation plan, technical artifacts, and tasks"
   after_implement:
     enabled: false
     message: "[Spec Kit] Implementation progress"
