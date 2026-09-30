@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { SectionTreeNav } from "@/components/features/outline/SectionTreeNav";
 import { SectionFieldEditor } from "@/components/features/outline/SectionFieldEditor";
 import { ProvenanceDrawer } from "@/components/features/outline/ProvenanceDrawer";
+import { OutlineCanvasSkeleton } from "@/components/features/skeletons/OutlineCanvasSkeleton";
 import {
   fetchOutlineDetail,
   updateSectionField,
@@ -65,11 +66,12 @@ export default function OutlineCanvasPage({ params }: PageProps) {
   const [resetAllSections, setResetAllSections] = useState<boolean>(false);
   const [isRegeneratingFull, setIsRegeneratingFull] = useState<boolean>(false);
 
-  // Load outline details on mount
+  // Load outline details on mount with polling support if generation is ongoing
   useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null;
+
     async function loadData() {
       try {
-        setLoading(true);
         setError(null);
         const [detailData, versionData] = await Promise.all([
           fetchOutlineDetail(outlineId),
@@ -80,10 +82,37 @@ export default function OutlineCanvasPage({ params }: PageProps) {
         setVersions(versionData.versions || []);
 
         if (detailData.sections && detailData.sections.length > 0) {
-          const firstSec = detailData.sections[0];
-          setActiveSectionId(firstSec.section_id);
-          if (firstSec.fields && firstSec.fields.length > 0) {
-            setActiveField(firstSec.fields[0]);
+          setActiveSectionId((prev) => prev || detailData.sections[0].section_id);
+          setActiveField((prev) => {
+            if (prev) return prev;
+            return detailData.sections[0].fields[0] || null;
+          });
+        }
+
+        // If outline is actively synthesizing, poll until ready
+        if (
+          detailData.generation_status === "generating" ||
+          detailData.generation_status === "preparing"
+        ) {
+          if (!pollInterval) {
+            pollInterval = setInterval(async () => {
+              try {
+                const fresh = await fetchOutlineDetail(outlineId);
+                setOutline(fresh);
+                if (
+                  fresh.generation_status === "ready" ||
+                  fresh.generation_status === "failed"
+                ) {
+                  if (pollInterval) clearInterval(pollInterval);
+                  if (fresh.sections && fresh.sections.length > 0) {
+                    setActiveSectionId(fresh.sections[0].section_id);
+                    setActiveField(fresh.sections[0].fields[0] || null);
+                  }
+                }
+              } catch (e) {
+                console.error("Poll update error:", e);
+              }
+            }, 2500);
           }
         }
       } catch (err: any) {
@@ -97,6 +126,10 @@ export default function OutlineCanvasPage({ params }: PageProps) {
     if (outlineId) {
       loadData();
     }
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [outlineId]);
 
   const activeSection = outline?.sections.find((s) => s.section_id === activeSectionId) || null;
@@ -362,6 +395,19 @@ export default function OutlineCanvasPage({ params }: PageProps) {
             </Link>
           </div>
         </header>
+
+        {/* Live Synthesis Banner */}
+        {(outline.generation_status === "generating" || outline.generation_status === "preparing") && (
+          <div className="bg-[#eff6ff] border-b border-[#bfdbfe] px-5 py-2 flex items-center justify-between text-xs text-[#1d4ed8] font-sans">
+            <div className="flex items-center gap-2">
+              <CircleNotch size={14} className="animate-spin text-[#0037b0]" />
+              <span>Sistem sedang menyusun kerangka naskah secara otomatis berdasarkan dokumen pustaka...</span>
+            </div>
+            <span className="text-[11px] font-medium bg-white/70 px-2 py-0.5 rounded border border-[#bfdbfe]">
+              Memproses Real-Time
+            </span>
+          </div>
+        )}
 
         {/* 3-Panel Editorial Studio Layout */}
         <div className="flex-1 flex overflow-hidden">

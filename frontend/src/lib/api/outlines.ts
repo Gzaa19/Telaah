@@ -151,8 +151,14 @@ export async function approveOutline(outlineId: string): Promise<ApproveOutlineR
   return res.json();
 }
 
-export async function fetchOutlineVersions(documentId: string): Promise<VersionListResponse> {
-  const res = await fetch(`${BACKEND_URL}/api/outlines/document/${documentId}/versions`, {
+export async function fetchOutlineVersions(
+  outlineOrDocId: string,
+  isDocumentId: boolean = false
+): Promise<VersionListResponse> {
+  const url = isDocumentId
+    ? `${BACKEND_URL}/api/outlines/document/${outlineOrDocId}/versions`
+    : `${BACKEND_URL}/api/outlines/${outlineOrDocId}/versions`;
+  const res = await fetch(url, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
