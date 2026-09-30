@@ -10,7 +10,7 @@ const badgeVariants = cva(
         default:
           "border-transparent bg-[#1d4ed8] text-white shadow-2xs",
         secondary:
-          "border-[#e2e8f0] bg-[#f1f5f9] text-[#475569] font-mono",
+          "border-[#e2e8f0] bg-[#f1f5f9] text-[#475569] font-medium",
         destructive:
           "border-[#ffdad6] bg-[#ffdad6]/60 text-[#ba1a1a]",
         outline:

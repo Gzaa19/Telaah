@@ -152,7 +152,7 @@ export function ImportProgress({
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider">
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider">
                   Langkah {idx + 1}
                 </span>
                 {state === "completed" && (

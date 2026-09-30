@@ -60,7 +60,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="font-serif font-bold text-base tracking-tight text-[#1c1b1b]">TELAAH</span>
-              <span className="text-[10px] text-[#1d4ed8] font-mono font-medium tracking-wider uppercase">
+              <span className="text-[10px] text-[#1d4ed8] font-sans font-medium tracking-wider uppercase">
                 Scientific Paper AI
               </span>
             </div>
@@ -84,13 +84,13 @@ export default function LandingPage() {
         {/* Left Column: Value Proposition */}
         <div className="lg:col-span-6 space-y-6 text-left">
           <div className="inline-flex items-center gap-2">
-            <Badge variant="outline" className="gap-1.5 py-0.5 px-2.5 border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8] font-mono text-[11px]">
+            <Badge variant="outline" className="gap-1.5 py-0.5 px-2.5 border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8] font-sans font-medium text-[11px]">
               <Sparkle size={12} weight="bold" />
               <span>Publikasi Ilmiah Terstruktur (iciCos / IEEE / Scopus)</span>
             </Badge>
           </div>
 
-          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-[#1c1b1b] leading-tight">
+          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-[#1c1b1b] leading-tight">
             Penyusun Draf Paper Jurnal Ilmiah Otomatis & Presisi
           </h1>
 
@@ -150,16 +150,16 @@ export default function LandingPage() {
             {/* Document Content */}
             <CardContent className="p-5 space-y-4 text-left">
               <div>
-                <span className="text-[10.5px] font-mono uppercase tracking-wider text-[#1d4ed8] font-semibold">
+                <span className="text-[10.5px] font-sans uppercase tracking-wider text-[#1d4ed8] font-semibold">
                   Target Publikasi: iciCos 2026 / IEEE Conference
                 </span>
-                <h3 className="font-serif text-base font-semibold text-[#1c1b1b] mt-1 leading-snug">
+                <h3 className="font-sans text-base font-semibold text-[#1c1b1b] mt-1 leading-snug">
                   Multi-Aspect Semantic Synthesis for Academic Papers Using State-Space Hyena Architectures
                 </h3>
               </div>
 
               <div className="border-t border-[#f0eded] pt-3 space-y-2">
-                <div className="text-xs font-bold text-[#1d4ed8] uppercase tracking-wider font-mono">
+                <div className="text-xs font-bold text-[#1d4ed8] uppercase tracking-wider font-sans">
                   1. INTRODUCTION & RELATED LITERATURE
                 </div>
                 <p className="text-xs text-[#434655] leading-relaxed font-sans">
@@ -191,7 +191,7 @@ export default function LandingPage() {
       <footer className="border-t border-[#e5e7eb] bg-[#f7f6f3] py-3.5 text-xs text-[#747686]">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>TELAAH Research Assistant © 2026. Platform Penyusun Draf Paper Jurnal Ilmiah.</span>
-          <div className="flex items-center gap-4 text-[#747686] font-mono text-[11px]">
+          <div className="flex items-center gap-4 text-[#747686] font-sans text-[11px]">
             <span>FastAPI + PostgreSQL (pgvector)</span>
             <span>Next.js + Bun</span>
             <span>Google Drive API</span>

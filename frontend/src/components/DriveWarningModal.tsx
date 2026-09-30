@@ -38,7 +38,7 @@ export function DriveWarningModal({ isOpen, onClose }: DriveWarningModalProps) {
             <Warning size={22} weight="regular" />
           </div>
           <div>
-            <h3 className="font-serif text-lg font-medium text-[#1c1b1b]">
+            <h3 className="font-sans text-base font-semibold text-[#1c1b1b]">
               Otorisasi Google Drive Diperlukan
             </h3>
             <Badge variant="warning" className="mt-1">

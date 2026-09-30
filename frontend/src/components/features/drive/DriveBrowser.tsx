@@ -65,7 +65,7 @@ export function DriveBrowser({ onSelectFile, selectedFileId }: DriveBrowserProps
                   <CaretRight size={12} className="text-[#747686] shrink-0 mx-0.5" />
                 )}
                 {isLast ? (
-                  <span className="font-semibold text-[#1c1b1b] px-1 py-0.5 rounded font-serif">
+                  <span className="font-semibold text-[#1c1b1b] px-1 py-0.5 rounded font-sans">
                     {folder.name}
                   </span>
                 ) : (
@@ -140,7 +140,7 @@ export function DriveBrowser({ onSelectFile, selectedFileId }: DriveBrowserProps
             Dapat Diimpor (PDF & DOCX)
           </button>
         </div>
-        <span className="text-[#747686] text-[11px] font-mono">
+        <span className="text-[#747686] text-[11px] font-sans">
           {filteredFiles.length} berkas ditemukan
         </span>
       </div>
@@ -152,7 +152,7 @@ export function DriveBrowser({ onSelectFile, selectedFileId }: DriveBrowserProps
             <div className="w-10 h-10 rounded bg-[#fffbeb] text-[#b45309] border border-[#fed7aa] flex items-center justify-center mb-3">
               <WarningCircle size={24} weight="regular" />
             </div>
-            <h3 className="font-serif text-base font-semibold text-[#1c1b1b] mb-1">
+            <h3 className="font-sans text-base font-semibold text-[#1c1b1b] mb-1">
               Akses Google Drive Perlu Dihubungkan Ulang
             </h3>
             <p className="text-xs text-[#434655] max-w-md mb-4">
@@ -192,7 +192,7 @@ export function DriveBrowser({ onSelectFile, selectedFileId }: DriveBrowserProps
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#e5e7eb] text-[10.5px] font-mono font-semibold text-[#747686] uppercase tracking-wider bg-[#f7f6f3] sticky top-0">
+              <tr className="border-b border-[#e5e7eb] text-[10.5px] font-sans font-semibold text-[#747686] uppercase tracking-wider bg-[#f7f6f3] sticky top-0">
                 <th className="py-2.5 px-4 w-10"></th>
                 <th className="py-2.5 px-4">Nama</th>
                 <th className="py-2.5 px-4">Tipe</th>

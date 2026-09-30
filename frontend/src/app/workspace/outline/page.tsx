@@ -209,7 +209,7 @@ export default function OutlineSetupPage() {
           <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-sans">
                   Dokumen Rujukan
                 </h2>
                 <p className="text-xs text-[#747686] mt-0.5">
@@ -253,7 +253,7 @@ export default function OutlineSetupPage() {
           <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+                <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-sans">
                   Format Template
                 </h2>
                 <p className="text-xs text-[#747686] mt-0.5">
@@ -286,7 +286,7 @@ export default function OutlineSetupPage() {
           {/* Section 3: Bahasa Outline */}
           <Card className="p-4 border-[#e5e7eb] bg-white rounded-lg shadow-2xs space-y-2.5">
             <div>
-              <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-mono">
+              <h2 className="text-xs font-semibold text-[#1c1b1b] uppercase tracking-wider font-sans">
                 Bahasa Penulisan
               </h2>
               <p className="text-xs text-[#747686] mt-0.5">

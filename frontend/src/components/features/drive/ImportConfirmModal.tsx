@@ -83,7 +83,7 @@ export function ImportConfirmModal({
               <FileArrowDown size={20} weight="regular" />
             </div>
             <div>
-              <h2 className="font-serif text-base font-semibold text-[#1c1b1b]">
+              <h2 className="font-sans text-base font-semibold text-[#1c1b1b]">
                 Konfirmasi Impor Dokumen
               </h2>
               <p className="text-xs text-[#434655]">
@@ -109,10 +109,10 @@ export function ImportConfirmModal({
               {file.name}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
-              <Badge variant="outline" className="text-[10px] uppercase font-mono border-[#e5e7eb] bg-white text-[#747686]">
+              <Badge variant="outline" className="text-[10px] uppercase font-sans font-medium border-[#e5e7eb] bg-white text-[#747686]">
                 {file.file_type}
               </Badge>
-              <span className="text-[11px] font-mono text-[#747686]">
+              <span className="text-[11px] font-sans text-[#747686]">
                 {formatBytes(file.size_bytes)}
               </span>
             </div>

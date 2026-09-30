@@ -55,12 +55,12 @@ export function DriveFileRow({
           </div>
         </td>
         <td className="py-2.5 px-4 text-xs text-[#747686]">
-          <Badge variant="outline" className="border-[#e5e7eb] text-[#747686] bg-white font-mono text-[10px]">
+          <Badge variant="outline" className="border-[#e5e7eb] text-[#747686] bg-white font-sans font-medium text-[10px]">
             Folder
           </Badge>
         </td>
-        <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">-</td>
-        <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatDate(file.modified_at)}</td>
+        <td className="py-2.5 px-4 text-xs font-sans text-[#747686]">-</td>
+        <td className="py-2.5 px-4 text-xs font-sans text-[#747686]">{formatDate(file.modified_at)}</td>
         <td className="py-2.5 px-4 text-right">
           <CaretRight size={14} className="inline text-[#747686] group-hover:text-[#1c1b1b] transition-colors" />
         </td>
@@ -88,23 +88,23 @@ export function DriveFileRow({
       </td>
       <td className="py-2.5 px-4 text-xs">
         {file.file_type === "pdf" && (
-          <Badge variant="secondary" className="bg-[#ffdad6]/60 text-[#ba1a1a] border border-[#ffdad6] font-mono text-[10px]">
+          <Badge variant="secondary" className="bg-[#ffdad6]/60 text-[#ba1a1a] border border-[#ffdad6] font-sans font-medium text-[10px]">
             PDF
           </Badge>
         )}
         {file.file_type === "docx" && (
-          <Badge variant="secondary" className="bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-mono text-[10px]">
+          <Badge variant="secondary" className="bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-sans font-medium text-[10px]">
             DOCX
           </Badge>
         )}
         {!file.file_type && (
-          <Badge variant="outline" className="text-[#747686] border-[#e5e7eb] font-mono text-[10px]">
+          <Badge variant="outline" className="text-[#747686] border-[#e5e7eb] font-sans font-medium text-[10px]">
             Lainnya
           </Badge>
         )}
       </td>
-      <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatBytes(file.size_bytes)}</td>
-      <td className="py-2.5 px-4 text-[11px] font-mono text-[#747686]">{formatDate(file.modified_at)}</td>
+      <td className="py-2.5 px-4 text-xs font-sans text-[#747686]">{formatBytes(file.size_bytes)}</td>
+      <td className="py-2.5 px-4 text-xs font-sans text-[#747686]">{formatDate(file.modified_at)}</td>
       <td className="py-2.5 px-4 text-right">
         {file.can_import ? (
           <Button
@@ -121,7 +121,7 @@ export function DriveFileRow({
             <ArrowRight size={11} weight="bold" />
           </Button>
         ) : (
-          <span className="text-[10.5px] text-[#747686] italic font-mono">Tidak didukung</span>
+          <span className="text-[11px] text-[#747686] italic font-sans">Tidak didukung</span>
         )}
       </td>
     </tr>

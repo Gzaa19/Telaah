@@ -159,19 +159,19 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-2 flex items-start justify-between">
-                <div className="flex flex-col">
-                  <span className="font-serif text-2xl md:text-3xl font-bold text-[#1c1b1b] leading-none">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-sans text-2xl md:text-3xl font-bold text-[#1c1b1b] leading-none">
                     {totalDocs}
                   </span>
-                  <span className="font-serif text-base font-bold text-[#1c1b1b] mt-0.5 leading-tight">
+                  <span className="font-sans text-xs text-[#747686] font-medium">
                     Dokumen
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-mono text-[9px] text-[#006c4a] uppercase tracking-wider block font-semibold">
+                  <span className="font-sans text-[9px] text-[#006c4a] uppercase tracking-wider block font-semibold">
                     TERVERIFIKASI
                   </span>
-                  <span className="font-mono text-[9px] text-[#747686] uppercase tracking-wider block font-medium">
+                  <span className="font-sans text-[9px] text-[#747686] uppercase tracking-wider block font-medium">
                     SIAP DIRUJUK
                   </span>
                 </div>
@@ -209,13 +209,11 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-1.5">
-                <div className="font-mono text-[9px] text-[#747686] uppercase tracking-wider font-semibold">
+                <div className="font-sans text-[9px] text-[#747686] uppercase tracking-wider font-semibold">
                   BATAS WAKTU AKSES
                 </div>
-                <div className="font-serif text-xl font-bold text-[#1c1b1b] mt-0.5 leading-tight">
-                  Hingga pukul 20.18
-                  <br />
-                  WIB
+                <div className="font-sans text-lg font-bold text-[#1c1b1b] mt-0.5 leading-tight">
+                  Hingga 20.18 WIB
                 </div>
               </div>
 
@@ -225,7 +223,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="pt-3 flex items-center justify-between">
-              <span className="font-mono text-[10px] text-[#747686] flex items-center gap-1">
+              <span className="font-sans text-[10px] text-[#747686] flex items-center gap-1">
                 <Lock size={11} weight="bold" />
                 <span>Sesi Terenkripsi</span>
               </span>
@@ -240,7 +238,7 @@ export default function DashboardPage() {
         <div className="space-y-2.5">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
-              <h2 className="font-serif text-xl font-bold tracking-tight text-[#1c1b1b]">
+              <h2 className="font-sans text-base font-bold tracking-tight text-[#1c1b1b]">
                 Daftar Draf Paper Jurnal
               </h2>
               <p className="text-xs text-[#434655] font-sans">
@@ -274,7 +272,7 @@ export default function DashboardPage() {
           {/* Table Card */}
           <Card className="border-[#e5e7eb] bg-white overflow-hidden shadow-2xs rounded-lg">
             {/* Header Columns */}
-            <div className="px-4 py-2 border-b border-[#e5e7eb] bg-[#f6f3f2] grid grid-cols-12 text-[9.5px] font-mono font-semibold text-[#747686] uppercase tracking-wider">
+            <div className="px-4 py-2 border-b border-[#e5e7eb] bg-[#f6f3f2] grid grid-cols-12 text-[10px] font-sans font-semibold text-[#747686] uppercase tracking-wider">
               <span className="col-span-6">JUDUL MANUSKRIP PAPER</span>
               <span className="col-span-3">TARGET JURNAL</span>
               <span className="col-span-2">PUSTAKA DRIVE</span>
@@ -291,11 +289,11 @@ export default function DashboardPage() {
                 <div className="min-w-0 pr-2">
                   <Link
                     href="/workspace/paper"
-                    className="font-serif text-[14px] font-bold text-[#1c1b1b] hover:text-[#0037b0] transition-colors line-clamp-1 leading-snug"
+                    className="font-sans text-[13.5px] font-semibold text-[#1c1b1b] hover:text-[#0037b0] transition-colors line-clamp-1 leading-snug"
                   >
                     Multi-Aspect Semantic Synthesis for Academic Papers Using State-Space Hyena Architectures
                   </Link>
-                  <div className="font-mono text-[10.5px] text-[#747686] mt-0.5 flex items-center gap-1.5">
+                  <div className="font-sans text-[10.5px] text-[#747686] mt-0.5 flex items-center gap-1.5">
                     <span>Dibuat 16 September 2026</span>
                     <span>·</span>
                     <span className="text-[#006c4a] font-medium">Terakhir disinkronkan hari ini</span>
@@ -305,11 +303,11 @@ export default function DashboardPage() {
 
               {/* Column 2: Target Jurnal Badge & Meta */}
               <div className="col-span-3">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#dce1ff] text-[#001551] border border-[#b7c4ff] text-[11px] font-semibold">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#dce1ff] text-[#001551] border border-[#b7c4ff] text-[11px] font-semibold font-sans">
                   <ShieldCheck size={13} weight="bold" className="text-[#0037b0]" />
                   <span>IEEE Transactions (Q1 Scopus)</span>
                 </div>
-                <div className="font-mono text-[10px] text-[#747686] mt-0.5">
+                <div className="font-sans text-[10px] text-[#747686] mt-0.5">
                   Impact Factor: 8.4 · CiteScore: 14.2
                 </div>
               </div>
@@ -340,7 +338,7 @@ export default function DashboardPage() {
 
             {/* Table Footer */}
             <div className="px-4 py-2 bg-white flex items-center justify-between text-xs">
-              <span className="font-mono text-[10.5px] text-[#747686] flex items-center gap-1.5">
+              <span className="font-sans text-[10.5px] text-[#747686] flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#0037b0]"></span>
                 <span>Menampilkan 1 manuskrip paper aktif</span>
               </span>
@@ -365,11 +363,11 @@ export default function DashboardPage() {
                   <div className="text-[#0037b0]">
                     <Article size={16} weight="bold" />
                   </div>
-                  <h3 className="font-serif text-base font-bold text-[#1c1b1b]">
+                  <h3 className="font-sans text-sm font-bold text-[#1c1b1b]">
                     Struktur IMRaD & Progres Penulisan
                   </h3>
                 </div>
-                <span className="font-mono text-[9.5px] text-[#747686] bg-[#f0eded] px-2 py-0.5 rounded">
+                <span className="font-sans text-[9.5px] text-[#747686] bg-[#f0eded] px-2 py-0.5 rounded">
                   Target Selesai: 4 Oktober 2026
                 </span>
               </div>
@@ -379,11 +377,11 @@ export default function DashboardPage() {
                 {/* 1. Introduction */}
                 <div className="p-2.5 rounded bg-[#f7f6f3] border border-[#e5e7eb] space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-bold text-[#1c1b1b] text-[11px]">1. Introduction</span>
-                    <span className="font-mono text-[10px] font-bold text-[#006c4a]">100%</span>
+                    <span className="font-sans font-bold text-[#1c1b1b] text-[11px]">1. Introduction</span>
+                    <span className="font-sans text-[10px] font-bold text-[#006c4a]">100%</span>
                   </div>
                   <div className="h-1 bg-[#006c4a] rounded-full w-full"></div>
-                  <p className="text-[9.5px] font-mono text-[#434655] leading-snug">
+                  <p className="text-[9.5px] font-sans text-[#434655] leading-snug">
                     5 Sitasi Utama
                     <br />
                     Terverifikasi
@@ -393,11 +391,11 @@ export default function DashboardPage() {
                 {/* 2. Methods */}
                 <div className="p-2.5 rounded bg-[#f7f6f3] border border-[#e5e7eb] space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-bold text-[#1c1b1b] text-[11px]">2. Methods</span>
-                    <span className="font-mono text-[10px] font-bold text-[#0037b0]">85%</span>
+                    <span className="font-sans font-bold text-[#1c1b1b] text-[11px]">2. Methods</span>
+                    <span className="font-sans text-[10px] font-bold text-[#0037b0]">85%</span>
                   </div>
                   <div className="h-1 bg-[#0037b0] rounded-full w-full"></div>
-                  <p className="text-[9.5px] font-mono text-[#434655] leading-snug">
+                  <p className="text-[9.5px] font-sans text-[#434655] leading-snug">
                     Metodologi Riset
                     <br />
                     Tervalidasi
@@ -407,11 +405,11 @@ export default function DashboardPage() {
                 {/* 3. Results */}
                 <div className="p-2.5 rounded bg-[#f7f6f3] border border-[#e5e7eb] space-y-1 opacity-80">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-medium text-[#1c1b1b] text-[11px]">3. Results</span>
-                    <span className="font-mono text-[10px] text-[#747686]">40%</span>
+                    <span className="font-sans font-medium text-[#1c1b1b] text-[11px]">3. Results</span>
+                    <span className="font-sans text-[10px] text-[#747686]">40%</span>
                   </div>
                   <div className="h-1 bg-[#dcd9d9] rounded-full w-full"></div>
-                  <p className="text-[9.5px] font-mono text-[#747686] leading-snug">
+                  <p className="text-[9.5px] font-sans text-[#747686] leading-snug">
                     Hasil Analisis
                     <br />
                     Eksperimen
@@ -421,11 +419,11 @@ export default function DashboardPage() {
                 {/* 4. Discussion */}
                 <div className="p-2.5 rounded bg-[#f7f6f3] border border-[#e5e7eb] space-y-1 opacity-80">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-medium text-[#1c1b1b] text-[11px]">4. Discussion</span>
-                    <span className="font-mono text-[10px] text-[#747686]">20%</span>
+                    <span className="font-sans font-medium text-[#1c1b1b] text-[11px]">4. Discussion</span>
+                    <span className="font-sans text-[10px] text-[#747686]">20%</span>
                   </div>
                   <div className="h-1 bg-[#dcd9d9] rounded-full w-full"></div>
-                  <p className="text-[9.5px] font-mono text-[#747686] leading-snug">
+                  <p className="text-[9.5px] font-sans text-[#747686] leading-snug">
                     Pembahasan &
                     <br />
                     Kesimpulan
@@ -448,10 +446,10 @@ export default function DashboardPage() {
               </p>
 
               <div className="mt-3 flex items-center">
-                <span className="font-serif text-3xl font-bold text-[#006c4a]">
+                <span className="font-sans text-3xl font-bold text-[#006c4a]">
                   94.8%
                 </span>
-                <div className="font-mono text-[10px] text-[#747686] ml-2 flex flex-col leading-tight">
+                <div className="font-sans text-[10px] text-[#747686] ml-2 flex flex-col leading-tight">
                   <span>Similarity</span>
                   <span>Aman</span>
                 </div>

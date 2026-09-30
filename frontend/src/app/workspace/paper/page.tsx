@@ -90,14 +90,14 @@ export default function PaperWorkspacePage() {
             </Link>
             <div className="flex flex-col text-left min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-serif text-sm md:text-base font-medium text-[#1c1b1b] truncate max-w-md">
+                <span className="font-sans text-sm md:text-base font-semibold text-[#1c1b1b] truncate max-w-md">
                   Multi-Aspect Semantic Synthesis for Academic Papers
                 </span>
-                <Badge variant="outline" className="text-[10px] font-mono border-[#bfdbfe] text-[#1d4ed8] bg-[#eff6ff] shrink-0">
+                <Badge variant="outline" className="text-[10px] font-sans font-medium border-[#bfdbfe] text-[#1d4ed8] bg-[#eff6ff] shrink-0">
                   iciCos / IEEE
                 </Badge>
               </div>
-              <span className="text-[10px] font-mono text-[#747686]">
+              <span className="text-[11px] font-sans text-[#747686]">
                 Status: Dalam Penulisan (IMRaD) · {saveStatus}
               </span>
             </div>
@@ -142,7 +142,7 @@ export default function PaperWorkspacePage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Left Pane: Outline Navigation (260px) */}
           <aside className="w-64 border-r border-[#e5e7eb] bg-[#f7f6f3] flex flex-col shrink-0 overflow-y-auto">
-            <div className="p-3 border-b border-[#e5e7eb] text-[10.5px] font-mono font-semibold text-[#747686] uppercase tracking-wider text-left">
+            <div className="p-3 border-b border-[#e5e7eb] text-[10.5px] font-sans font-semibold text-[#747686] uppercase tracking-wider text-left">
               Outline Naskah (IMRaD)
             </div>
             <nav className="p-2 space-y-0.5">
@@ -153,29 +153,29 @@ export default function PaperWorkspacePage() {
                   onClick={() => setActiveSectionId(sec.id)}
                   className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors cursor-pointer ${
                     activeSectionId === sec.id
-                      ? "bg-[#1d4ed8]/10 text-[#1d4ed8] border-l-2 border-[#1d4ed8] font-semibold rounded-r"
-                      : "text-[#434655] hover:text-[#1c1b1b] hover:bg-[#eae7e7] border-l-2 border-transparent rounded-r"
+                      ? "bg-[#1d4ed8]/10 text-[#1d4ed8] border-l-2 border-[#1d4ed8] font-semibold rounded-r font-sans"
+                      : "text-[#434655] hover:text-[#1c1b1b] hover:bg-[#eae7e7] border-l-2 border-transparent rounded-r font-sans"
                   }`}
                 >
                   <span className="truncate pr-2">{sec.title}</span>
                   {sec.status === "reviewed" && (
-                    <Badge variant="success" className="text-[9.5px] px-1 py-0 h-4 bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0] font-mono">
+                    <Badge variant="success" className="text-[9.5px] px-1 py-0 h-4 bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0] font-sans font-medium">
                       Reviewed
                     </Badge>
                   )}
                   {sec.status === "draft" && (
-                    <Badge variant="info" className="text-[9.5px] px-1 py-0 h-4 bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe] font-mono">
+                    <Badge variant="info" className="text-[9.5px] px-1 py-0 h-4 bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe] font-sans font-medium">
                       Draft
                     </Badge>
                   )}
                   {sec.status === "not_started" && (
-                    <span className="text-[9.5px] font-mono text-[#747686]">Kosong</span>
+                    <span className="text-[9.5px] font-sans text-[#747686]">Kosong</span>
                   )}
                 </button>
               ))}
             </nav>
 
-            <div className="mt-auto p-3 border-t border-[#e5e7eb] bg-[#f7f6f3] text-[11px] text-[#747686] space-y-1 text-left">
+            <div className="mt-auto p-3 border-t border-[#e5e7eb] bg-[#f7f6f3] text-[11px] text-[#747686] space-y-1 text-left font-sans">
               <div className="font-semibold text-[#1c1b1b]">Format Sitasi: IEEE Numeric</div>
               <div>Target: iciCos 2026 Proceedings</div>
             </div>
@@ -187,10 +187,10 @@ export default function PaperWorkspacePage() {
               {/* Section Header */}
               <div className="pb-3 border-b border-[#e5e7eb] flex items-center justify-between">
                 <div>
-                  <h2 className="font-serif text-2xl font-medium tracking-tight text-[#1c1b1b]">
+                  <h2 className="font-sans text-2xl font-bold tracking-tight text-[#1c1b1b]">
                     {activeSection.title}
                   </h2>
-                  <p className="text-xs font-mono text-[#747686] mt-0.5">
+                  <p className="text-xs font-sans text-[#747686] mt-0.5">
                     {editorContent.split(/\s+/).filter(Boolean).length} Kata · 3 Sitasi Aktif
                   </p>
                 </div>
@@ -198,7 +198,7 @@ export default function PaperWorkspacePage() {
                 <Button
                   size="sm"
                   onClick={() => setIsRagModalOpen(true)}
-                  className="text-xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white gap-1.5 cursor-pointer shadow-2xs rounded"
+                  className="text-xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white gap-1.5 cursor-pointer shadow-2xs rounded font-sans"
                 >
                   <Sparkle size={13} weight="bold" />
                   <span>Asistensi RAG</span>
@@ -221,7 +221,7 @@ export default function PaperWorkspacePage() {
 
               {/* Academic Citations in this section */}
               <div className="p-3.5 bg-white border border-[#e5e7eb] rounded space-y-2 shadow-2xs">
-                <div className="flex items-center justify-between text-xs font-mono text-[#747686]">
+                <div className="flex items-center justify-between text-xs font-sans text-[#747686]">
                   <span className="font-semibold text-[#1c1b1b] flex items-center gap-1.5">
                     <Bookmarks size={14} className="text-[#1d4ed8]" />
                     <span>Sitasi IEEE Tersemat di Bagian Ini</span>
@@ -236,7 +236,7 @@ export default function PaperWorkspacePage() {
                         N. Shadid, V. Ahmed, Z. Bahroun (2025). Cleaner Waste Systems
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
+                    <Badge variant="outline" className="text-[10px] font-sans border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
                       Hal. 17 (Tertelusuri)
                     </Badge>
                   </div>
@@ -248,7 +248,7 @@ export default function PaperWorkspacePage() {
                         UN Environment Programme (2024). Food Waste Index Report
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
+                    <Badge variant="outline" className="text-[10px] font-sans border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46] shrink-0 font-medium">
                       Hal. 2 (Tertelusuri)
                     </Badge>
                   </div>
@@ -260,11 +260,11 @@ export default function PaperWorkspacePage() {
           {/* Right Pane: Inspector / Retrieved Sources (340px) */}
           <aside className="w-80 border-l border-[#e5e7eb] bg-[#f7f6f3] p-4 flex flex-col shrink-0 overflow-y-auto space-y-3 text-left">
             <div className="flex items-center justify-between pb-2 border-b border-[#e5e7eb]">
-              <span className="text-xs font-mono font-semibold text-[#1c1b1b] flex items-center gap-1.5">
+              <span className="text-xs font-sans font-semibold text-[#1c1b1b] flex items-center gap-1.5">
                 <Database size={14} className="text-[#1d4ed8]" />
                 <span>Sumber Terkait</span>
               </span>
-              <span className="text-[10px] font-mono text-[#006c4a] bg-[#ecfdf5] border border-[#a7f3d0] px-1.5 py-0.5 rounded font-medium">
+              <span className="text-[10px] font-sans text-[#006c4a] bg-[#ecfdf5] border border-[#a7f3d0] px-1.5 py-0.5 rounded font-medium">
                 Relevansi Tinggi
               </span>
             </div>
@@ -274,21 +274,21 @@ export default function PaperWorkspacePage() {
               <Card className="p-3 bg-white border-[#e5e7eb] text-left space-y-2 hover:border-[#c4c5d7] transition-all shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_-1px_rgba(15,23,42,0.02)] rounded">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-mono text-[11px] text-[#1d4ed8] font-bold">[SRC-001]</span>
-                  <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]">
+                  <Badge variant="outline" className="text-[10px] font-sans font-medium border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]">
                     Skor: 0.82
                   </Badge>
                 </div>
                 <p className="text-xs font-medium text-[#1c1b1b] line-clamp-2">
                   1-s2.0-S2772912525002465-main.pdf
                 </p>
-                <div className="text-[11px] text-[#747686] font-mono">
+                <div className="text-[11px] text-[#747686] font-sans">
                   Halaman 17 · Bab 5 Discussion & Future Work
                 </div>
                 <div className="p-2 bg-[#fcf9f8] rounded border border-[#e5e7eb] text-[11px] text-[#434655] italic line-clamp-3">
                   &ldquo;This pattern reveals that the domain is innovation-heavy but synthesis-light. The scarcity of review papers indicates limited theoretical consolidation...&rdquo;
                 </div>
                 <div className="pt-1 flex items-center justify-between text-xs">
-                  <span className="text-[10px] text-[#006c4a] font-mono font-medium">✓ Traceable</span>
+                  <span className="text-[10px] text-[#006c4a] font-sans font-medium">✓ Traceable</span>
                   <Button
                     size="sm"
                     variant="outline"
@@ -296,7 +296,7 @@ export default function PaperWorkspacePage() {
                       setEditorContent((prev) => prev + " [1]");
                       setSaveStatus("Sitasi [1] disisipkan");
                     }}
-                    className="h-6.5 text-[10px] border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] cursor-pointer rounded"
+                    className="h-6.5 text-[10px] border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] cursor-pointer rounded font-sans"
                   >
                     Sisipkan Sitasi
                   </Button>
@@ -307,14 +307,14 @@ export default function PaperWorkspacePage() {
               <Card className="p-3 bg-white border-[#e5e7eb] text-left space-y-2 hover:border-[#c4c5d7] transition-all shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_-1px_rgba(15,23,42,0.02)] rounded">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-mono text-[11px] text-[#1d4ed8] font-bold">[SRC-002]</span>
-                  <Badge variant="outline" className="text-[10px] font-mono border-[#e5e7eb] text-[#747686]">
+                  <Badge variant="outline" className="text-[10px] font-sans border-[#e5e7eb] text-[#747686]">
                     Skor: 0.76
                   </Badge>
                 </div>
                 <p className="text-xs font-medium text-[#1c1b1b] line-clamp-2">
                   1-s2.0-S2772912525002465-main.pdf
                 </p>
-                <div className="text-[11px] text-[#747686] font-mono">
+                <div className="text-[11px] text-[#747686] font-sans">
                   Halaman 4 · Sub-bab 3.1 Reduction Strategies
                 </div>
                 <div className="p-2 bg-[#fcf9f8] rounded border border-[#e5e7eb] text-[11px] text-[#434655] italic line-clamp-3">
@@ -334,12 +334,12 @@ export default function PaperWorkspacePage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <Sparkle size={18} weight="fill" className="text-[#1d4ed8]" />
-                    <h3 className="font-serif text-lg font-medium text-[#1c1b1b]">
+                    <h3 className="font-sans text-base font-bold text-[#1c1b1b]">
                       Asistensi RAG: Sintesis Berbasis Sumber Terverifikasi
                     </h3>
                   </div>
                   <p className="text-xs text-[#434655] mt-0.5">
-                    Target Bagian: <span className="font-mono text-[#1c1b1b] font-medium">{activeSection.title}</span> (Template iciCos/IEEE)
+                    Target Bagian: <span className="font-sans text-[#1c1b1b] font-semibold">{activeSection.title}</span> (Template iciCos/IEEE)
                   </p>
                 </div>
                 <button
@@ -353,13 +353,13 @@ export default function PaperWorkspacePage() {
 
               {/* Source Scope Selection */}
               <div className="p-3 bg-[#f7f6f3] border border-[#e5e7eb] rounded space-y-2">
-                <div className="text-xs font-mono font-semibold text-[#1c1b1b] flex items-center justify-between">
+                <div className="text-xs font-sans font-semibold text-[#1c1b1b] flex items-center justify-between">
                   <span>Cakupan Sumber Dokumen yang Dipilih:</span>
                   <span className="text-[#006c4a]">1 Dokumen Terpilih</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[#1c1b1b]">
                   <input type="checkbox" defaultChecked className="rounded border-[#e5e7eb] text-[#1d4ed8]" />
-                  <span className="font-mono text-[11px] truncate">1-s2.0-S2772912525002465-main.pdf (Halaman 17, Skor: 0.82)</span>
+                  <span className="font-sans text-[11px] truncate">1-s2.0-S2772912525002465-main.pdf (Halaman 17, Skor: 0.82)</span>
                 </div>
               </div>
 
@@ -398,7 +398,7 @@ export default function PaperWorkspacePage() {
                     </div>
 
                     {/* Honest Verification Metrics */}
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-[#747686]">
+                    <div className="flex items-center gap-3 text-[11px] font-sans text-[#747686]">
                       <span className="text-[#006c4a] flex items-center gap-1 font-medium">
                         <Check size={12} weight="bold" /> 2 Sitasi Terverifikasi
                       </span>

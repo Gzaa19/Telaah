@@ -126,17 +126,17 @@ export function SimilaritySearchTest({
                     >
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="font-semibold text-[#1c1b1b] truncate max-w-xs flex items-center gap-1 font-serif">
+                          <span className="font-semibold text-[#1c1b1b] truncate max-w-xs flex items-center gap-1 font-sans">
                             <FileText className="w-3.5 h-3.5 text-[#1d4ed8]" />
                             {item.document_title || "Dokumen"}
                           </span>
                           {item.page_number && (
-                            <span className="text-[11px] text-[#434655] bg-white border border-[#e5e7eb] px-1.5 py-0.5 rounded font-mono">
+                            <span className="text-[11px] text-[#434655] bg-white border border-[#e5e7eb] px-1.5 py-0.5 rounded font-sans">
                               Halaman {item.page_number}
                             </span>
                           )}
                           {item.section_name && (
-                            <span className="text-[11px] text-[#434655] bg-white border border-[#e5e7eb] px-1.5 py-0.5 rounded truncate max-w-[120px] font-mono">
+                            <span className="text-[11px] text-[#434655] bg-white border border-[#e5e7eb] px-1.5 py-0.5 rounded truncate max-w-[120px] font-sans">
                               {item.section_name}
                             </span>
                           )}
@@ -145,7 +145,7 @@ export function SimilaritySearchTest({
                           <span className="text-[10px] text-[#747686] font-mono">
                             Chunk #{item.chunk_index}
                           </span>
-                          <span className="px-2 py-0.5 bg-[#ecfdf5] text-[#006c4a] border border-[#a7f3d0] rounded font-mono text-[10.5px] font-medium">
+                          <span className="px-2 py-0.5 bg-[#ecfdf5] text-[#006c4a] border border-[#a7f3d0] rounded font-sans text-[10.5px] font-medium">
                             Skor: {(item.similarity_score * 100).toFixed(1)}%
                           </span>
                         </div>

@@ -38,10 +38,10 @@ export default function DriveBrowserPage() {
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif text-xl font-medium tracking-tight text-[#1c1b1b]">
+                <h1 className="font-serif text-2xl font-bold tracking-tight text-[#1c1b1b]">
                   Pilih Berkas dari Google Drive
                 </h1>
-                <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] px-2 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-[11px] font-sans font-medium bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] px-2 py-0.5 rounded">
                   <GoogleLogo size={12} weight="bold" />
                   <span>Google Drive</span>
                 </span>

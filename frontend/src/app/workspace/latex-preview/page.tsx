@@ -137,10 +137,10 @@ export default function LatexPreviewPage() {
               <ArrowLeft size={16} />
             </Link>
             <div className="flex items-center gap-2">
-              <h1 className="font-serif text-sm md:text-base font-medium text-[#1c1b1b]">
+              <h1 className="font-sans text-sm md:text-base font-semibold text-[#1c1b1b]">
                 LaTeX / BibTeX & PDF Preview (iciCos / IEEE)
               </h1>
-              <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] text-[#065f46] bg-[#ecfdf5]">
+              <Badge variant="outline" className="text-[10px] font-sans font-medium border-[#a7f3d0] text-[#065f46] bg-[#ecfdf5]">
                 {compileMessage}
               </Badge>
             </div>
@@ -172,11 +172,11 @@ export default function LatexPreviewPage() {
           {/* Left Column: Code / BibTeX / Citation Table */}
           <div className="flex flex-col border-r border-[#e5e7eb] bg-white overflow-hidden text-left">
             {/* View Tabs */}
-            <div className="flex items-center border-b border-[#e5e7eb] bg-[#f7f6f3] px-4 pt-1.5 gap-2 text-xs font-mono">
+            <div className="flex items-center border-b border-[#e5e7eb] bg-[#f7f6f3] px-4 pt-1.5 gap-2 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => setActiveTab("tex")}
-                className={`px-3 py-2 border-b-2 font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-2 border-b-2 font-mono font-medium transition-colors cursor-pointer ${
                   activeTab === "tex"
                     ? "border-[#1d4ed8] text-[#1d4ed8]"
                     : "border-transparent text-[#747686] hover:text-[#1c1b1b]"
@@ -187,7 +187,7 @@ export default function LatexPreviewPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("bib")}
-                className={`px-3 py-2 border-b-2 font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-2 border-b-2 font-mono font-medium transition-colors cursor-pointer ${
                   activeTab === "bib"
                     ? "border-[#1d4ed8] text-[#1d4ed8]"
                     : "border-transparent text-[#747686] hover:text-[#1c1b1b]"
@@ -226,7 +226,7 @@ export default function LatexPreviewPage() {
                 <div className="space-y-4">
                   <div className="p-3 bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs font-sans text-[#434655] flex items-center justify-between">
                     <span>Ringkasan Validasi: 2 sitasi terverifikasi, 0 klaim tanpa sumber.</span>
-                    <Badge variant="outline" className="text-[10px] font-mono border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]">
+                    <Badge variant="outline" className="text-[10px] font-sans font-medium border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]">
                       Format: IEEE Numeric
                     </Badge>
                   </div>
@@ -234,7 +234,7 @@ export default function LatexPreviewPage() {
                   <div className="overflow-x-auto border border-[#e5e7eb] rounded">
                     <table className="w-full text-left border-collapse text-xs font-sans">
                       <thead>
-                        <tr className="border-b border-[#e5e7eb] bg-[#f7f6f3] text-[10.5px] font-mono text-[#747686] uppercase tracking-wider">
+                        <tr className="border-b border-[#e5e7eb] bg-[#f7f6f3] text-[10.5px] font-sans font-semibold text-[#747686] uppercase tracking-wider">
                           <th className="p-2.5 w-10">No</th>
                           <th className="p-2.5">Kunci BibTeX</th>
                           <th className="p-2.5">Judul Paper Rujukan</th>
@@ -250,7 +250,7 @@ export default function LatexPreviewPage() {
                             <td className="p-2.5 font-medium text-[#1c1b1b]">{c.title}</td>
                             <td className="p-2.5 font-mono text-[#747686]">{c.page}</td>
                             <td className="p-2.5">
-                              <Badge variant="success" className="text-[10px] bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0] font-mono">
+                              <Badge variant="success" className="text-[10px] bg-[#ecfdf5] text-[#065f46] border-[#a7f3d0] font-sans font-medium">
                                 Verified
                               </Badge>
                             </td>

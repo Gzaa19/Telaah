@@ -48,7 +48,7 @@ export function IndexingStatusBadge({
           <CheckCircle weight="fill" className="w-3.5 h-3.5 text-[#006c4a]" />
           <span>Terindeks</span>
           {typeof totalChunks === "number" && !compact && (
-            <span className="text-[10px] bg-[#a7f3d0]/60 text-[#065f46] px-1.5 py-0 rounded font-mono">
+            <span className="text-[10px] bg-[#a7f3d0]/60 text-[#065f46] px-1.5 py-0 rounded font-sans font-medium">
               {totalChunks} chunk
             </span>
           )}

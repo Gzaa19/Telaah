@@ -120,7 +120,7 @@ function LibraryContent() {
                 <Books size={20} weight="regular" />
               </div>
               <div>
-                <h1 className="font-serif text-2xl font-medium tracking-tight text-[#1c1b1b]">
+                <h1 className="font-serif text-2xl font-bold tracking-tight text-[#1c1b1b]">
                   Pustaka Literatur Riset
                 </h1>
                 <p className="text-xs text-[#434655] mt-0.5">
@@ -136,13 +136,13 @@ function LibraryContent() {
               size="sm"
               onClick={fetchDocuments}
               disabled={isLoading}
-              className="h-8 px-3 gap-1.5 text-xs border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] cursor-pointer rounded shadow-2xs"
+              className="h-8 px-3 gap-1.5 text-xs border-[#e5e7eb] bg-white hover:bg-[#f7f6f3] text-[#1c1b1b] cursor-pointer rounded shadow-2xs font-sans"
             >
               <ArrowClockwise size={14} className={isLoading ? "animate-spin text-[#1d4ed8]" : ""} />
               <span>Segarkan</span>
             </Button>
             <Link href="/library/drive-browser">
-              <Button size="sm" variant="default" className="h-8 px-3.5 gap-1.5 text-xs shadow-2xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white cursor-pointer rounded">
+              <Button size="sm" variant="default" className="h-8 px-3.5 gap-1.5 text-xs shadow-2xs bg-[#1d4ed8] hover:bg-[#1e40af] text-white cursor-pointer rounded font-sans">
                 <Plus size={14} weight="bold" />
                 <span>Tambah Dokumen</span>
               </Button>
@@ -178,19 +178,19 @@ function LibraryContent() {
               placeholder="Cari berdasarkan nama berkas, judul, kata kunci..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8.5 pr-3 py-1.5 bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] placeholder:text-[#747686] focus:outline-none focus:border-[#1d4ed8] focus:bg-white"
+              className="w-full pl-8.5 pr-3 py-1.5 bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] placeholder:text-[#747686] focus:outline-none focus:border-[#1d4ed8] focus:bg-white font-sans"
             />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1 text-xs text-[#747686] font-mono">
+            <div className="flex items-center gap-1 text-xs text-[#747686] font-sans">
               <Funnel size={12} />
               <span>Status:</span>
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-mono"
+              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-sans"
             >
               <option value="all">Semua Status</option>
               <option value="extracted">Terekstrak</option>
@@ -202,7 +202,7 @@ function LibraryContent() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-mono"
+              className="bg-[#f7f6f3] border border-[#e5e7eb] rounded text-xs text-[#1c1b1b] px-2.5 py-1.5 focus:outline-none focus:border-[#1d4ed8] font-sans"
             >
               <option value="all">Semua Format</option>
               <option value="pdf">PDF</option>
@@ -214,7 +214,7 @@ function LibraryContent() {
         {/* Document List Table */}
         <div className="bg-white border border-[#e5e7eb] rounded overflow-hidden shadow-[0_1px_3px_0_rgba(15,23,42,0.04),0_1px_2px_-1px_rgba(15,23,42,0.02)]">
           <div className="p-3.5 border-b border-[#e5e7eb] bg-[#f7f6f3] flex items-center justify-between">
-            <h2 className="text-xs font-semibold text-[#1c1b1b] font-mono uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-[#1c1b1b] font-sans uppercase tracking-wider">
               Daftar Dokumen Terimpor ({filteredDocuments.length}{filteredDocuments.length !== documents.length ? ` dari ${documents.length}` : ""})
             </h2>
             <span className="text-[11px] font-sans text-[#006c4a] flex items-center gap-1.5 font-medium">
@@ -226,13 +226,13 @@ function LibraryContent() {
           {isLoading && documents.length === 0 ? (
             <div className="p-16 flex flex-col items-center justify-center text-[#747686] gap-3">
               <CircleNotch size={28} className="animate-spin text-[#1d4ed8]" />
-              <p className="text-xs">Memuat pustaka dokumen...</p>
+              <p className="text-xs font-sans">Memuat pustaka dokumen...</p>
             </div>
           ) : error ? (
             <div className="p-12 flex flex-col items-center justify-center text-center gap-3">
               <WarningOctagon size={32} className="text-[#ba1a1a]" />
-              <p className="text-xs text-[#1c1b1b]">{error}</p>
-              <Button size="sm" variant="outline" onClick={fetchDocuments} className="text-xs cursor-pointer rounded">
+              <p className="text-xs text-[#1c1b1b] font-sans">{error}</p>
+              <Button size="sm" variant="outline" onClick={fetchDocuments} className="text-xs cursor-pointer rounded font-sans">
                 Coba Lagi
               </Button>
             </div>
@@ -242,13 +242,13 @@ function LibraryContent() {
                 <Books size={28} weight="thin" />
               </div>
               <div className="max-w-sm">
-                <h3 className="font-serif text-base font-medium text-[#1c1b1b]">Belum Ada Dokumen</h3>
-                <p className="text-xs text-[#434655] mt-1">
+                <h3 className="font-sans text-base font-semibold text-[#1c1b1b]">Belum Ada Dokumen</h3>
+                <p className="text-xs text-[#434655] mt-1 font-sans">
                   Impor dokumen artikel jurnal atau manuskrip (PDF / DOCX) dari Google Drive Anda untuk mulai menyusun draf paper.
                 </p>
               </div>
               <Link href="/library/drive-browser">
-                <Button size="sm" variant="default" className="text-xs gap-1.5 cursor-pointer rounded bg-[#1d4ed8] hover:bg-[#1e40af] text-white">
+                <Button size="sm" variant="default" className="text-xs gap-1.5 cursor-pointer rounded bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-sans">
                   <Plus size={15} weight="bold" />
                   <span>Impor dari Google Drive</span>
                 </Button>
@@ -258,7 +258,7 @@ function LibraryContent() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#e5e7eb] text-[10.5px] font-mono font-semibold text-[#747686] uppercase tracking-wider bg-[#f7f6f3]">
+                  <tr className="border-b border-[#e5e7eb] text-[10.5px] font-sans font-semibold text-[#747686] uppercase tracking-wider bg-[#f7f6f3]">
                     <th className="py-2.5 px-3.5 w-10"></th>
                     <th className="py-2.5 px-3.5">Nama Dokumen</th>
                     <th className="py-2.5 px-3.5">Tipe</th>
@@ -292,14 +292,14 @@ function LibraryContent() {
                           variant="secondary"
                           className={
                             doc.file_type === "pdf"
-                              ? "bg-[#ffdad6]/50 text-[#ba1a1a] border border-[#ffdad6] font-mono text-[10px]"
-                              : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-mono text-[10px]"
+                              ? "bg-[#ffdad6]/50 text-[#ba1a1a] border border-[#ffdad6] font-sans font-medium text-[10px]"
+                              : "bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] font-sans font-medium text-[10px]"
                           }
                         >
                           {doc.file_type.toUpperCase()}
                         </Badge>
                       </td>
-                      <td className="py-2.5 px-3.5 text-[11px] font-mono text-[#747686]">
+                      <td className="py-2.5 px-3.5 text-xs font-sans text-[#747686]">
                         {formatBytes(doc.file_size_bytes)}
                       </td>
                       <td className="py-2.5 px-3.5 text-xs">
@@ -335,7 +335,7 @@ function LibraryContent() {
                           onOpenDetail={(id) => setSelectedDocForDetail({ id, name: doc.file_name })}
                         />
                       </td>
-                      <td className="py-2.5 px-3.5 text-[11px] font-mono text-[#747686]">
+                      <td className="py-2.5 px-3.5 text-xs font-sans text-[#747686]">
                         {formatDate(doc.imported_at)}
                       </td>
                     </tr>

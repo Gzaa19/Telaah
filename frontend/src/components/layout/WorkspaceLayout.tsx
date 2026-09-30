@@ -177,7 +177,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               <span className="font-serif font-bold text-base tracking-tight text-[#1c1b1b] leading-tight">
                 TELAAH
               </span>
-              <span className="text-[9.5px] text-[#434655] font-mono font-medium tracking-wider uppercase">
+              <span className="text-[9.5px] text-[#434655] font-sans font-medium tracking-wider uppercase">
                 Scientific Paper AI
               </span>
             </div>
@@ -199,7 +199,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
         {/* Navigation Group 1: Core Navigation */}
         <div className="px-3 space-y-1">
-          <div className="px-2 pb-1 text-[10px] font-mono font-semibold tracking-wider text-[#747686] uppercase">
+          <div className="px-2 pb-1 text-[10px] font-sans font-semibold tracking-wider text-[#747686] uppercase">
             Menu Utama
           </div>
           {navItems.map((item) => {
@@ -228,12 +228,12 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                   </span>
                 )}
                 {item.badge && item.badgeType === "default" && (
-                  <span className="text-[10.5px] px-1.5 py-0 font-mono rounded bg-[#eae7e7] text-[#434655]">
+                  <span className="text-[10.5px] px-1.5 py-0 font-sans font-medium rounded bg-[#eae7e7] text-[#434655]">
                     {item.badge}
                   </span>
                 )}
                 {item.badge && item.badgeType === "warning" && (
-                  <span className="text-[10px] px-1.5 py-0 font-mono rounded bg-[#fffbeb] text-[#b45309] border border-[#fed7aa]">
+                  <span className="text-[10px] px-1.5 py-0 font-sans font-medium rounded bg-[#fffbeb] text-[#b45309] border border-[#fed7aa]">
                     {item.badge}
                   </span>
                 )}
@@ -244,7 +244,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
         {/* Navigation Group 2: Research Modules */}
         <div className="px-3 space-y-1">
-          <div className="px-2 pb-1 text-[10px] font-mono font-semibold tracking-wider text-[#747686] uppercase">
+          <div className="px-2 pb-1 text-[10px] font-sans font-semibold tracking-wider text-[#747686] uppercase">
             Alur Penulisan
           </div>
           {secondaryNavItems.map((item) => {
@@ -268,12 +268,12 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                   <span className="font-sans">{item.label}</span>
                 </div>
                 {item.badge && item.badgeType === "gray" && (
-                  <span className="text-[10.5px] px-1.5 py-0 font-mono rounded bg-[#eae7e7] text-[#434655]">
+                  <span className="text-[10.5px] px-1.5 py-0 font-sans font-medium rounded bg-[#eae7e7] text-[#434655]">
                     {item.badge}
                   </span>
                 )}
                 {item.badge && item.badgeType === "blue" && (
-                  <span className="text-[10.5px] px-1.5 py-0 font-mono rounded bg-[#dce1ff] text-[#001551] font-medium">
+                  <span className="text-[10.5px] px-1.5 py-0 font-sans font-medium rounded bg-[#dce1ff] text-[#001551]">
                     {item.badge}
                   </span>
                 )}
@@ -311,7 +311,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               <span className="text-xs font-semibold text-[#1c1b1b] truncate font-sans">
                 {profile.full_name}
               </span>
-              <span className="text-[10.5px] text-[#747686] font-mono truncate">
+              <span className="text-[10.5px] text-[#747686] font-sans truncate">
                 Sesi: {sessionExpiry}
               </span>
             </div>
@@ -399,13 +399,13 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           <div className="flex items-center gap-2 text-xs font-sans text-[#434655] min-w-0">
             <Flask size={14} className="text-[#0037b0] shrink-0" weight="duotone" />
             <span className="font-semibold text-[#1c1b1b] shrink-0">Telaah Lab</span>
-            <span className="text-[#c4c5d7] font-mono text-[11px] shrink-0">/</span>
+            <span className="text-[#c4c5d7] font-sans text-[11px] shrink-0">/</span>
             <span className="text-[#747686] shrink-0 hidden sm:inline">{breadcrumb.section}</span>
-            <span className="text-[#c4c5d7] font-mono text-[11px] shrink-0 hidden sm:inline">/</span>
+            <span className="text-[#c4c5d7] font-sans text-[11px] shrink-0 hidden sm:inline">/</span>
             <span className="font-medium text-[#1c1b1b] truncate">{breadcrumb.current}</span>
           </div>
 
-          <div className="flex items-center gap-2 font-mono text-[10.5px] text-[#747686] shrink-0">
+          <div className="flex items-center gap-2 font-sans text-[10.5px] text-[#747686] shrink-0">
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-[#e5e7eb] bg-white text-[#006c4a] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-[#006c4a]" />
               <span>Aktif</span>
