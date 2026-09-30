@@ -32,7 +32,7 @@
 ## Notes
 
 - All critical clarifications and architectural decisions have been resolved and codified into [spec.md](../spec.md):
-  1. **Baseline Ratified Decisions**: Exclusion of Framework A; static directory templates; DOCX/LaTeX division of roles; section invariance; anti-hallucination [NEEDS INPUT]; explicit approval gating; tech stack deferred to planning.
+  1. **Baseline Ratified Decisions**: Hard template-driven structure; static directory templates; DOCX/LaTeX division of roles; section invariance; anti-hallucination [NEEDS INPUT]; explicit approval gating; tech stack deferred to planning.
   2. **Template Organization & Existing Assets**: Subdirectory layout (`backend/src/templates/icicos/`) integrating existing IEEE template assets (`conference-template-a4.docx`, `IEEEtran.bst`, `IEEEabrv.bib`) with `conference-template.tex` and declarative `outline-sections.yaml`.
   3. **Body Sections Gap**: Solved via `outline-sections.yaml` providing standard IMRaD body sections alongside mandatory template components.
   4. **Multi-Language Policy**: Interface language selector before generation (`English — Academic IEEE style` [default] vs `Bahasa Indonesia`) with strict separation of template heading language vs content language, and preservation of technical terms/citation keys.

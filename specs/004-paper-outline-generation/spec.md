@@ -11,7 +11,7 @@
 > 1. Konten terekstraksi dan terindeks dari satu dokumen riset utama (*main research document*) yang berstatus `Indexed` (output dari UC-03).
 > 2. Berkas template resmi konferensi (dimulai dengan template **iciCos**) yang tersimpan sebagai berkas statis di direktori sistem dalam format ganda: DOCX dan LaTeX, dilengkapi berkas deklarasi seksi `outline-sections.yaml`.
 >
-> Fitur ini **TIDAK MENGGUNAKAN** "Framework A" ataupun metodologi *reverse-engineering* terpisah. Struktur outline semata-mata diturunkan dari struktur template yang dinormalisasi (*Single Source of Truth*), sedangkan kandidat konten draf diisi oleh Large Language Model (LLM) di bawah batasan ketat template dan referensi dokumen sumber.  
+> Struktur outline dibangun murni dan langsung dari struktur berkas template fisik yang dinormalisasi (*Single Source of Truth*), sedangkan kandidat konten draf diisi oleh Large Language Model (LLM) di bawah batasan ketat template dan referensi dokumen sumber.  
 > Fitur ini **TIDAK MELAKUKAN**: penulisan draf paragraf/seksi lengkap (masuk pada UC-06), pencarian semantik lintas basis pengetahuan multi-dokumen (UC-05), validasi sitasi dan kompilasi ekspor LaTeX/PDF (UC-07), ataupun penilaian orisinalitas/plagiarisme.
 
 ---
@@ -19,7 +19,7 @@
 ## Clarifications
 
 ### Baseline Architectural & Scope Decisions (Ratified)
-1. **Framework Exclusion**: Framework A (atau metodologi reverse-engineering terpisah) TIDAK DIGUNAKAN. Outline semata-mata merupakan sintesis dari struktur template + konten terekstraksi dari dokumen riset utama terindeks yang diisi LLM di bawah batasan ketat template.
+1. **Template-Driven Structure (Single Source of Truth)**: Outline semata-mata merupakan sintesis dari struktur berkas template fisik resmi + konten terekstraksi dari dokumen riset utama terindeks yang diisi LLM di bawah batasan ketat template.
 2. **Template Source**: Berkas template adalah berkas statis di direktori proyek (`backend/src/templates/`), bukan berkas yang diunggah oleh pengguna (*no user-uploaded templates*).
 3. **Format & Precedence**: Disediakan format ganda DOCX dan LaTeX. Struktur dan urutan seksi outline didefinisikan oleh DOCX; struktur ekspor (document class, bibliography setup) didefinisikan oleh LaTeX.
 4. **Section Invariance**: Seksi wajib template DILARANG KERAS ditambah, dihapus, diubah namanya, atau diubah urutannya oleh LLM.
@@ -431,7 +431,7 @@ classDiagram
 - Isolasi hak akses berbasis kepemilikan workspace peneliti.
 
 #### Out of Scope
-- Metodologi "Framework A" atau teknik *reverse-engineering* dokumen di luar struktur template.
+- Metodologi reverse-engineering dokumen atau modifikasi di luar struktur template resmi.
 - Penulisan draf narasi paragraf lengkap atau draf manuskrip utuh (dialokasikan untuk UC-06).
 - Pencarian dan penggabungan referensi multi-dokumen lintas *knowledge base* (dialokasikan untuk UC-05).
 - Validasi format sitasi bibliografi (BibTeX), pengecekan DOI, dan kompilasi ekspor berkas LaTeX/PDF (dialokasikan untuk UC-07).
