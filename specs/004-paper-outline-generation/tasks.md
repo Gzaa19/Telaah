@@ -23,11 +23,11 @@ description: "Actionable, dependency-ordered tasks for UC-04 Template-Based Pape
 
 **Purpose**: Scaffolding directories, configurations, template assets, and dependencies.
 
-- [ ] T001 Initialize feature module directory structure at `backend/src/outlines/` and frontend page/component directories at `frontend/src/app/workspace/outline/` and `frontend/src/components/features/outline/` per plan.md
-- [ ] T002 Scaffold template directory at `backend/src/templates/icicos/` by copying `conference-template-a4.docx` to `template.docx`, creating LaTeX export reference `template.tex`, and authoring declarative section configuration `outline-sections.yaml`
-- [ ] T003 Configure Python dependencies (`python-docx>=1.1.0`, `PyYAML>=6.0`, `google-generativeai>=0.8.0`) in `backend/pyproject.toml`
-- [ ] T004 [P] Configure frontend test helpers and mock fixtures for outline generation states in `frontend/src/lib/api/outlines.ts`
-- [ ] T005 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-04 outline project structure, icicos templates, and dependencies"`
+- [x] T001 Initialize feature module directory structure at `backend/src/outlines/` and frontend page/component directories at `frontend/src/app/workspace/outline/` and `frontend/src/components/features/outline/` per plan.md
+- [x] T002 Scaffold template directory at `backend/src/templates/icicos/` by copying `conference-template-a4.docx` to `template.docx`, creating LaTeX export reference `template.tex`, and authoring declarative section configuration `outline-sections.yaml`
+- [x] T003 Configure Python dependencies (`python-docx>=1.1.0`, `PyYAML>=6.0`, `google-generativeai>=0.8.0`) in `backend/pyproject.toml`
+- [x] T004 [P] Configure frontend test helpers and mock fixtures for outline generation states in `frontend/src/lib/api/outlines.ts`
+- [x] T005 **Git Major Commit**: `git add . && git commit -m "chore(setup): scaffold UC-04 outline project structure, icicos templates, and dependencies"`
 
 ---
 
