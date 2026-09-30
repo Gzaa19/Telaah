@@ -48,6 +48,11 @@ export interface OutlineSection {
   fields: SectionField[];
 }
 
+export type SourceRefDTO = SourceReference;
+export type FieldDTO = SectionField;
+export type SectionDTO = OutlineSection;
+
+
 export interface GenerateOutlineRequest {
   document_id: string;
   template_id?: string;

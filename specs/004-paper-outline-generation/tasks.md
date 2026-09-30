@@ -92,20 +92,20 @@ description: "Actionable, dependency-ordered tasks for UC-04 Template-Based Pape
 **Independent Test**: `pytest backend/tests/outlines/test_section_editing.py -v` (verifies `PATCH /api/outlines/{id}/fields/{field_id}` updates content, sets `is_edited=true`, and provenance drawer displays accurate chunk refs).
 
 ### Step 4.1: Tests (TDD)
-- [ ] T035 [P] [UC2] Write unit and integration tests for `PATCH /api/outlines/{outline_id}/fields/{field_id}` and section detail querying in `backend/tests/outlines/test_section_editing.py`
-- [ ] T036 [UC2] **Git Commit (Tests)**: `git add backend/tests/outlines/ && git commit -m "test(UC2): add tests for section field editing and provenance retrieval"`
+- [x] T035 [P] [UC2] Write unit and integration tests for `PATCH /api/outlines/{outline_id}/fields/{field_id}` and section detail querying in `backend/tests/outlines/test_section_editing.py`
+- [x] T036 [UC2] **Git Commit (Tests)**: `git add backend/tests/outlines/ && git commit -m "test(UC2): add tests for section field editing and provenance retrieval"`
 
 ### Step 4.2: Controller & Entity Extensions
-- [ ] T037 [P] [UC2] Implement field update Pydantic DTO (`UpdateFieldRequest`) in `backend/src/outlines/schemas.py` and service method `update_field_content` in `backend/src/outlines/service.py`
-- [ ] T038 [UC2] Implement `PATCH /api/outlines/{outline_id}/fields/{field_id}` endpoint in `backend/src/outlines/router.py`
+- [x] T037 [P] [UC2] Implement field update Pydantic DTO (`UpdateFieldRequest`) in `backend/src/outlines/schemas.py` and service method `update_field_content` in `backend/src/outlines/service.py`
+- [x] T038 [UC2] Implement `PATCH /api/outlines/{outline_id}/fields/{field_id}` endpoint in `backend/src/outlines/router.py`
 
 ### Step 4.3: Boundary & Integration (Frontend Academic Editorial Canvas)
-- [ ] T039 [P] [UC2] Implement `SectionTreeNav.tsx` displaying ordered template sections, required badges, and status badges (`Filled`, `Needs Input`, `Edited`) in `frontend/src/components/features/outline/SectionTreeNav.tsx`
-- [ ] T040 [P] [UC2] Implement `ProvenanceDrawer.tsx` displaying chunk ID, original page number, and source excerpt text in `frontend/src/components/features/outline/ProvenanceDrawer.tsx`
-- [ ] T041 [P] [UC2] Implement `SectionFieldEditor.tsx` with textarea, field guidance notes, and auto-save / manual save trigger in `frontend/src/components/features/outline/SectionFieldEditor.tsx`
-- [ ] T042 [UC2] Assemble SCR-03 3-panel layout in `frontend/src/app/workspace/outline/[outlineId]/page.tsx` adhering to Academic Editorial Canvas (`#FCF9F8` warm paper, Newsreader/Inter/JetBrains Mono, `@phosphor-icons/react`)
-- [ ] T043 [UC2] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation in field edit flows
-- [ ] T044 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete UC-04.2 review and edit outline sections with provenance drawer"`
+- [x] T039 [P] [UC2] Implement `SectionTreeNav.tsx` displaying ordered template sections, required badges, and status badges (`Filled`, `Needs Input`, `Edited`) in `frontend/src/components/features/outline/SectionTreeNav.tsx`
+- [x] T040 [P] [UC2] Implement `ProvenanceDrawer.tsx` displaying chunk ID, original page number, and source excerpt text in `frontend/src/components/features/outline/ProvenanceDrawer.tsx`
+- [x] T041 [P] [UC2] Implement `SectionFieldEditor.tsx` with textarea, field guidance notes, and auto-save / manual save trigger in `frontend/src/components/features/outline/SectionFieldEditor.tsx`
+- [x] T042 [UC2] Assemble SCR-03 3-panel layout in `frontend/src/app/workspace/outline/[outlineId]/page.tsx` adhering to Academic Editorial Canvas (`#FCF9F8` warm paper, Newsreader/Inter/JetBrains Mono, `@phosphor-icons/react`)
+- [x] T043 [UC2] **BCE Audit**: Confirm strict adherence to Boundary-Controller-Entity separation in field edit flows
+- [x] T044 [UC2] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC2): complete UC-04.2 review and edit outline sections with provenance drawer"`
 
 ---
 

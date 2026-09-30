@@ -460,3 +460,98 @@ class OutlineService:
             approved_at=outline.approved_at,
             sections=sections_dto,
         )
+
+    def regenerate_section(
+        self,
+        outline_id: uuid.UUID,
+        section_id: uuid.UUID,
+        researcher_id: uuid.UUID,
+    ) -> OutlineSection:
+        outline = self.repository.get_outline_by_id(outline_id, researcher_id=researcher_id)
+        if not outline:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Outline not found or unauthorized.")
+        if outline.approval_status == ApprovalStatusEnum.approved:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Cannot regenerate section of approved outline.")
+
+        section = self.db.exec(
+            select(OutlineSection)
+            .where(OutlineSection.id == section_id, OutlineSection.outline_id == outline_id)
+        ).first()
+        if not section:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found.")
+
+        # Load active index
+        active_index = self.db.exec(
+            select(DocumentIndexVersion).where(
+                DocumentIndexVersion.document_id == outline.document_id,
+                DocumentIndexVersion.is_active == True,
+            )
+        ).first()
+        index_version_id = active_index.id if active_index else uuid.uuid4()
+
+        definition = self.template_parser.parse_template(outline.template_id)
+        sec_def = next((s for s in definition.sections if s.section_key == section.section_key), None)
+        if not sec_def:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Section definition not found in template.")
+
+        # Re-synthesize fields for this section
+        section_has_needs_input = False
+        fld_map = {f.field_key: f for f in section.fields}
+
+        for fld in sec_def.fields:
+            existing_fld = fld_map.get(fld.field_key)
+            if not existing_fld:
+                continue
+
+            chunks = self.retriever.retrieve_for_field(
+                field_key=fld.field_key,
+                field_label=fld.field_label,
+                field_guidance=fld.guidance_notes,
+                index_version_id=index_version_id,
+                top_k=5,
+            )
+
+            field_res = self.synthesizer.synthesize_field(
+                section_title=sec_def.title,
+                field_key=fld.field_key,
+                field_label=fld.field_label,
+                field_guidance=fld.guidance_notes,
+                chunks=chunks,
+                language=outline.language_choice,
+            )
+
+            if field_res.is_needs_input:
+                section_has_needs_input = True
+
+            # Update existing field
+            existing_fld.content = field_res.content
+            existing_fld.is_needs_input = field_res.is_needs_input
+            existing_fld.is_edited = False
+            self.db.add(existing_fld)
+
+            # Clear old source refs and add new ones
+            for old_ref in existing_fld.source_references:
+                self.db.delete(old_ref)
+
+            chunk_map = {c.chunk_id: c for c in chunks}
+            for ref_id in field_res.referenced_chunk_ids:
+                chunk_ctx = chunk_map.get(ref_id)
+                if chunk_ctx:
+                    ref = SourceReference(
+                        field_id=existing_fld.id,
+                        chunk_id=chunk_ctx.chunk_id,
+                        document_id=outline.document_id,
+                        page_number=chunk_ctx.page_number,
+                        excerpt_text=chunk_ctx.excerpt_text,
+                    )
+                    self.db.add(ref)
+
+        section.section_status = (
+            SectionStatusEnum.needs_input
+            if section_has_needs_input
+            else SectionStatusEnum.filled
+        )
+        self.db.add(section)
+        self.db.commit()
+        self.db.refresh(section)
+        return section
