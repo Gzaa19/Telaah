@@ -52,12 +52,12 @@ description: "Actionable, dependency-ordered tasks for UC-04 Template-Based Pape
 **Independent Test**: `pytest backend/tests/outlines/test_generation.py -v` (verifies template parsing, chunk retrieval, LLM synthesis, and full async generation flow from `POST /api/outlines/generate` through status `ready`).
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T012 [P] [UC1] Write unit tests for `TemplateParser` (`test_parse_template_icicos`, `test_missing_file_failure`, `test_docx_yaml_normalization`) in `backend/tests/outlines/test_template_parser.py`
-- [ ] T013 [P] [UC1] Write unit tests for `ChunkRetriever` verifying cosine similarity search and field-targeted query generation on `document_chunks` in `backend/tests/outlines/test_retriever.py`
-- [ ] T014 [P] [UC1] Write unit tests for `LLMSynthesizer` (anti-hallucination `[NEEDS INPUT]` rule, language policy `en_ieee` vs `id_formal`, technical term preservation, JSON response parsing) in `backend/tests/outlines/test_llm_synthesizer.py`
-- [ ] T015 [P] [UC1] Write integration tests for `OutlineService` generation pipeline, NFR-001 latency target assertion (<45s execution budget), and FastAPI router endpoints (`POST /api/outlines/generate`, `GET /api/outlines/{id}/status`, `GET /api/outlines/{id}`) in `backend/tests/outlines/test_service.py` and `backend/tests/outlines/test_router.py`
-- [ ] T016 [UC1] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T017 [UC1] **Git Commit (Tests)**: `git add backend/tests/outlines/ && git commit -m "test(UC1): add failing test suite for UC-04.1 outline generation and parsing"`
+- [x] T012 [P] [UC1] Write unit tests for `TemplateParser` (`test_parse_template_icicos`, `test_missing_file_failure`, `test_docx_yaml_normalization`) in `backend/tests/outlines/test_template_parser.py`
+- [x] T013 [P] [UC1] Write unit tests for `ChunkRetriever` verifying cosine similarity search and field-targeted query generation on `document_chunks` in `backend/tests/outlines/test_retriever.py`
+- [x] T014 [P] [UC1] Write unit tests for `LLMSynthesizer` (anti-hallucination `[NEEDS INPUT]` rule, language policy `en_ieee` vs `id_formal`, technical term preservation, JSON response parsing) in `backend/tests/outlines/test_llm_synthesizer.py`
+- [x] T015 [P] [UC1] Write integration tests for `OutlineService` generation pipeline, NFR-001 latency target assertion (<45s execution budget), and FastAPI router endpoints (`POST /api/outlines/generate`, `GET /api/outlines/{id}/status`, `GET /api/outlines/{id}`) in `backend/tests/outlines/test_service.py` and `backend/tests/outlines/test_router.py`
+- [x] T016 [UC1] Verify tests FAIL prior to implementation (Red stage)
+- [x] T017 [UC1] **Git Commit (Tests)**: `git add backend/tests/outlines/ && git commit -m "test(UC1): add failing test suite for UC-04.1 outline generation and parsing"`
 
 ### Step 3.2: Controller Layer (Business Logic & Validation)
 - [ ] T018 [P] [UC1] Implement request and response Pydantic DTOs (`GenerateOutlineRequest`, `OutlineStatusResponse`, `OutlineDetailResponse`, `SectionDTO`, `FieldDTO`, `SourceRefDTO`) in `backend/src/outlines/schemas.py`
