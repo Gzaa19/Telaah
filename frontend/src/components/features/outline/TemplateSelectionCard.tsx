@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FileDoc, CheckCircle, SealCheck, Sparkle, Tag } from "@phosphor-icons/react";
+import { FileDoc, CheckCircle, SealCheck, Wrench, FileCode, ListNumbers } from "@phosphor-icons/react";
 
 interface TemplateSelectionCardProps {
   id: string;
@@ -11,17 +11,18 @@ interface TemplateSelectionCardProps {
   sectionsCount: number;
   isSelected: boolean;
   onSelect: () => void;
+  onOpenDiagnostics?: () => void;
   tags?: string[];
 }
 
 export function TemplateSelectionCard({
   name,
   organization,
-  description,
   sectionsCount,
   isSelected,
   onSelect,
-  tags = ["IEEE 2-Column", "IMRaD", "LaTeX & DOCX"],
+  onOpenDiagnostics,
+  tags = ["IEEE Format", "DOCX + LaTeX", "YAML Sections"],
 }: TemplateSelectionCardProps) {
   return (
     <div
@@ -33,7 +34,7 @@ export function TemplateSelectionCard({
           onSelect();
         }
       }}
-      className={`relative flex flex-col p-6 rounded-xl transition-all cursor-pointer border text-left ${
+      className={`relative flex flex-col p-6 rounded-2xl transition-all cursor-pointer border text-left ${
         isSelected
           ? "bg-white border-[#0037b0] shadow-md ring-2 ring-[#0037b0]/20"
           : "bg-[#fcfbf9] border-[#d1c7bd] hover:border-[#b0a79d] hover:bg-white shadow-sm"
@@ -42,7 +43,7 @@ export function TemplateSelectionCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div
-            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
               isSelected ? "bg-[#e8effd] text-[#0037b0]" : "bg-[#f0ece7] text-[#5c544d]"
             }`}
           >
@@ -71,10 +72,28 @@ export function TemplateSelectionCard({
         </div>
       </div>
 
-      <p className="text-sm text-[#544c45] line-clamp-3 mb-4 leading-relaxed">
-        {description}
-      </p>
+      {/* Role explanation */}
+      <div className="mb-4 text-xs text-[#544c45] space-y-1.5 bg-[#fbf9f6] p-3 rounded-xl border border-[#e8e2dc]/80">
+        <p className="leading-relaxed">
+          <strong className="text-[#2c2623]">Template iciCos / IEEE</strong> untuk struktur heading, metadata paper, dan aturan format publikasi.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1 text-[11px] text-[#786f66]">
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0037b0]" />
+            DOCX: Komponen & heading
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#006c4a]" />
+            LaTeX: Struktur ekspor
+          </span>
+          <span className="flex items-center gap-1 sm:col-span-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8c4b3e]" />
+            outline-sections.yaml: Seksi isi penelitian
+          </span>
+        </div>
+      </div>
 
+      {/* Footer info & Diagnostics trigger */}
       <div className="flex items-center justify-between pt-3 border-t border-[#f0ece7] mt-auto text-xs text-[#786f66]">
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
@@ -86,9 +105,26 @@ export function TemplateSelectionCard({
             </span>
           ))}
         </div>
-        <span className="font-mono text-[#0037b0] font-medium shrink-0 ml-2">
-          {sectionsCount} Bagian Inti
-        </span>
+
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[#0037b0] font-medium text-[11px]">
+            {sectionsCount} Komponen
+          </span>
+
+          {onOpenDiagnostics && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenDiagnostics();
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#f0ece7] hover:bg-[#e4ded6] text-[#2c2623] text-[11px] font-mono font-medium transition-colors border border-[#d1c7bd]/50"
+            >
+              <Wrench size={13} />
+              <span>Diagnostik</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

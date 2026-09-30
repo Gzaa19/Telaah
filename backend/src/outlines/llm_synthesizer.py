@@ -74,8 +74,9 @@ class LLMSynthesizer:
 
         chunks_text = "\n\n".join(formatted_chunks)
 
-        prompt = f"""You are a scientific manuscript synthesizer for an IEEE conference paper.
-Your task is to synthesize the field '{field_label}' for section '{section_title}'.
+        prompt = f"""You are a structured scientific outline synthesizer for an IEEE conference paper.
+Your task is to synthesize 1–2 concise bullet points for the outline field '{field_label}' in section '{section_title}'.
+This is an outline field, NOT a full manuscript draft.
 
 Guidance for this field:
 {field_guidance}
@@ -83,19 +84,20 @@ Guidance for this field:
 Language Requirement:
 {lang_instruction}
 
-Critical Anti-Hallucination & Provenance Rules:
+Critical Formatting & Anti-Hallucination Rules:
 1. Base your synthesis SOLELY on the provided chunks below.
-2. DO NOT invent experimental numbers, metric values, claims, or citation references not explicitly stated in the chunks.
-3. If the provided chunks do NOT contain sufficient evidence or facts to answer this field, return "[NEEDS INPUT]" for content and set is_needs_input to true.
-4. Keep the summary concise (1–3 directed sentences).
-5. Preserve technical terms, algorithm names, model architectures, and proper names without alteration.
-6. Return only valid JSON conforming to the schema below.
+2. Format your content strictly as 1–2 concise bullet points (each starting with '- ').
+3. DO NOT write full paper paragraphs or continuous narrative text.
+4. DO NOT invent experimental numbers, metric values, claims, or citation references not explicitly stated in the chunks.
+5. If the provided chunks do NOT contain sufficient evidence or facts to support this field, return "[NEEDS INPUT]" for content and set is_needs_input to true.
+6. Preserve technical terms, algorithm names, model architectures, and proper names without alteration.
+7. Return only valid JSON conforming to the schema below.
 
 JSON Schema:
 {{
-  "content": "string (1-3 sentences or [NEEDS INPUT])",
+  "content": "string (1-2 bullet points starting with '- ' or '[NEEDS INPUT]')",
   "is_needs_input": boolean,
-  "referenced_chunk_ids": ["string (UUIDs of chunks that directly support the content)"]
+  "referenced_chunk_ids": ["string (UUIDs of chunks that directly support the bullet points)"]
 }}
 
 SOURCE CHUNKS:

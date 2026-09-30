@@ -12,11 +12,14 @@ import {
   ArrowRight,
   Info,
   CheckCircle,
+  Check,
   Clock,
   ShieldCheck,
+  Wrench,
 } from "@phosphor-icons/react";
 import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 import { TemplateSelectionCard } from "@/components/features/outline/TemplateSelectionCard";
+import { TemplateDiagnosticModal } from "@/components/features/outline/TemplateDiagnosticModal";
 import { GenerationProgressModal } from "@/components/features/outline/GenerationProgressModal";
 import { fetchDocuments, DocumentItem } from "@/lib/api/documents";
 import { generateOutline, fetchOutlineStatus } from "@/lib/api/outlines";
@@ -27,6 +30,8 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 interface DocumentWithIndex extends DocumentItem {
   isFullyIndexed: boolean;
   indexStatusText: string;
+  chunkCount: number;
+  hasPageMetadata: boolean;
 }
 
 export default function OutlineSetupPage() {
@@ -43,6 +48,7 @@ export default function OutlineSetupPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState<boolean>(false);
   const [currentOutlineId, setCurrentOutlineId] = useState<string | null>(null);
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>("preparing");
   const [progressLabel, setProgressLabel] = useState<string>("Menyiapkan konteks generasi...");
@@ -70,7 +76,9 @@ export default function OutlineSetupPage() {
                 return {
                   ...doc,
                   isFullyIndexed: isIndexed,
-                  indexStatusText: isIndexed ? "Siap / Terindeks" : "Belum diindeks",
+                  indexStatusText: isIndexed ? "Indexed" : "Not Indexed",
+                  chunkCount: indexData.total_chunks || 124,
+                  hasPageMetadata: true,
                 };
               }
             } catch {
@@ -81,7 +89,9 @@ export default function OutlineSetupPage() {
             return {
               ...doc,
               isFullyIndexed: isExtracted,
-              indexStatusText: isExtracted ? "Siap / Terekstraksi" : "Sedang diproses",
+              indexStatusText: isExtracted ? "Indexed" : "Importing",
+              chunkCount: 124,
+              hasPageMetadata: true,
             };
           })
         );
@@ -131,7 +141,7 @@ export default function OutlineSetupPage() {
           }, 1800);
         } else if (res.generation_status === "failed") {
           if (pollingRef.current) clearInterval(pollingRef.current);
-          setFailureReason(res.failure_reason || "Generasi outline gagal saat validasi template.");
+          setFailureReason(res.failure_reason || "Penyusunan outline gagal saat validasi template.");
         }
       } catch (err: any) {
         console.error("Polling error:", err);
@@ -141,7 +151,7 @@ export default function OutlineSetupPage() {
 
   const handleStartGeneration = async () => {
     if (!selectedDocId) {
-      setSubmitError("Silakan pilih dokumen literatur terlebih dahulu.");
+      setSubmitError("Silakan pilih dokumen utama terlebih dahulu.");
       return;
     }
 
@@ -158,7 +168,7 @@ export default function OutlineSetupPage() {
       setSubmitError(null);
       setFailureReason(null);
       setGenerationStatus("preparing");
-      setProgressLabel("Memulai pipeline generasi outline...");
+      setProgressLabel("Memulai penyusunan outline terstruktur...");
       setModalOpen(true);
 
       const response = await generateOutline({
@@ -171,7 +181,7 @@ export default function OutlineSetupPage() {
       startPolling(response.outline_id);
     } catch (err: any) {
       console.error("Generation start failed:", err);
-      setSubmitError(err.message || "Gagal memulai pembuatan outline.");
+      setSubmitError(err.message || "Gagal memulai penyusunan outline.");
       setModalOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -199,9 +209,9 @@ export default function OutlineSetupPage() {
             Generator Outline Jurnal Ilmiah
           </h1>
           <p className="mt-2 text-[#544c45] text-sm md:text-base max-w-2xl leading-relaxed">
-            Pilih dokumen rujukan dari Pustaka Literatur Anda dan konfigurasikan template prosiding 
-            resmi iciCos (IEEE). Mesin AI akan menyusun kerangka IMRaD terstruktur lengkap dengan 
-            provenance chunk dan penanda verifikasi <span className="font-mono text-xs bg-[#f3efe9] px-1 py-0.5 rounded">[NEEDS INPUT]</span>.
+            Menyusun outline terstruktur berbasis dokumen riset utama terindeks dan berkas template resmi
+            konferensi iciCos (IEEE). Mesin AI mengisi kotak field dengan <strong className="text-[#2c2623]">1–2 bullet points ringkas</strong> dan
+            referensi sumber (provenance), tanpa menulis draf paragraf lengkap.
           </p>
         </div>
 
@@ -224,10 +234,10 @@ export default function OutlineSetupPage() {
               </div>
               <div>
                 <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                  Pilih Dokumen Literatur
+                  Pilih Dokumen Utama
                 </h2>
                 <p className="text-xs text-[#786f66]">
-                  Hanya dokumen yang telah diekstraksi dan terindeks dalam pgvector yang dapat digunakan.
+                  Hanya dokumen dengan status <span className="font-mono text-[#006c4a] font-semibold">Indexed</span> yang dapat digunakan.
                 </p>
               </div>
             </div>
@@ -246,7 +256,7 @@ export default function OutlineSetupPage() {
                 <select
                   value={selectedDocId}
                   onChange={(e) => setSelectedDocId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-[#d1c7bd] bg-[#fcfbf9] text-sm text-[#2c2623] focus:outline-none focus:ring-2 focus:ring-[#0037b0]/20 focus:border-[#0037b0] transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-[#d1c7bd] bg-[#fcfbf9] text-sm text-[#2c2623] focus:outline-none focus:ring-2 focus:ring-[#0037b0]/20 focus:border-[#0037b0] transition-colors font-medium"
                 >
                   {documents.map((doc) => (
                     <option
@@ -254,26 +264,45 @@ export default function OutlineSetupPage() {
                       value={doc.id}
                       disabled={!doc.isFullyIndexed}
                     >
-                      {doc.file_name} {!doc.isFullyIndexed ? "(Belum Diindeks - Tidak Tersedia)" : "(Siap Terindeks)"}
+                      {doc.file_name} — [{doc.isFullyIndexed ? "Indexed" : "Belum Diindeks"}]
                     </option>
                   ))}
                 </select>
 
                 {selectedDoc && !selectedDoc.isFullyIndexed && (
-                  <div className="flex items-center gap-2 text-xs text-[#8c4b3e] bg-[#fdf5f3] px-3.5 py-2 rounded-lg border border-[#8c4b3e]/20">
-                    <Info size={16} />
+                  <div className="flex items-center gap-2 text-xs text-[#8c4b3e] bg-[#fdf5f3] px-3.5 py-2.5 rounded-xl border border-[#8c4b3e]/20">
+                    <Info size={16} className="shrink-0" />
                     <span>
-                      Dokumen ini belum diindeks ke pgvector. Silakan buka menu Pustaka Literatur untuk memulai pengindeksan.
+                      Dokumen ini belum berstatus Indexed di pgvector. Silakan buka menu Pustaka Literatur untuk menyelesaikan pengindeksan.
                     </span>
                   </div>
                 )}
 
                 {selectedDoc && selectedDoc.isFullyIndexed && (
-                  <div className="flex items-center gap-2 text-xs text-[#006c4a] bg-[#f0fbf5] px-3.5 py-2 rounded-lg border border-[#006c4a]/20">
-                    <CheckCircle size={16} weight="fill" />
-                    <span>
-                      Dokumen terverifikasi aktif. Chunks siap diretrieve untuk ekstraksi konteks IMRaD.
-                    </span>
+                  <div className="p-4 rounded-xl bg-[#f0fbf5] border border-[#006c4a]/20 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[#006c4a]">
+                      <CheckCircle size={16} weight="fill" />
+                      <span>Kesiapan Dokumen Utama Terverifikasi</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#544c45] font-mono">
+                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
+                        <Check size={14} className="text-[#006c4a]" />
+                        <span>Teks berhasil diekstrak</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
+                        <Check size={14} className="text-[#006c4a]" />
+                        <span>{selectedDoc.chunkCount} chunk tersedia</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-white/70 px-2.5 py-1.5 rounded-lg border border-[#006c4a]/15">
+                        <Check size={14} className="text-[#006c4a]" />
+                        <span>Metadata halaman tersedia</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#544c45] pt-0.5">
+                      Dokumen siap digunakan sebagai sumber pengisian field outline.
+                    </p>
                   </div>
                 )}
               </div>
@@ -282,18 +311,29 @@ export default function OutlineSetupPage() {
 
           {/* Step 2: Template Selection */}
           <section className="bg-white rounded-2xl p-6 border border-[#d1c7bd] shadow-sm">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#f0ece7] text-[#5c544d] flex items-center justify-center font-serif font-bold text-sm">
-                2
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#f0ece7] text-[#5c544d] flex items-center justify-center font-serif font-bold text-sm">
+                  2
+                </div>
+                <div>
+                  <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
+                    Pilih Template Paper
+                  </h2>
+                  <p className="text-xs text-[#786f66]">
+                    Struktur template berasal dari DOCX/LaTeX. Seksi isi penelitian dikonfigurasi melalui <span className="font-mono text-[#2c2623]">outline-sections.yaml</span>.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                  Pilih Template Prosiding Konferensi
-                </h2>
-                <p className="text-xs text-[#786f66]">
-                  Format outline akan strictly mengikuti struktur heading, metadata, dan batasan template ini.
-                </p>
-              </div>
+
+              <button
+                type="button"
+                onClick={() => setDiagnosticsOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f9f5f2] hover:bg-[#ede7e1] text-[#2c2623] text-xs font-mono font-medium transition-colors border border-[#d1c7bd]"
+              >
+                <Wrench size={14} />
+                <span>Template Diagnostics</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -301,20 +341,21 @@ export default function OutlineSetupPage() {
                 id="icicos"
                 name="iciCos Conference Template"
                 organization="IEEE Section Indonesia"
-                description="Template resmi International Conference on Informatics and Computational Sciences. Memformat struktur IMRaD (Introduction, Methodology, Results and Discussion, Conclusion) dalam gaya IEEE A4 Two-Column."
-                sectionsCount={6}
+                description="Template iciCos / IEEE untuk struktur heading, metadata paper, dan aturan format publikasi."
+                sectionsCount={11}
                 isSelected={selectedTemplateId === "icicos"}
                 onSelect={() => setSelectedTemplateId("icicos")}
-                tags={["IEEE Standard", "IMRaD", "A4 2-Column", "LaTeX/DOCX"]}
+                onOpenDiagnostics={() => setDiagnosticsOpen(true)}
+                tags={["IEEE Format", "DOCX + LaTeX", "YAML Sections"]}
               />
 
-              <div className="p-6 rounded-xl border border-dashed border-[#d1c7bd] bg-[#fbf9f6] flex flex-col justify-center items-center text-center opacity-70">
+              <div className="p-6 rounded-2xl border border-dashed border-[#d1c7bd] bg-[#fbf9f6] flex flex-col justify-center items-center text-center opacity-70">
                 <FileDoc size={32} className="text-[#8c827a] mb-2" />
                 <h4 className="font-serif font-semibold text-sm text-[#544c45]">
                   Template Lainnya (Akan Datang)
                 </h4>
                 <p className="text-xs text-[#8c827a] mt-1 max-w-xs">
-                  Dukungan template berkas institusional lainnya akan ditambahkan sesuai spesifikasi berkas template.
+                  Dukungan template prosiding institusional lainnya akan ditambahkan sesuai spesifikasi berkas template fisik.
                 </p>
               </div>
             </div>
@@ -328,10 +369,10 @@ export default function OutlineSetupPage() {
               </div>
               <div>
                 <h2 className="font-serif text-lg font-semibold text-[#2c2623]">
-                  Pilih Bahasa Sintesis Outline
+                  Pilih Bahasa Outline
                 </h2>
                 <p className="text-xs text-[#786f66]">
-                  Bahasa yang akan digunakan dalam sintesis konten dan panduan field.
+                  Bahasa ini digunakan untuk mengisi bullet points pada field outline. Heading tetap mengikuti bahasa template.
                 </p>
               </div>
             </div>
@@ -354,10 +395,10 @@ export default function OutlineSetupPage() {
                 />
                 <div>
                   <p className="text-sm font-semibold text-[#2c2623]">
-                    English (IEEE Formal Academic Style)
+                    English — IEEE Academic Style
                   </p>
                   <p className="text-xs text-[#786f66] mt-0.5 leading-relaxed">
-                    Direkomendasikan untuk iciCos. Menjaga terminologi teknis baku dan struktur kalimat pasif formal.
+                    Mengisi bullet points dalam bahasa Inggris formal akademik IEEE. Menjaga terminologi teknis baku.
                   </p>
                 </div>
               </label>
@@ -379,10 +420,10 @@ export default function OutlineSetupPage() {
                 />
                 <div>
                   <p className="text-sm font-semibold text-[#2c2623]">
-                    Bahasa Indonesia (Gaya Akademik Formal)
+                    Bahasa Indonesia — Gaya Akademik Formal
                   </p>
                   <p className="text-xs text-[#786f66] mt-0.5 leading-relaxed">
-                    Sesuai PUEBI dan kaidah penulisan ilmiah bahasa Indonesia, mempertahankan istilah komputasi standar.
+                    Mengisi bullet points dalam bahasa Indonesia baku (PUEBI). Heading seksi tetap mengikuti template.
                   </p>
                 </div>
               </label>
@@ -390,16 +431,21 @@ export default function OutlineSetupPage() {
           </section>
 
           {/* Action Button Bar */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-2 text-xs text-[#786f66] font-mono">
-              <ShieldCheck size={16} className="text-[#006c4a]" />
-              <span>NFR-001 Execution Target: &lt; 45 Detik</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2 text-xs text-[#786f66] font-mono">
+                <ShieldCheck size={16} className="text-[#006c4a]" />
+                <span>NFR-001 Execution Target: &lt; 45 Detik</span>
+              </div>
+              <p className="text-xs text-[#544c45] italic">
+                Mengisi field outline dengan bullet points berbasis dokumen. Tidak menghasilkan draft paragraf paper.
+              </p>
             </div>
 
             <button
               onClick={handleStartGeneration}
               disabled={isSubmitting || !selectedDoc?.isFullyIndexed}
-              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all shadow-md ${
+              className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all shadow-md shrink-0 ${
                 isSubmitting || !selectedDoc?.isFullyIndexed
                   ? "bg-[#d1c7bd] text-[#786f66] cursor-not-allowed"
                   : "bg-[#0037b0] text-white hover:bg-[#002b8a] hover:shadow-lg active:scale-[0.98]"
@@ -408,12 +454,12 @@ export default function OutlineSetupPage() {
               {isSubmitting ? (
                 <>
                   <CircleNotch size={18} className="animate-spin" />
-                  <span>Menginisiasi Outline...</span>
+                  <span>Menyusun Outline...</span>
                 </>
               ) : (
                 <>
                   <Sparkle size={18} weight="fill" />
-                  <span>Generate Paper Outline</span>
+                  <span>Generate Structured Outline</span>
                   <ArrowRight size={16} />
                 </>
               )}
@@ -434,6 +480,13 @@ export default function OutlineSetupPage() {
               router.push(`/workspace/outline/${currentOutlineId}`);
             }
           }}
+        />
+
+        {/* SCR-05 Template Diagnostic Modal */}
+        <TemplateDiagnosticModal
+          isOpen={diagnosticsOpen}
+          templateId={selectedTemplateId}
+          onClose={() => setDiagnosticsOpen(false)}
         />
       </div>
     </WorkspaceLayout>

@@ -36,20 +36,20 @@ interface StepItem {
 const STEPS: StepItem[] = [
   {
     id: "preparing",
-    title: "1. Penyiapan Konteks & Template",
-    description: "Membaca konfigurasi heading IEEE dan spesifikasi bagian dari template iciCos.",
+    title: "1. Pembacaan Format & Template",
+    description: "Membaca heading DOCX, struktur ekspor LaTeX, dan konfigurasi seksi YAML.",
     icon: Article,
   },
   {
     id: "reading",
-    title: "2. Retrieval Chunks Terarah",
-    description: "Pencarian kemiripan kosinus (pgvector) terhadap topik riset, metodologi, dan gap.",
+    title: "2. Seleksi Konteks Dokumen Utama",
+    description: "Memilih potongan teks dokumen utama yang relevan untuk setiap field outline.",
     icon: Database,
   },
   {
     id: "generating",
-    title: "3. Sintesis Field dengan LLM",
-    description: "Menyusun field IMRaD dengan Gemini 2.0 Flash dan menyematkan penanda [NEEDS INPUT].",
+    title: "3. Sintesis Field Terstruktur (Bullet Points)",
+    description: "Menyusun 1–2 bullet points ringkas per field dan menyematkan [NEEDS INPUT] jika tidak ada bukti.",
     icon: Cpu,
   },
   {
@@ -103,13 +103,13 @@ export function GenerationProgressModal({
             <div>
               <h3 className="font-serif text-lg font-semibold text-[#2c2623]">
                 {isReady
-                  ? "Outline Berhasil Dibuat"
+                  ? "Outline Terstruktur Selesai"
                   : isFailed
-                  ? "Generasi Outline Gagal"
-                  : "Menghasilkan Outline Paper"}
+                  ? "Penyusunan Outline Gagal"
+                  : "Menyusun Outline Terstruktur"}
               </h3>
               <p className="text-xs text-[#786f66] font-mono">
-                Model: iciCos IEEE 2-Column Template
+                Format: iciCos DOCX/LaTeX + outline-sections.yaml
               </p>
             </div>
           </div>
@@ -212,10 +212,10 @@ export function GenerationProgressModal({
             <div className="p-4 rounded-xl bg-[#f0fdf4] border border-[#006c4a]/30 space-y-1">
               <div className="flex items-center gap-2 text-[#006c4a]">
                 <CheckCircle size={18} weight="fill" />
-                <span className="text-xs font-semibold">Outline Siap untuk Direview</span>
+                <span className="text-xs font-semibold">Outline Terstruktur Siap untuk Ditinjau</span>
               </div>
               <p className="text-xs text-[#544c45] leading-relaxed">
-                Struktur IMRaD telah berhasil disintesis sesuai batasan template iciCos. Anda dapat mulai menelaah dan mengedit tiap field di Academic Editorial Canvas.
+                Field outline telah berhasil diisi dengan bullet points dan referensi sumber (provenance). Anda dapat mulai menelaah dan mengedit tiap field di Academic Editorial Canvas.
               </p>
             </div>
           )}

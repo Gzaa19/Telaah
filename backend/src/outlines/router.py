@@ -95,6 +95,25 @@ def get_outline_status(
 
 
 @router.get(
+    "/templates/{template_id}/diagnostics",
+    status_code=status.HTTP_200_OK,
+)
+def get_template_diagnostics(
+    template_id: str = "icicos",
+    current_session: UserSession = Depends(get_current_user_session),
+    db: Session = Depends(get_session),
+):
+    service = OutlineService(db=db)
+    try:
+        return service.template_parser.get_template_diagnostics(template_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
     "/{outline_id}",
     response_model=OutlineDetailResponse,
     status_code=status.HTTP_200_OK,

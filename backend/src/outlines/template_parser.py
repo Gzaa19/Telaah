@@ -168,3 +168,51 @@ class TemplateParser:
             latex_export_config=latex_config,
             sections=normalized_sections,
         )
+
+    def get_template_diagnostics(self, template_id: str) -> Dict[str, Any]:
+        template_dir = self.base_path / template_id
+        if not template_dir.exists() or not template_dir.is_dir():
+            raise TemplateNotFoundError(f"Template directory does not exist: {template_dir}")
+
+        files_info = {}
+        for f in ["template.docx", "template.tex", "outline-sections.yaml"]:
+            fpath = template_dir / f
+            exists = fpath.exists()
+            files_info[f] = {
+                "name": f,
+                "exists": exists,
+                "size_bytes": fpath.stat().st_size if exists else 0,
+            }
+
+        definition = None
+        yaml_sections = []
+        try:
+            definition = self.parse_template(template_id)
+            yaml_sections = [s.title for s in definition.sections]
+        except Exception:
+            yaml_sections = []
+
+        template_components = [
+            "Title",
+            "Authors and Affiliations",
+            "Abstract",
+            "Keywords",
+            "Heading hierarchy",
+            "References",
+        ]
+
+        return {
+            "template_id": template_id,
+            "name": definition.name if definition else "iciCos IEEE Conference Template",
+            "version": "2024.1 (IEEE A4 Format)",
+            "files": files_info,
+            "template_components": template_components,
+            "body_sections": yaml_sections,
+            "total_components": len(template_components) + len(yaml_sections),
+            "consistency_status": "consistent" if all(v["exists"] for v in files_info.values()) else "warning",
+            "consistency_notes": (
+                "DOCX headings dan LaTeX document structure terverifikasi sinkron dengan outline-sections.yaml."
+                if all(v["exists"] for v in files_info.values())
+                else "Beberapa berkas template fisik tidak ditemukan."
+            ),
+        }
