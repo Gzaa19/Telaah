@@ -1,7 +1,7 @@
 import uuid
 import pytest
 from unittest.mock import MagicMock, patch
-from src.outlines.retriever import ChunkRetriever, ChunkContext
+from backend.src.outlines.retriever import ChunkRetriever, ChunkContext
 
 
 def test_retrieve_for_field_with_chunks():

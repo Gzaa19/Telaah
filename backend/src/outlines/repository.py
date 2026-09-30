@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 from sqlmodel import Session, select, func
 from sqlalchemy.orm import selectinload
 
-from src.outlines.models import (
+from backend.src.outlines.models import (
     PaperOutline,
     OutlineSection,
     SectionField,

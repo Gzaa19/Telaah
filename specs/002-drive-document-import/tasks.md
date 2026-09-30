@@ -56,12 +56,12 @@ flowchart TD
 ## Phase 3: Use Case UC-02a – Browse and Search Drive Files (Priority: P1) 🎯 MVP
 
 **Goal**: Peneliti dapat membuka Drive File Browser dari Library, melihat file/folder Drive dari akun Google yang terhubung, mencari file berdasarkan nama, menavigasi subfolder via breadcrumb, dan memfilter hanya file PDF & DOCX yang dapat dipilih.
-**Independent Test**: `pytest backend/tests/test_drive_service.py backend/tests/test_drive_router.py`
+**Independent Test**: `pytest backend/tests/drive/test_drive_service.py backend/tests/drive/test_drive_router.py`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [X] T010 [P] [UC-02a] Write unit tests for `DriveTokenService` covering token validation, silent refresh using `Credentials.refresh()`, and `RefreshError` handling in `backend/tests/test_drive_token_service.py`
-- [X] T011 [P] [UC-02a] Write unit tests for `DriveService` covering `files.list()` pagination (`pageSize=100`, `pageToken`), name search queries, and folder traversal in `backend/tests/test_drive_service.py`
-- [X] T012 [P] [UC-02a] Write contract/integration tests for FastAPI drive router (`GET /api/drive/files`) in `backend/tests/test_drive_router.py`
+- [X] T010 [P] [UC-02a] Write unit tests for `DriveTokenService` covering token validation, silent refresh using `Credentials.refresh()`, and `RefreshError` handling in `backend/tests/drive/test_drive_token_service.py`
+- [X] T011 [P] [UC-02a] Write unit tests for `DriveService` covering `files.list()` pagination (`pageSize=100`, `pageToken`), name search queries, and folder traversal in `backend/tests/drive/test_drive_service.py`
+- [X] T012 [P] [UC-02a] Write contract/integration tests for FastAPI drive router (`GET /api/drive/files`) in `backend/tests/drive/test_drive_router.py`
 - [X] T013 [UC-02a] Verify tests FAIL prior to implementation (Red stage)
 - [X] T014 [UC-02a] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Drive file browsing and token refresh"`
 
@@ -92,13 +92,13 @@ flowchart TD
 ## Phase 4: Use Case UC-02 – Import and Extract Document (Priority: P1)
 
 **Goal**: Peneliti memilih file PDF/DOCX dari Drive browser, mengonfirmasi import, sistem mengunduh binary stream, mengekstrak teks dengan struktur per halaman/seksi, menyimpan ke DB, dan mengirim event ke UC-03 (Document Indexing and Local Embedding) dengan `document_id` sebagai referensi.
-**Independent Test**: `pytest backend/tests/test_text_extractor.py backend/tests/test_document_service.py backend/tests/test_document_router.py backend/tests/test_import_worker.py`
+**Independent Test**: `pytest backend/tests/documents/test_text_extractor.py backend/tests/documents/test_document_service.py backend/tests/documents/test_document_router.py backend/tests/documents/test_import_worker.py`
 
 ### Step 4.1: Unit & Integration Tests (TDD - Write First)
-- [X] T029 [P] [UC-02] Write unit tests for `TextExtractor` covering PDF extraction via `pdfplumber` with page tracking, scanned PDF detection (`is_scanned_pdf`), password-protected PDF handling, and DOCX paragraphs/tables extraction via `python-docx` in `backend/tests/test_text_extractor.py`
-- [X] T030 [P] [UC-02] Write unit tests for `DocumentService` covering duplicate checking by `google_drive_id`, `force_reimport` override logic, and job enqueueing in `backend/tests/test_document_service.py`
-- [X] T031 [P] [UC-02] Write contract/integration tests for document endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/tests/test_document_router.py`
-- [X] T032 [P] [UC-02] Write worker task tests for `import_document_task` verifying download streaming (`SpooledTemporaryFile`), extraction persistence, and UC-03 queue dispatch in `backend/tests/test_import_worker.py`
+- [X] T029 [P] [UC-02] Write unit tests for `TextExtractor` covering PDF extraction via `pdfplumber` with page tracking, scanned PDF detection (`is_scanned_pdf`), password-protected PDF handling, and DOCX paragraphs/tables extraction via `python-docx` in `backend/tests/documents/test_text_extractor.py`
+- [X] T030 [P] [UC-02] Write unit tests for `DocumentService` covering duplicate checking by `google_drive_id`, `force_reimport` override logic, and job enqueueing in `backend/tests/documents/test_document_service.py`
+- [X] T031 [P] [UC-02] Write contract/integration tests for document endpoints (`POST /api/documents/import`, `GET /api/documents/{id}/status`) in `backend/tests/documents/test_document_router.py`
+- [X] T032 [P] [UC-02] Write worker task tests for `import_document_task` verifying download streaming (`SpooledTemporaryFile`), extraction persistence, and UC-03 queue dispatch in `backend/tests/documents/test_import_worker.py`
 - [X] T033 [UC-02] Verify tests FAIL prior to implementation (Red stage)
 - [X] T034 [UC-02] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add failing test suite for document import, extraction, and ARQ worker"`
 
@@ -127,10 +127,10 @@ flowchart TD
 ## Phase 5: Use Case UC-02b – Retry Failed Import (Priority: P2)
 
 **Goal**: Peneliti dapat melihat alasan kegagalan import yang dapat dibaca manusia (misal: PDF hasil scan, file terenkripsi, atau error jaringan) dan memulai ulang proses import melalui tombol "Coba Lagi".
-**Independent Test**: `pytest backend/tests/test_document_router.py -k "test_retry"`
+**Independent Test**: `pytest backend/tests/documents/test_document_router.py -k "test_retry"`
 
 ### Step 5.1: Tests (TDD)
-- [X] T049 [P] [UC-02b] Write unit and integration tests for retry import flow (`POST /api/documents/{id}/retry`) and validation that only `failed` documents can be retried in `backend/tests/test_document_retry.py`
+- [X] T049 [P] [UC-02b] Write unit and integration tests for retry import flow (`POST /api/documents/{id}/retry`) and validation that only `failed` documents can be retried in `backend/tests/documents/test_document_retry.py`
 - [X] T050 [UC-02b] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC3): add test suite for import retry flow"`
 
 ### Step 5.2: Controller & Entity Extensions

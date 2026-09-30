@@ -1,9 +1,9 @@
 import uuid
 import pytest
 from unittest.mock import MagicMock, patch
-from src.outlines.llm_synthesizer import LLMSynthesizer, FieldResult
-from src.outlines.retriever import ChunkContext
-from src.outlines.models import OutlineLanguageEnum
+from backend.src.outlines.llm_synthesizer import LLMSynthesizer, FieldResult
+from backend.src.outlines.retriever import ChunkContext
+from backend.src.outlines.models import OutlineLanguageEnum
 
 
 def test_synthesize_field_with_evidence():

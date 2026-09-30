@@ -4,42 +4,54 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 
-from src.outlines.service import OutlineService, OutlineValidationError
-from src.outlines.models import (
+from backend.src.auth.models import ResearcherAccount, UserSession
+from backend.src.outlines.service import OutlineService, OutlineValidationError
+from backend.src.outlines.models import (
     PaperOutline,
     GenerationStatusEnum,
     OutlineLanguageEnum,
     ApprovalStatusEnum,
 )
-from src.documents.models import Document, ImportStatus
+from backend.src.documents.models import Document, ImportStatus, FileType
 
 
-def test_validate_generate_request_non_indexed(db_session):
-    researcher_id = uuid.uuid4()
+@pytest.fixture
+def researcher(db_session):
+    account = ResearcherAccount(
+        email="outline_researcher@univ.ac.id",
+        full_name="Dr. Outline",
+        is_active=True,
+    )
+    db_session.add(account)
+    db_session.commit()
+    db_session.refresh(account)
+    return account
+
+
+def test_validate_generate_request_non_indexed(db_session, researcher):
     doc = Document(
         id=uuid.uuid4(),
         google_drive_id="drive-123",
         file_name="paper.pdf",
-        file_type="pdf",
+        file_type=FileType.pdf,
         import_status=ImportStatus.importing,
-        researcher_id=researcher_id,
+        researcher_id=researcher.id,
     )
     db_session.add(doc)
     db_session.commit()
 
     service = OutlineService(db=db_session)
     with pytest.raises(HTTPException) as exc_info:
-        service.validate_generate_request(researcher_id=researcher_id, document_id=doc.id)
+        service.validate_generate_request(researcher_id=researcher.id, document_id=doc.id)
     assert exc_info.value.status_code == 400
     assert "not been fully indexed" in exc_info.value.detail
 
 
-def test_assert_no_active_generation_conflict(db_session):
-    researcher_id = uuid.uuid4()
+def test_assert_no_active_generation_conflict(db_session, researcher):
     doc_id = uuid.uuid4()
     active_outline = PaperOutline(
         id=uuid.uuid4(),
-        researcher_id=researcher_id,
+        researcher_id=researcher.id,
         document_id=doc_id,
         template_id="icicos",
         generation_status=GenerationStatusEnum.generating,
@@ -55,16 +67,15 @@ def test_assert_no_active_generation_conflict(db_session):
     assert "already in progress" in exc_info.value.detail
 
 
-def test_run_generation_pipeline_duration_budget(db_session):
+def test_run_generation_pipeline_duration_budget(db_session, researcher):
     """
     NFR-001 Verification: Ensure mock generation pipeline completes within < 45.0s budget.
     """
-    researcher_id = uuid.uuid4()
     doc_id = uuid.uuid4()
 
     outline = PaperOutline(
         id=uuid.uuid4(),
-        researcher_id=researcher_id,
+        researcher_id=researcher.id,
         document_id=doc_id,
         template_id="icicos",
         generation_status=GenerationStatusEnum.preparing,
@@ -78,7 +89,7 @@ def test_run_generation_pipeline_duration_budget(db_session):
     start_time = time.time()
     # Execute generation pipeline with mocked synthesizer
     with patch.object(service.synthesizer, "synthesize_field") as mock_synth:
-        from src.outlines.llm_synthesizer import FieldResult
+        from backend.src.outlines.llm_synthesizer import FieldResult
         mock_synth.return_value = FieldResult(
             content="Mocked field summary.",
             is_needs_input=False,

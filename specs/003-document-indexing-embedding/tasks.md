@@ -61,14 +61,14 @@ flowchart TD
 ## Phase 3: Use Case UC-03 – Core Pipeline: Cleaning, Chunking, Local Embedding & pgvector Storage (Priority: P1) 🎯 MVP
 
 **Goal**: Sistem secara otomatis memproses dokumen berstatus `extracted`, membersihkan teks, memotong menjadi chunk terkelola dengan metadata keterlacakan (`page_number`, `section_name`), menghasilkan embedding lokal menggunakan `intfloat/multilingual-e5-base` (dengan prefix `"passage: "`), dan menyimpan vektor 768-dimensi secara transaksional ke PostgreSQL/pgvector.  
-**Independent Test**: `pytest backend/tests/test_indexing_pipeline.py backend/tests/test_embedding_provider.py backend/tests/test_chunking_service.py`
+**Independent Test**: `pytest backend/tests/indexing/test_indexing_pipeline.py backend/tests/indexing/test_embedding_provider.py backend/tests/indexing/test_chunking_service.py`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [x] T010 [P] [UC-03] Write unit tests for `TextCleaningService` covering control character removal, whitespace normalization, extraction artifact stripping, and scientific symbol preservation in `backend/tests/test_text_cleaner.py`
-- [x] T011 [P] [UC-03] Write unit tests for `ChunkingService` covering `RecursiveCharacterTextSplitter`, size/overlap boundaries (`chunk_size=1200`, `chunk_overlap=150`), and `page_number`/`section_name` attribution in `backend/tests/test_chunking_service.py`
-- [x] T012 [P] [UC-03] Write unit tests for `LocalEmbeddingProvider` verifying singleton instantiation, prefix `"passage: "` addition, batch inference, 768-dim output validation, and strict rejection of external Gemini APIs in `backend/tests/test_embedding_provider.py`
-- [x] T013 [P] [UC-03] Write unit tests for `ChecksumService` verifying SHA-256 document checksum and deterministic index fingerprint computation in `backend/tests/test_indexing_fingerprint.py`
-- [x] T014 [P] [UC-03] Write contract/integration tests for trigger endpoint `POST /api/indexing/documents/{document_id}` (handling 202 Accepted, 404 Not Found, 409 Duplicate Fingerprint, 422 Invalid Status) in `backend/tests/test_indexing_router.py`
+- [x] T010 [P] [UC-03] Write unit tests for `TextCleaningService` covering control character removal, whitespace normalization, extraction artifact stripping, and scientific symbol preservation in `backend/tests/indexing/test_text_cleaner.py`
+- [x] T011 [P] [UC-03] Write unit tests for `ChunkingService` covering `RecursiveCharacterTextSplitter`, size/overlap boundaries (`chunk_size=1200`, `chunk_overlap=150`), and `page_number`/`section_name` attribution in `backend/tests/indexing/test_chunking_service.py`
+- [x] T012 [P] [UC-03] Write unit tests for `LocalEmbeddingProvider` verifying singleton instantiation, prefix `"passage: "` addition, batch inference, 768-dim output validation, and strict rejection of external Gemini APIs in `backend/tests/indexing/test_embedding_provider.py`
+- [x] T013 [P] [UC-03] Write unit tests for `ChecksumService` verifying SHA-256 document checksum and deterministic index fingerprint computation in `backend/tests/indexing/test_indexing_fingerprint.py`
+- [x] T014 [P] [UC-03] Write contract/integration tests for trigger endpoint `POST /api/indexing/documents/{document_id}` (handling 202 Accepted, 404 Not Found, 409 Duplicate Fingerprint, 422 Invalid Status) in `backend/tests/indexing/test_indexing_router.py`
 - [x] T015 [UC-03] Verify tests FAIL prior to implementation (Red stage)
 - [x] T016 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add failing test suite for core indexing pipeline, embedding, and router"`
 
@@ -100,10 +100,10 @@ flowchart TD
 ## Phase 4: Use Case UC-03a – Monitor Indexing Status & Detail Views (Priority: P1)
 
 **Goal**: Peneliti dapat memantau status bertahap dokumen secara real-time (`queued → cleaning → chunking → embedding → storing → indexed | failed`) di halaman Library, serta melihat ringkasan hasil indexing (total chunk, nama model, dimensi, waktu eksekusi) pada panel detail.  
-**Independent Test**: `pytest backend/tests/test_indexing_router.py -k "test_status or test_summary"`
+**Independent Test**: `pytest backend/tests/indexing/test_indexing_router.py -k "test_status or test_summary"`
 
 ### Step 4.1: Unit & Integration Tests (TDD)
-- [x] T032 [P] [UC-03a] Write contract/integration tests for `GET /api/indexing/jobs/{job_id}`, `GET /api/documents/{document_id}/index-status`, and `GET /api/documents/{document_id}/index-summary` in `backend/tests/test_indexing_status.py`
+- [x] T032 [P] [UC-03a] Write contract/integration tests for `GET /api/indexing/jobs/{job_id}`, `GET /api/documents/{document_id}/index-status`, and `GET /api/documents/{document_id}/index-summary` in `backend/tests/indexing/test_indexing_status.py`
 - [x] T033 [UC-03a] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03a): add test suite for indexing job status and summary endpoints"`
 
 ### Step 4.2: Controller & Boundary Implementation
@@ -120,10 +120,10 @@ flowchart TD
 ## Phase 5: Use Case UC-03b – Retry Failed Indexing (Priority: P2)
 
 **Goal**: Peneliti dapat melihat pesan error yang ramah pengguna apabila indexing gagal dan memicu proses coba lagi (retry) dari tahap awal; sistem juga mendeteksi stale jobs (tidak ada heartbeat > 5 menit).  
-**Independent Test**: `pytest backend/tests/test_indexing_retry.py`
+**Independent Test**: `pytest backend/tests/indexing/test_indexing_retry.py`
 
 ### Step 5.1: Tests (TDD)
-- [x] T041 [P] [UC-03b] Write unit and integration tests for retry logic (`POST /api/indexing/documents/{document_id}` on failed document) and stale job detection threshold check in `backend/tests/test_indexing_retry.py`
+- [x] T041 [P] [UC-03b] Write unit and integration tests for retry logic (`POST /api/indexing/documents/{document_id}` on failed document) and stale job detection threshold check in `backend/tests/indexing/test_indexing_retry.py`
 - [x] T042 [UC-03b] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03b): add test suite for indexing retry and stale job recovery"`
 
 ### Step 5.2: Controller & Boundary Implementation
@@ -138,10 +138,10 @@ flowchart TD
 ## Phase 6: Use Case UC-03c – Re-index Dokumen & Multi-Version Archive Management (Priority: P2)
 
 **Goal**: Peneliti dapat memicu re-indexing jika dokumen berubah atau konfigurasi diperbarui; index aktif lama ditandai sebagai `archived` (tetap tersimpan untuk keperluan audit ilmiah) dan index version baru dibuat dan menjadi aktif setelah pipeline selesai.  
-**Independent Test**: `pytest backend/tests/test_reindex.py`
+**Independent Test**: `pytest backend/tests/indexing/test_indexing_reindex.py`
 
 ### Step 6.1: Tests (TDD)
-- [x] T048 [P] [UC-03c] Write unit and integration tests for re-indexing flow (`POST /api/documents/{document_id}/reindex`), verifying version archival (`is_active=False, status=archived`), new version creation, and chunk isolation in `backend/tests/test_indexing_reindex.py`
+- [x] T048 [P] [UC-03c] Write unit and integration tests for re-indexing flow (`POST /api/documents/{document_id}/reindex`), verifying version archival (`is_active=False, status=archived`), new version creation, and chunk isolation in `backend/tests/indexing/test_indexing_reindex.py`
 - [x] T049 [UC-03c] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03c): add test suite for document re-indexing and version archival"`
 
 ### Step 6.2: Controller & Boundary Implementation
@@ -157,10 +157,10 @@ flowchart TD
 ## Phase 7: Use Case UC-03 – Basic Similarity Search Verification (Priority: P1)
 
 **Goal**: Menyediakan endpoint similarity search dasar internal UC-03 (menggunakan prefix `"query: "`, cosine distance `<=>` operator pada pgvector, dan filtering multi-tenant `researcher_id`) untuk memvalidasi bahwa knowledge base yang dihasilkan siap dikonsumsi oleh UC-04 dan UC-06 dengan metadata sitasi tertelusuri.  
-**Independent Test**: `pytest backend/tests/test_similarity_search.py`
+**Independent Test**: `pytest backend/tests/indexing/test_similarity_search.py`
 
 ### Step 7.1: Tests (TDD)
-- [x] T056 [P] [UC-03] Write unit and integration tests for similarity search (`GET /api/search/similarity`), verifying query prefix `"query: "`, top-k ranking, threshold filtering, tenant isolation (`researcher_id`), and citation metadata completeness (`document_title`, `page_number`, `section_name`, `chunk_index`) in `backend/tests/test_similarity_search.py`
+- [x] T056 [P] [UC-03] Write unit and integration tests for similarity search (`GET /api/search/similarity`), verifying query prefix `"query: "`, top-k ranking, threshold filtering, tenant isolation (`researcher_id`), and citation metadata completeness (`document_title`, `page_number`, `section_name`, `chunk_index`) in `backend/tests/indexing/test_similarity_search.py`
 - [x] T057 [UC-03] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-03): add test suite for pgvector similarity search verification"`
 
 ### Step 7.2: Controller & Boundary Implementation

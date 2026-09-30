@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Flask,
   Code,
+  ListNumbers,
 } from "@phosphor-icons/react";
 import { fetchCurrentUser, logout, ResearcherProfile, getGoogleLoginUrl } from "@/lib/api/auth";
 import { DriveWarningModal } from "@/components/DriveWarningModal";
@@ -131,6 +132,14 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   ];
 
   const secondaryNavItems = [
+    {
+      label: "Outline Generator",
+      href: "/workspace/outline",
+      icon: ListNumbers,
+      isActive: pathname.startsWith("/workspace/outline"),
+      badge: "UC-04",
+      badgeType: "green-pill",
+    },
     {
       label: "Draf Paper IMRaD",
       href: "/workspace/paper",

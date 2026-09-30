@@ -4,6 +4,7 @@
  */
 
 export type OutlineLanguage = "en_ieee" | "id_formal";
+export type OutlineLanguageEnum = OutlineLanguage;
 
 export type GenerationStatus =
   | "preparing"
@@ -12,10 +13,13 @@ export type GenerationStatus =
   | "validating"
   | "ready"
   | "failed";
+export type GenerationStatusEnum = GenerationStatus;
 
 export type ApprovalStatus = "draft" | "approved";
+export type ApprovalStatusEnum = ApprovalStatus;
 
 export type SectionStatus = "filled" | "needs_input" | "edited";
+export type SectionStatusEnum = SectionStatus;
 
 export interface SourceReference {
   chunk_id: string;

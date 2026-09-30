@@ -1,6 +1,6 @@
 import os
 import pytest
-from src.outlines.template_parser import TemplateParser, TemplateNotFoundError
+from backend.src.outlines.template_parser import TemplateParser, TemplateNotFoundError
 
 
 def test_parse_template_icicos():

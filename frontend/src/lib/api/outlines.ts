@@ -68,6 +68,9 @@ export async function fetchOutlineDetail(outlineId: string): Promise<OutlineDeta
   return res.json();
 }
 
+export const getOutlineStatus = fetchOutlineStatus;
+export const getOutlineDetail = fetchOutlineDetail;
+
 export async function updateSectionField(
   outlineId: string,
   fieldId: string,

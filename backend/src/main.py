@@ -18,6 +18,7 @@ from backend.src.auth.router import router as auth_router
 from backend.src.drive.router import router as drive_router
 from backend.src.documents.router import router as document_router
 from backend.src.indexing.router import router as indexing_router
+from backend.src.outlines.router import router as outlines_router
 
 tags_metadata = [
     {
@@ -35,6 +36,10 @@ tags_metadata = [
     {
         "name": "Document Indexing & Search",
         "description": "Document cleaning, local embedding generation (multilingual-e5-base), pgvector storage, and similarity search.",
+    },
+    {
+        "name": "Paper Outlines",
+        "description": "Template-based paper outline generation, section retrieval, LLM synthesis, editing, and versioning (UC-04).",
     },
     {
         "name": "Health",
@@ -64,6 +69,7 @@ app.include_router(auth_router)
 app.include_router(drive_router)
 app.include_router(document_router)
 app.include_router(indexing_router)
+app.include_router(outlines_router)
 
 
 @app.get("/health", tags=["Health"])

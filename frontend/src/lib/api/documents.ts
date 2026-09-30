@@ -109,3 +109,29 @@ export async function retryImportDocument(
 
   return await res.json();
 }
+
+export interface DocumentItem {
+  id: string;
+  google_drive_id: string;
+  file_name: string;
+  file_type: string;
+  file_size_bytes?: number;
+  import_status: string;
+  failure_reason?: string;
+  imported_at?: string;
+  extracted_at?: string;
+  index_status?: string;
+}
+
+export async function fetchDocuments(): Promise<DocumentItem[]> {
+  const res = await fetch(`${BACKEND_URL}/api/documents`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Gagal mengambil daftar dokumen");
+  }
+  return res.json();
+}
+

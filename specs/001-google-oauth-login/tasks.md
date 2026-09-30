@@ -54,12 +54,12 @@ flowchart TD
 ## Phase 3: Use Case 1 (UC-1) – Authenticate via Google OAuth & Authorize Drive Access (Priority: P1) 🎯 MVP
 
 **Goal**: Peneliti dapat login menggunakan Google OAuth 2.0, menyetujui consent scope profil & Drive, dan mendapatkan sesi 24 jam aktif di dashboard aplikasi.  
-**Independent Test**: `pytest backend/tests/test_auth_router.py -k "test_google_login"`
+**Independent Test**: `pytest backend/tests/auth/test_auth_router.py -k "test_google_login"`
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [X] T010 [P] [UC1] Write unit tests for TokenEncryptionService (`encrypt_token` and `decrypt_token`) in `backend/tests/test_crypto_service.py`
-- [X] T011 [P] [UC1] Write unit tests for GoogleOAuthService and SessionService in `backend/tests/test_auth_service.py`
-- [X] T012 [P] [UC1] Write contract/integration tests for FastAPI auth router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) in `backend/tests/test_auth_router.py`
+- [X] T010 [P] [UC1] Write unit tests for TokenEncryptionService (`encrypt_token` and `decrypt_token`) in `backend/tests/auth/test_crypto_service.py`
+- [X] T011 [P] [UC1] Write unit tests for GoogleOAuthService and SessionService in `backend/tests/auth/test_auth_service.py`
+- [X] T012 [P] [UC1] Write contract/integration tests for FastAPI auth router endpoints (`GET /auth/google/login`, `GET /auth/google/callback`, `GET /auth/me`) in `backend/tests/auth/test_auth_router.py`
 - [X] T013 [UC1] Verify tests FAIL prior to implementation (Red stage)
 - [X] T014 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for Google OAuth login"`
 
@@ -92,10 +92,10 @@ flowchart TD
 ## Phase 4: Use Case 2 (UC-2) – Terminate Session / Logout (Priority: P2)
 
 **Goal**: Peneliti dapat keluar dari aplikasi (Logout), menginvalida sesi 24 jam di DB, dan membersihkan cookie peramban.  
-**Independent Test**: `pytest backend/tests/test_auth_router.py -k "test_logout"`
+**Independent Test**: `pytest backend/tests/auth/test_auth_router.py -k "test_logout"`
 
 ### Step 4.1: Tests (TDD)
-- [X] T031 [P] [UC2] Write unit and integration tests for logout flow and session invalidation in `backend/tests/test_logout.py`
+- [X] T031 [P] [UC2] Write unit and integration tests for logout flow and session invalidation in `backend/tests/auth/test_logout.py`
 - [X] T032 [UC2] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC2): add test suite for session logout"`
 
 ### Step 4.2: Controller & Boundary Implementation

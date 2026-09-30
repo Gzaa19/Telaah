@@ -60,27 +60,27 @@ description: "Actionable, dependency-ordered tasks for UC-04 Template-Based Pape
 - [x] T017 [UC1] **Git Commit (Tests)**: `git add backend/tests/outlines/ && git commit -m "test(UC1): add failing test suite for UC-04.1 outline generation and parsing"`
 
 ### Step 3.2: Controller Layer (Business Logic & Validation)
-- [ ] T018 [P] [UC1] Implement request and response Pydantic DTOs (`GenerateOutlineRequest`, `OutlineStatusResponse`, `OutlineDetailResponse`, `SectionDTO`, `FieldDTO`, `SourceRefDTO`) in `backend/src/outlines/schemas.py`
-- [ ] T019 [UC1] Implement `TemplateParser` in `backend/src/outlines/template_parser.py` extracting DOCX headings, YAML body section fields, and LaTeX export configs into normalized `OutlineDefinition`
-- [ ] T020 [UC1] Implement `ChunkRetriever` in `backend/src/outlines/retriever.py` retrieving top-k chunks from `document_chunks` table via pgvector cosine similarity filtered by `index_version_id`
-- [ ] T021 [UC1] Implement `LLMSynthesizer` in `backend/src/outlines/llm_synthesizer.py` interfacing with `gemini-2.0-flash` with structured JSON output and `[NEEDS INPUT]` anti-hallucination prompt
-- [ ] T022 [UC1] Implement `OutlineService` generation logic (`generate_outline`, `validate_generate_request`, `assert_no_active_generation`, `validate_outline_structure`) in `backend/src/outlines/service.py`
-- [ ] T023 [UC1] Implement background worker orchestration in `backend/src/outlines/worker.py` handling async status progression (`preparing` → `reading` → `generating` → `validating` → `ready`/`failed`) and up to 2 automated retries on schema failure
-- [ ] T024 [UC1] Verify unit and integration tests pass (Green stage)
-- [ ] T025 [UC1] **Git Commit (Controller)**: `git add backend/src/outlines/ && git commit -m "feat(UC1): implement template parser, chunk retriever, LLM synthesizer, and async worker"`
+- [x] T018 [P] [UC1] Implement request and response Pydantic DTOs (`GenerateOutlineRequest`, `OutlineStatusResponse`, `OutlineDetailResponse`, `SectionDTO`, `FieldDTO`, `SourceRefDTO`) in `backend/src/outlines/schemas.py`
+- [x] T019 [UC1] Implement `TemplateParser` in `backend/src/outlines/template_parser.py` extracting DOCX headings, YAML body section fields, and LaTeX export configs into normalized `OutlineDefinition`
+- [x] T020 [UC1] Implement `ChunkRetriever` in `backend/src/outlines/retriever.py` retrieving top-k chunks from `document_chunks` table via pgvector cosine similarity filtered by `index_version_id`
+- [x] T021 [UC1] Implement `LLMSynthesizer` in `backend/src/outlines/llm_synthesizer.py` interfacing with `gemini-2.0-flash` with structured JSON output and `[NEEDS INPUT]` anti-hallucination prompt
+- [x] T022 [UC1] Implement `OutlineService` generation logic (`generate_outline`, `validate_generate_request`, `assert_no_active_generation`, `validate_outline_structure`) in `backend/src/outlines/service.py`
+- [x] T023 [UC1] Implement background worker orchestration in `backend/src/outlines/worker.py` handling async status progression (`preparing` → `reading` → `generating` → `validating` → `ready`/`failed`) and up to 2 automated retries on schema failure
+- [x] T024 [UC1] Verify unit and integration tests pass (Green stage)
+- [x] T025 [UC1] **Git Commit (Controller)**: `git add backend/src/outlines/ && git commit -m "feat(UC1): implement template parser, chunk retriever, LLM synthesizer, and async worker"`
 
 ### Step 3.3: Boundary Layer (API Router & Frontend GUI)
-- [ ] T026 [UC1] Implement FastAPI Router endpoints (`POST /api/outlines/generate`, `GET /api/outlines/{outline_id}/status`, `GET /api/outlines/{outline_id}`) with Bearer auth, 409 conflict guard, and workspace tenant isolation in `backend/src/outlines/router.py`
-- [ ] T027 [UC1] Register `outlines_router` in `backend/src/main.py` under prefix `/api/outlines`
-- [ ] T028 [P] [UC1] Implement frontend API client methods (`generateOutline`, `getOutlineStatus`, `getOutlineDetail`) in `frontend/src/lib/api/outlines.ts`
-- [ ] T029 [P] [UC1] Implement SCR-01 Workspace Setup & Template Selection view with indexed doc dropdown, disabled tooltip for non-indexed docs, iciCos template card, and language radio buttons in `frontend/src/app/workspace/outline/page.tsx` and `frontend/src/components/features/outline/TemplateSelectionCard.tsx`
-- [ ] T030 [P] [UC1] Implement SCR-02 Outline Generation Progress Modal with 6-state visual stepper (`Preparing`, `Reading`, `Generating`, `Validating`, `Ready for Review`, `Failed`) in `frontend/src/components/features/outline/GenerationProgressModal.tsx`
-- [ ] T031 [UC1] Wire SCR-01 and SCR-02 to trigger generation, poll status every 3s, and auto-redirect to SCR-03 upon `ready` status in `frontend/src/app/workspace/outline/page.tsx`
+- [x] T026 [UC1] Implement FastAPI Router endpoints (`POST /api/outlines/generate`, `GET /api/outlines/{outline_id}/status`, `GET /api/outlines/{outline_id}`) with Bearer auth, 409 conflict guard, and workspace tenant isolation in `backend/src/outlines/router.py`
+- [x] T027 [UC1] Register `outlines_router` in `backend/src/main.py` under prefix `/api/outlines`
+- [x] T028 [P] [UC1] Implement frontend API client methods (`generateOutline`, `getOutlineStatus`, `getOutlineDetail`) in `frontend/src/lib/api/outlines.ts`
+- [x] T029 [P] [UC1] Implement SCR-01 Workspace Setup & Template Selection view with indexed doc dropdown, disabled tooltip for non-indexed docs, iciCos template card, and language radio buttons in `frontend/src/app/workspace/outline/page.tsx` and `frontend/src/components/features/outline/TemplateSelectionCard.tsx`
+- [x] T030 [P] [UC1] Implement SCR-02 Outline Generation Progress Modal with 6-state visual stepper (`Preparing`, `Reading`, `Generating`, `Validating`, `Ready for Review`, `Failed`) in `frontend/src/components/features/outline/GenerationProgressModal.tsx`
+- [x] T031 [UC1] Wire SCR-01 and SCR-02 to trigger generation, poll status every 3s, and auto-redirect to SCR-03 upon `ready` status in `frontend/src/app/workspace/outline/page.tsx`
 
 ### Step 3.4: BCE Audit & Major Milestone Checkpoint
-- [ ] T032 [UC1] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations mediated by `OutlineService`
-- [ ] T033 [UC1] Run integration tests and confirm all sunny-day and rainy-day flows (Alt-1 non-indexed doc, Alt-7 timeout, Alt-8 concurrent conflict) pass
-- [ ] T034 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete UC-04.1 outline generation from template and document end-to-end [MVP Milestone]"`
+- [x] T032 [UC1] **BCE Audit**: Confirm Frontend & Router (Boundary) never query Database (Entity) directly; all operations mediated by `OutlineService`
+- [x] T033 [UC1] Run integration tests and confirm all sunny-day and rainy-day flows (Alt-1 non-indexed doc, Alt-7 timeout, Alt-8 concurrent conflict) pass
+- [x] T034 [UC1] **Git Major Commit (Milestone)**: `git add . && git commit -m "feat(UC1): complete UC-04.1 outline generation from template and document end-to-end [MVP Milestone]"`
 
 **Checkpoint**: UC-04.1 is fully functional and delivers an independently testable MVP.
 
