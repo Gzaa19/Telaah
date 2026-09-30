@@ -61,10 +61,10 @@ auto_commit:
     message: "docs(clarify): complete UC-04 outline generation clarifications, granularity, retrieval, and approval immutability"
   after_plan:
     enabled: true
-    message: "docs(plan): add UC-03 implementation plan and technical design artifacts"
+    message: "[Spec Kit] Add implementation plan"
   after_tasks:
     enabled: true
-    message: "docs(plan,tasks): add UC-04 implementation plan, technical artifacts, and tasks"
+    message: "[Spec Kit] Add tasks"
   after_implement:
     enabled: false
     message: "[Spec Kit] Implementation progress"
