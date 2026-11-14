@@ -17,6 +17,10 @@
 ---
 
 ## 2. Updated Domain Model
+<!--
+  Rosenberg Phase: Domain Model Evolution (Ch. 1 step 2b & Ch. 5, Fig. 5-18/5-19).
+  Menambahkan atribut ke entitas domain; BELUM ada operasi/method (dialokasikan di Section 6).
+-->
 
 ```mermaid
 classDiagram
@@ -65,67 +69,37 @@ classDiagram
 ---
 
 ## 3. ICONIX Robustness Analysis (Preliminary Design)
+<!--
+  Doug Rosenberg's Four Rules of Robustness Analysis (Ch. 5):
+  1. Actors can only talk to Boundary objects.
+  2. Boundary objects can only talk to Controllers and Actors.
+  3. Entity objects can only talk to Controllers.
+  4. Controller objects can talk to Boundaries, Entities, and other Controllers (NEVER to Actors directly).
+  THE GOLDEN RULE: Boundary <-> Entity secara langsung DILARANG (no Noun-Noun links).
+  Canonical PlantUML ONLY (No Mermaid).
+-->
 
 ### 3.1 Robustness Diagram: UC-01 Google OAuth Login & Authorization Flow
-
-> **ICONIX BCE Element Legend**:
-> - **Actor**: Pengguna / sistem eksternal yang berinteraksi dengan sistem (`Actor: Peneliti`).
-> - **Boundary Object (`[/.../]` - Cyan/Blue)**: Antarmuka batas murni Client UI (`SCR-01` s/d `SCR-04`).
-> - **Controller Object (`([...])` - Amber/Orange)**: Logika aplikasi, koordinasi, dan pemrosesan aturan bisnis (harus selalu menggunakan **Frasa Kata Kerja / Verb Phrase**).
-> - **Entity Object (`[(...)]` - Emerald/Green)**: Objek domain persisten sesuai skema database SQLModel (`ResearcherAccount`, `OAuthCredential`, `UserSession`).
-
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
-
-    Actor_Peneliti["Actor: Peneliti"]:::actor
-
-    B_Landing[/"Boundary: Landing Page (SCR-01)"/]:::boundary
-    B_GoogleConsent[/"Boundary: Google Consent Screen (SCR-02)"/]:::boundary
-    B_Dashboard[/"Boundary: Workspace Dashboard (SCR-03)"/]:::boundary
-    B_WarningModal[/"Boundary: Drive Warning Modal (SCR-04)"/]:::boundary
-
-    C_BuildAuthUrl(["Controller: Generate Google Auth URL"]):::controller
-    C_ExchangeTokens(["Controller: Verify State & Exchange Code"]):::controller
-    C_EncryptTokens(["Controller: Encrypt OAuth Tokens"]):::controller
-    C_UpsertProfile(["Controller: Upsert Researcher Record"]):::controller
-    C_IssueSession(["Controller: Create 24h User Session"]):::controller
-    C_EvaluateDriveScope{"Controller: Evaluate Drive Scope"}:::controller
-
-    E_Researcher[("Entity: ResearcherAccount")]:::entity
-    E_OAuthCred[("Entity: OAuthCredential")]:::entity
-    E_Session[("Entity: UserSession")]:::entity
-
-    Actor_Peneliti -->|"1. Clicks Login with Google"| B_Landing
-    B_Landing -->|"2. Requests Auth URL"| C_BuildAuthUrl
-    C_BuildAuthUrl -->|"3. Redirects to Consent Screen"| B_GoogleConsent
-    Actor_Peneliti -->|"4. Grants Profile & Drive Permissions"| B_GoogleConsent
-    B_GoogleConsent -->|"5. Delivers Auth Code & State"| C_ExchangeTokens
-    C_ExchangeTokens -->|"6. Requests Token Encryption"| C_EncryptTokens
-    C_EncryptTokens -->|"7. Delivers Ciphertext"| C_UpsertProfile
-    C_UpsertProfile -->|"8. Persists Profile"| E_Researcher
-    C_UpsertProfile -->|"9. Persists Credentials"| E_OAuthCred
-    C_UpsertProfile -->|"10. Dispatches Session Creation"| C_IssueSession
-    C_IssueSession -->|"11. Persists Active Session"| E_Session
-    C_IssueSession -->|"12. Evaluates Granted Scopes"| C_EvaluateDriveScope
-    C_EvaluateDriveScope -->|"Sunny Day: Full Permissions Granted"| B_Dashboard
-    C_EvaluateDriveScope -->|"Rainy Day: Drive Scope Denied"| B_WarningModal
-    B_Dashboard -->|"13. Renders Workspace"| Actor_Peneliti
-    B_WarningModal -->|"Renders Warning & Reconnect Action"| Actor_Peneliti
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-01 Robustness Diagram (Native BCE Icons)</b></summary>
 
 ```plantuml
 @startuml
 left to right direction
-skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+note as UC_TEXT
+  <b>UC-01: Authenticate via Google OAuth & Authorize Drive Access</b>
+  <b>Basic Course (Sunny Day):</b>
+  1. Peneliti klik "Login with Google" pada SCR-01.
+  2. Sistem arahkan ke Google Consent Screen (SCR-02).
+  3. Peneliti menyetujui izin profil & Google Drive.
+  4. Sistem tukar code, enkripsi token, upsert Peneliti & OAuthCredential, buat UserSession 24h.
+  5. Sistem tampilkan Workspace Dashboard (SCR-03).
+
+  <b>Alternate Courses (Rainy Day):</b>
+  - Alt-1: Peneliti batalkan consent -> kembali ke SCR-01 dengan pesan.
+  - Alt-2: Peneliti tolak izin Drive -> sesi tetap dibuat, tampilkan SCR-04.
+end note
 
 actor "Peneliti" as Peneliti
 boundary "Landing Page\n(SCR-01)" as B_Landing
@@ -133,85 +107,75 @@ boundary "Google Consent Screen\n(SCR-02)" as B_Consent
 boundary "Workspace Dashboard\n(SCR-03)" as B_Dashboard
 boundary "Drive Warning Modal\n(SCR-04)" as B_Warning
 
-control "GoogleOAuthController" as C_OAuth
-control "TokenEncryptionService" as C_Crypto
-control "ResearcherService" as C_Researcher
-control "SessionService" as C_Session
+control "Generate Google Auth URL\n[GoogleOAuthService]" as C_BuildAuthUrl
+control "Handle Cancelled Consent\n[GoogleOAuthService]" as C_Cancel #FFCCCC
+control "Verify State & Exchange Code\n[GoogleOAuthService]" as C_ExchangeTokens
+control "Encrypt OAuth Tokens\n[TokenEncryptionService]" as C_EncryptTokens
+control "Upsert Researcher Record\n[ResearcherService]" as C_UpsertProfile
+control "Create 24h User Session\n[SessionService]" as C_IssueSession
+control "Evaluate Drive Scope\n[GoogleOAuthService]" as C_EvaluateDriveScope
 
 entity "ResearcherAccount" as E_Researcher
 entity "OAuthCredential" as E_OAuthCred
 entity "UserSession" as E_Session
 
-Peneliti --> B_Landing : initiate_login()
-B_Landing --> C_OAuth : generate_authorization_url()
-C_OAuth --> B_Consent : navigate_to_consent(auth_url)
-Peneliti --> B_Consent : grant_permissions()
-B_Consent --> C_OAuth : verify_state_and_exchange_code(auth_code, state)
+UC_TEXT -[hidden]-> Peneliti
 
-C_OAuth --> C_Crypto : encrypt_token(raw_tokens)
-C_OAuth --> C_Researcher : upsert_researcher_with_credentials(profile, enc_tokens)
-C_Researcher --> E_Researcher : persist_profile()
-C_Researcher --> E_OAuthCred : persist_credentials()
+Peneliti --> B_Landing : Clicks Login with Google
+B_Landing --> C_BuildAuthUrl : Request Auth URL
+C_BuildAuthUrl --> B_Consent : Redirect to Consent Screen
 
-C_OAuth --> C_Session : create_24h_session(researcher_id)
-C_Session --> E_Session : issue_session_record()
+Peneliti --> B_Consent : Grants / Cancels Consent
+B_Consent --> C_Cancel : [Alt-1: Consent Cancelled]
+C_Cancel --> B_Landing : Show Cancel Notice
 
-C_OAuth --> B_Dashboard : [Sunny Day: Drive Scope Granted]
-C_OAuth --> B_Warning : [Rainy Day: Drive Scope Denied]
-B_Dashboard --> Peneliti : render_workspace()
-B_Warning --> Peneliti : render_reconnect_action()
+B_Consent --> C_ExchangeTokens : Delivers Auth Code & State
+C_ExchangeTokens --> C_EncryptTokens : Request Token Encryption
+C_EncryptTokens --> C_UpsertProfile : Deliver Ciphertext
+C_UpsertProfile --> E_Researcher : Persist Profile
+C_UpsertProfile --> E_OAuthCred : Persist Credentials
+C_UpsertProfile --> C_IssueSession : Dispatch Session Creation
+C_IssueSession --> E_Session : Persist Active Session
+C_IssueSession --> C_EvaluateDriveScope : Evaluate Granted Scopes
+
+C_EvaluateDriveScope --> B_Dashboard : [Sunny Day: Drive Scope Granted]
+C_EvaluateDriveScope --> B_Warning : [Alt-2: Drive Scope Denied]
+B_Dashboard --> Peneliti : Render Workspace
+B_Warning --> Peneliti : Render Warning & Reconnect
 @enduml
 ```
-</details>
 
 ### 3.2 Robustness Diagram: UC-02 Terminate Session (Logout Flow)
-
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
-
-    Actor_Peneliti["Actor: Peneliti"]:::actor
-
-    B_Dashboard[/"Boundary: Workspace Dashboard (SCR-03)"/]:::boundary
-    B_Landing[/"Boundary: Landing Page (SCR-01)"/]:::boundary
-
-    C_InvalidateSession(["Controller: Invalidate User Session"]):::controller
-    E_Session[("Entity: UserSession")]:::entity
-
-    Actor_Peneliti -->|"1. Clicks Logout Button"| B_Dashboard
-    B_Dashboard -->|"2. Dispatches Session Termination"| C_InvalidateSession
-    C_InvalidateSession -->|"3. Deactivates Session"| E_Session
-    C_InvalidateSession -->|"4. Navigates to Landing"| B_Landing
-    B_Landing -->|"5. Renders Public Landing View"| Actor_Peneliti
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02 Robustness Diagram (Native BCE Icons)</b></summary>
 
 ```plantuml
 @startuml
 left to right direction
-skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+note as UC_TEXT
+  <b>UC-02: Terminate Session (Logout)</b>
+  <b>Basic Course (Sunny Day):</b>
+  1. Peneliti menekan tombol "Logout" pada SCR-03.
+  2. Sistem menonaktifkan UserSession dan membersihkan cookie sesi.
+  3. Sistem mengarahkan kembali ke Landing Page (SCR-01).
+end note
 
 actor "Peneliti" as Peneliti
 boundary "Workspace Dashboard\n(SCR-03)" as B_Dashboard
 boundary "Landing Page\n(SCR-01)" as B_Landing
-control "SessionService" as C_Session
+control "Invalidate User Session\n[SessionService]" as C_InvalidateSession
 entity "UserSession" as E_Session
 
-Peneliti --> B_Dashboard : request_logout()
-B_Dashboard --> C_Session : invalidate_session(session_token)
-C_Session --> E_Session : deactivate()
-C_Session --> B_Landing : navigate_to_public()
-B_Landing --> Peneliti : render_landing_view()
+UC_TEXT -[hidden]-> Peneliti
+
+Peneliti --> B_Dashboard : Clicks Logout Button
+B_Dashboard --> C_InvalidateSession : Dispatch Session Termination
+C_InvalidateSession --> E_Session : Deactivate Session
+C_InvalidateSession --> B_Landing : Navigate to Landing
+B_Landing --> Peneliti : Render Public Landing View
 @enduml
 ```
-</details>
 
 ### 3.3 Boundary-Controller-Entity (BCE) Inventory & Method Allocation
 Sesuai kaidah Doug Rosenberg, *Controller* pada Robustness Diagram adalah logika proses bisnis murni (kata kerja) yang selanjutnya dialokasikan menjadi *method* konkrit pada kelas saat memasuki Detailed Design (Sequence Diagram & Class Diagram):
@@ -256,64 +220,17 @@ Sesuai kaidah Doug Rosenberg, *Controller* pada Robustness Diagram adalah logika
 ---
 
 ## 5. Detailed Design: Sequence Diagrams (Behavior Allocation)
+<!--
+  Rosenberg Phase: Detailed Design (Ch. 8). Canonical PlantUML ONLY (No Mermaid).
+-->
 
 ### Sequence Diagram 1: UC-01 Google OAuth Login & Callback
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant LandingUI as Boundary: Landing Page (SCR-01)
-    participant GoogleConsent as Boundary: Google Consent Screen (SCR-02)
-    participant OAuthSvc as Controller: GoogleOAuthService
-    participant CryptoSvc as Controller: TokenEncryptionService
-    participant ResSvc as Controller: ResearcherService
-    participant SessSvc as Controller: SessionService
-    participant Researcher as Entity: ResearcherAccount
-    participant Credential as Entity: OAuthCredential
-    participant Session as Entity: UserSession
-    participant DashboardUI as Boundary: Workspace Dashboard (SCR-03)
-    participant WarningUI as Boundary: Drive Warning Modal (SCR-04)
-
-    Peneliti->>LandingUI: initiate_login()
-    LandingUI->>OAuthSvc: generate_authorization_url()
-    OAuthSvc-->>LandingUI: auth_url, oauth_state
-    LandingUI->>GoogleConsent: navigate_to_consent(auth_url)
-
-    Peneliti->>GoogleConsent: grant_permissions()
-    GoogleConsent->>OAuthSvc: verify_state_and_exchange_code(auth_code, state)
-
-    OAuthSvc->>CryptoSvc: encrypt_token(raw_access_token)
-    CryptoSvc-->>OAuthSvc: enc_access_token
-    OAuthSvc->>CryptoSvc: encrypt_token(raw_refresh_token)
-    CryptoSvc-->>OAuthSvc: enc_refresh_token
-
-    OAuthSvc->>ResSvc: upsert_researcher_with_credentials(profile, enc_tokens)
-    ResSvc->>Researcher: update_or_create(email, full_name, avatar_url)
-    Researcher-->>ResSvc: researcher_record
-    ResSvc->>Credential: save_encrypted_tokens(researcher_id, enc_tokens)
-    Credential-->>ResSvc: credential_record
-    ResSvc-->>OAuthSvc: researcher_account
-
-    OAuthSvc->>SessSvc: create_24h_session(researcher_id)
-    SessSvc->>Session: issue_session_record(token, expires_at)
-    Session-->>SessSvc: session_record
-    SessSvc-->>OAuthSvc: session_token
-
-    alt Sunny Day: Drive Scope Granted
-        OAuthSvc->>DashboardUI: navigate_to_workspace(session_cookie)
-        DashboardUI-->>Peneliti: render_workspace()
-    else Rainy Day: Drive Scope Denied
-        OAuthSvc->>WarningUI: show_drive_warning(session_cookie)
-        WarningUI-->>Peneliti: render_warning_and_reconnect()
-    end
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-01 Sequence Diagram (Native BCE Lifeline Icons)</b></summary>
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Peneliti" as Peneliti
@@ -329,67 +246,67 @@ entity "UserSession" as Session
 boundary "Workspace Dashboard\n(SCR-03)" as DashboardUI
 boundary "Drive Warning Modal\n(SCR-04)" as WarningUI
 
+note left of Peneliti
+  <b>UC-01: Google OAuth Login & Drive Access</b>
+  <b>Basic Course:</b>
+  1. Peneliti klik Login di SCR-01.
+  2. GoogleOAuthService siapkan Auth URL -> SCR-02.
+  3. Peneliti beri izin -> exchange code & enkripsi token.
+  4. Simpan ResearcherAccount, OAuthCredential, UserSession -> SCR-03.
+
+  <b>Alternate Courses:</b>
+  - Alt-1: Consent dibatalkan -> kembali ke SCR-01.
+  - Alt-2: Izin Drive ditolak -> buka SCR-04.
+end note
+
 Peneliti -> LandingUI : initiate_login()
 LandingUI -> OAuthSvc : generate_authorization_url()
-OAuthSvc --> LandingUI : auth_url, oauth_state
-LandingUI -> GoogleConsent : navigate_to_consent(auth_url)
+OAuthSvc -> GoogleConsent : redirect_to_consent(auth_url, oauth_state)
 
-Peneliti -> GoogleConsent : grant_permissions()
-GoogleConsent -> OAuthSvc : verify_state_and_exchange_code(auth_code, state)
+Peneliti -> GoogleConsent : submit_consent_decision()
 
-OAuthSvc -> CryptoSvc : encrypt_token(raw_access_token)
-CryptoSvc --> OAuthSvc : enc_access_token
-OAuthSvc -> CryptoSvc : encrypt_token(raw_refresh_token)
-CryptoSvc --> OAuthSvc : enc_refresh_token
+alt Alt-1: Peneliti Membatalkan Consent
+    GoogleConsent -> OAuthSvc : deliver_cancelled_callback(error)
+    OAuthSvc -> LandingUI : redirect_with_cancel_notice()
+    LandingUI --> Peneliti : show_notice("Proses login dibatalkan")
+else Sunny Day / Profile Granted
+    GoogleConsent -> OAuthSvc : verify_state_and_exchange_code(auth_code, state)
 
-OAuthSvc -> ResSvc : upsert_researcher_with_credentials(profile, enc_tokens)
-ResSvc -> Researcher : update_or_create(email, full_name, avatar_url)
-Researcher --> ResSvc : researcher_record
-ResSvc -> Credential : save_encrypted_tokens(researcher_id, enc_tokens)
-Credential --> ResSvc : credential_record
-ResSvc --> OAuthSvc : researcher_account
+    OAuthSvc -> CryptoSvc : encrypt_token(raw_access_token)
+    CryptoSvc --> OAuthSvc : enc_access_token
+    OAuthSvc -> CryptoSvc : encrypt_token(raw_refresh_token)
+    CryptoSvc --> OAuthSvc : enc_refresh_token
 
-OAuthSvc -> SessSvc : create_24h_session(researcher_id)
-SessSvc -> Session : issue_session_record(token, expires_at)
-Session --> SessSvc : session_record
-SessSvc --> OAuthSvc : session_token
+    OAuthSvc -> ResSvc : upsert_researcher_with_credentials(profile, enc_tokens)
+    ResSvc -> Researcher : update_or_create(email, full_name, avatar_url)
+    Researcher --> ResSvc : researcher_record
+    ResSvc -> Credential : save_encrypted_tokens(researcher_id, enc_tokens)
+    Credential --> ResSvc : credential_record
+    ResSvc --> OAuthSvc : researcher_account
 
-alt Sunny Day: Drive Scope Granted
-    OAuthSvc -> DashboardUI : navigate_to_workspace(session_cookie)
-    DashboardUI --> Peneliti : render_workspace()
-else Rainy Day: Drive Scope Denied
-    OAuthSvc -> WarningUI : show_drive_warning(session_cookie)
-    WarningUI --> Peneliti : render_warning_and_reconnect()
+    OAuthSvc -> SessSvc : create_24h_session(researcher_id)
+    SessSvc -> Session : issue_session_record(token, expires_at)
+    Session --> SessSvc : session_record
+    SessSvc --> OAuthSvc : session_token
+
+    alt Sunny Day: Drive Scope Granted
+        OAuthSvc -> DashboardUI : navigate_to_workspace(session_cookie)
+        DashboardUI --> Peneliti : render_workspace()
+    else Alt-2: Drive Scope Denied
+        OAuthSvc -> WarningUI : show_drive_warning(session_cookie)
+        WarningUI --> Peneliti : render_warning_and_reconnect()
+    end
 end
 @enduml
 ```
-</details>
 
 ### Sequence Diagram 2: UC-02 Terminate Session (Logout Flow)
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant DashboardUI as Boundary: Workspace Dashboard (SCR-03)
-    participant SessSvc as Controller: SessionService
-    participant Session as Entity: UserSession
-    participant LandingUI as Boundary: Landing Page (SCR-01)
-
-    Peneliti->>DashboardUI: request_logout()
-    DashboardUI->>SessSvc: invalidate_session(session_token)
-    SessSvc->>Session: deactivate()
-    Session-->>SessSvc: session_deactivated
-    SessSvc-->>DashboardUI: session_cleared
-    DashboardUI->>LandingUI: navigate_to_public()
-    LandingUI-->>Peneliti: render_landing_view()
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02 Sequence Diagram (Native BCE Lifeline Icons)</b></summary>
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Peneliti" as Peneliti
@@ -397,6 +314,13 @@ boundary "Workspace Dashboard\n(SCR-03)" as DashboardUI
 control "SessionService" as SessSvc
 entity "UserSession" as Session
 boundary "Landing Page\n(SCR-01)" as LandingUI
+
+note left of Peneliti
+  <b>UC-02: Terminate Session (Logout)</b>
+  1. Peneliti klik Logout di SCR-03.
+  2. SessionService nonaktifkan UserSession.
+  3. Redirect ke SCR-01.
+end note
 
 Peneliti -> DashboardUI : request_logout()
 DashboardUI -> SessSvc : invalidate_session(session_token)
@@ -407,7 +331,6 @@ DashboardUI -> LandingUI : navigate_to_public()
 LandingUI --> Peneliti : render_landing_view()
 @enduml
 ```
-</details>
 
 ---
 

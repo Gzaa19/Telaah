@@ -1,5 +1,6 @@
 # Feature Specification: [FEATURE NAME] – ICONIX Process
 
+**Main Use Case ID**: `UC-[XX]`
 **Feature Branch**: `feat/[###-feature-name]`
 **Created**: [DATE]
 **Status**: Draft
@@ -50,8 +51,8 @@ flowchart LR
     end
 
     subgraph SystemBoundary ["System Boundary: [APPLICATION NAME]"]
-        UC01(["UC-01: [Primary Use Case Title]"])
-        UC02(["UC-02: [Secondary Use Case Title]"])
+        UC01(["UC-[XX].1: [Primary Sub-Use Case Title]"])
+        UC02(["UC-[XX].2: [Secondary Sub-Use Case Title]"])
     end
 
     ACTOR -->|"Triggers"| UC01
@@ -63,7 +64,7 @@ flowchart LR
 
 ### 3.2 Detailed Use Case Specifications
 
-### UC-[ID]: [Use Case Title in Verb-Noun format, e.g., Filter Research Schemes]
+### UC-[XX].[N]: [Sub-Use Case Title in Verb-Noun format, e.g., Filter Research Schemes]
 
 - **Primary Actor**: [User / Lecturer / Researcher / System Daemon]
 - **Goal in Context**: [What the actor achieves at the end of the interaction]
@@ -94,25 +95,28 @@ flowchart LR
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
 <!--
-  Rosenberg Rule: Extract nouns from use cases and user vocabulary to form the initial domain vocabulary.
-  Do NOT add UI widgets or database technicalities here. Only core domain business concepts.
+  Rosenberg Rule (Ch. 2, Fig. 2-2): Extract nouns/noun-phrases from problem statement,
+  requirements, and user vocabulary to form the initial domain class diagram.
+  - Class boxes contain ONLY the class name (NO attributes, NO operations/methods, NO multiplicities yet).
+  - Use ONLY basic domain relationships: Aggregation (`o--`, has-a) and Generalization (`<|--`, is-a).
+  - Do NOT add UI widgets or database/framework technicalities here.
+  (Attributes are added later in Updated Domain Model; operations in Static Class Model.)
 -->
 
 ```mermaid
 classDiagram
-    class DomainEntity1 {
-        +attribute1: String
-        +attribute2: Number
-    }
-    class DomainEntity2 {
-        +attributeA: UUID
-        +status: Enum
-    }
-    DomainEntity1 "1" --> "*" DomainEntity2 : contains
+    class DomainEntity1
+    class DomainEntity2
+    class SubEntityA
+    class SubEntityB
+
+    DomainEntity1 o-- DomainEntity2 : has-a
+    DomainEntity2 <|-- SubEntityA : is-a
+    DomainEntity2 <|-- SubEntityB : is-a
 ```
 
-- **[Domain Entity 1]**: [Real-world business meaning and essential attributes]
-- **[Domain Entity 2]**: [Real-world business meaning and relationship to Entity 1]
+- **[Domain Entity 1]**: [Real-world business concept and role in the domain (without implementation attributes)]
+- **[Domain Entity 2]**: [Real-world business concept and its `has-a` / `is-a` relationship to Entity 1]
 
 ---
 

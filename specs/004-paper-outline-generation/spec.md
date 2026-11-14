@@ -262,101 +262,35 @@ flowchart LR
 ---
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
+<!--
+  Rosenberg Rule (Ch. 2, Fig. 2-2): Initial Domain Model hanya berisi nama class domain dan
+  relasi dasar has-a (o--) / is-a (<|--). Belum ada atribut, operasi/method, maupun multiplicity.
+  Atribut baru ditambahkan pada Updated Domain Model (plan.md Section 3).
+-->
 
-Berdasarkan ekstraksi konsep bisnis dari *use case* dan kamus istilah akademis, berikut model domain konseptual untuk UC-04:
+Berdasarkan ekstraksi konsep bisnis dari *use case* dan kamus istilah akademis, berikut model domain konseptual awal untuk UC-04:
 
 ```mermaid
 classDiagram
-    class PaperWorkspace {
-        +workspace_id: UUID
-        +researcher_id: UUID
-        +title: String
-        +created_at: DateTime
-        +updated_at: DateTime
-    }
+    class PaperWorkspace
+    class ResearchDocument
+    class PaperTemplate
+    class OutlineDefinition
+    class TemplateSectionRule
+    class PaperOutline
+    class OutlineSection
+    class SectionField
+    class SourceReference
 
-    class ResearchDocument {
-        +document_id: UUID
-        +researcher_id: UUID
-        +title: String
-        +indexing_status: DocumentStatusEnum
-        +extracted_text_summary: String
-    }
-
-    class PaperTemplate {
-        +template_id: String
-        +name: String
-        +target_venue: String
-        +template_directory_path: String
-        +docx_filename: String
-        +latex_filename: String
-        +sections_definition_filename: String
-        +version: String
-        +is_active: Boolean
-    }
-
-    class OutlineDefinition {
-        +definition_id: UUID
-        +template_id: String
-        +created_at: DateTime
-    }
-
-    class TemplateSectionRule {
-        +section_id: String
-        +title: String
-        +order_index: Integer
-        +is_required: Boolean
-        +guidance_notes: String
-        +expected_content_type: String
-        +subsections: List
-    }
-
-    class PaperOutline {
-        +outline_id: UUID
-        +workspace_id: UUID
-        +template_id: String
-        +source_document_id: UUID
-        +version_number: Integer
-        +language_choice: OutlineLanguageEnum
-        +approval_status: OutlineStatusEnum
-        +generation_status: GenerationStatusEnum
-        +created_at: DateTime
-        +approved_at: DateTime
-    }
-
-    class OutlineSection {
-        +section_id: String
-        +title: String
-        +order_index: Integer
-        +section_status: SectionStatusEnum
-        +is_needs_input: Boolean
-        +is_edited: Boolean
-    }
-
-    class SectionField {
-        +field_id: String
-        +field_label: String
-        +content: String
-        +is_needs_input: Boolean
-    }
-
-    class SourceReference {
-        +reference_id: UUID
-        +document_id: UUID
-        +page_number: Integer
-        +chunk_id: String
-        +excerpt_text: String
-    }
-
-    PaperWorkspace "1" --> "*" PaperOutline : owns
-    PaperWorkspace "1" --> "1" ResearchDocument : uses_as_main_source
-    PaperOutline "1" --> "1" PaperTemplate : adheres_to
-    PaperOutline "1" --> "1" ResearchDocument : derived_from
-    PaperTemplate "1" --> "1" OutlineDefinition : produces
-    OutlineDefinition "1" --> "1..*" TemplateSectionRule : defines
-    PaperOutline "1" --> "1..*" OutlineSection : contains
-    OutlineSection "1" --> "1..*" SectionField : contains
-    SectionField "1" --> "*" SourceReference : traces_to
+    PaperWorkspace o-- PaperOutline : has-a
+    PaperWorkspace o-- ResearchDocument : has-a
+    PaperTemplate o-- OutlineDefinition : has-a
+    OutlineDefinition o-- TemplateSectionRule : has-a
+    PaperOutline o-- OutlineSection : has-a
+    OutlineSection o-- SectionField : has-a
+    SectionField o-- SourceReference : has-a
+    PaperOutline -- PaperTemplate : adheres_to
+    PaperOutline -- ResearchDocument : derived_from
 ```
 
 ### Domain Concept Definitions

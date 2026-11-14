@@ -118,6 +118,10 @@ Sesuai Konstitusi Telaah v1.3.0 Prinsip 7 dan [DESIGN.md](file:///Users/gzaaa19/
 ---
 
 ## 2. Updated Domain Model
+<!--
+  Rosenberg Phase: Domain Model Evolution (Ch. 1 step 2b & Ch. 5, Fig. 5-18/5-19).
+  Menambahkan atribut ke entitas domain; BELUM ada operasi/method (dialokasikan di Section 6).
+-->
 
 ```mermaid
 classDiagram
@@ -203,6 +207,8 @@ classDiagram
     DocumentIndexVersion "1" --> "0..*" DocumentChunk : produces
     Document "1" --> "0..*" DocumentChunk : sourced_from
     IndexingJob "1" --> "1" DocumentIndexVersion : drives
+    DocumentIndexVersion "0..*" --> "1" EmbeddingModelMetadata : uses_model
+    DocumentIndexVersion "0..*" --> "1" ChunkingConfiguration : uses_config
 ```
 
 ### Database Schema Notes
@@ -215,108 +221,60 @@ classDiagram
 ---
 
 ## 3. ICONIX Robustness Analysis
+<!--
+  Doug Rosenberg's Four Rules of Robustness Analysis (Ch. 5):
+  1. Actors can only talk to Boundary objects.
+  2. Boundary objects can only talk to Controllers and Actors.
+  3. Entity objects can only talk to Controllers.
+  4. Controller objects can talk to Boundaries, Entities, and other Controllers (NEVER to Actors directly).
+  THE GOLDEN RULE: Boundary <-> Entity secara langsung DILARANG (no Noun-Noun links).
+  Canonical PlantUML ONLY (No Mermaid).
+-->
 
 ### Robustness Diagram: UC-03 Document Indexing and Local Embedding
-
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
-
-    UC02["Actor: UC-02 Extraction Event"]:::actor
-    RESEARCHER["Actor: Peneliti"]:::actor
-
-    B_UI_LIBRARY[/"Boundary: Library View (SCR-05)"/]:::boundary
-    B_UI_DETAIL[/"Boundary: Indexing Detail View (SCR-06)"/]:::boundary
-    B_UI_CONFIRM[/"Boundary: Re-index Confirmation Modal (SCR-07)"/]:::boundary
-
-    C1(["Controller: Validate Document Access & Status"]):::controller
-    C2(["Controller: Check Duplicate Fingerprint"]):::controller
-    C3(["Controller: Create IndexingJob & Spawn Pipeline"]):::controller
-    C4(["Controller: Load & Clean Extracted Text"]):::controller
-    C5(["Controller: Chunk Text & Preserve Metadata"]):::controller
-    C6(["Controller: Generate Local Embeddings"]):::controller
-    C7(["Controller: Validate Embedding Dimensions"]):::controller
-    C8(["Controller: Store Chunks & Index Version"]):::controller
-    C9(["Controller: Update Status & Mark Indexed"]):::controller
-    C10(["Controller: Handle Failure & Log Safe Error"]):::controller
-    C11(["Controller: Archive Old Index Version"]):::controller
-    C12(["Controller: Execute Similarity Search"]):::controller
-    C13(["Controller: Query Job Status & Summary"]):::controller
-
-    E_DOC[("Entity: Document")]:::entity
-    E_EXTRACTED[("Entity: ExtractedText")]:::entity
-    E_INDEX_VER[("Entity: DocumentIndexVersion")]:::entity
-    E_CHUNK[("Entity: DocumentChunk")]:::entity
-    E_JOB[("Entity: IndexingJob")]:::entity
-
-    UC02 -->|"1. Triggers indexing event"| C1
-    C1 -->|"Reads document state"| E_DOC
-    C1 -->|"Reads extracted text"| E_EXTRACTED
-    C1 -->|"Dispatches to fingerprint check"| C2
-    C2 -->|"Reads existing fingerprint"| E_INDEX_VER
-    C2 -->|"Unique fingerprint confirmed"| C3
-    C3 -->|"Persists initial job"| E_JOB
-    C3 -->|"Persists initial version"| E_INDEX_VER
-    C3 -->|"Spawns async pipeline"| C4
-    C4 -->|"Reads raw text"| E_EXTRACTED
-    C4 -->|"Delivers cleaned text"| C5
-    C5 -->|"Delivers chunks & metadata"| C6
-    C6 -->|"Delivers vector embeddings"| C7
-    C7 -->|"Valid dimensions"| C8
-    C8 -->|"Persists chunks with vectors"| E_CHUNK
-    C8 -->|"Updates version record"| E_INDEX_VER
-    C8 -->|"Finalizes indexing"| C9
-    C9 -->|"Marks version active"| E_INDEX_VER
-    C9 -->|"Marks job completed"| E_JOB
-
-    C7 -->|"Dimension mismatch"| C10
-    C6 -->|"Model error"| C10
-    C10 -->|"Logs failure reason"| E_JOB
-    C10 -->|"Marks version failed"| E_INDEX_VER
-
-    RESEARCHER -->|"Requests re-indexing"| B_UI_CONFIRM
-    B_UI_CONFIRM -->|"Confirms re-index"| C11
-    C11 -->|"Archives active version"| E_INDEX_VER
-    C11 -->|"Creates new version & job"| C3
-
-    RESEARCHER -->|"Monitors indexing status"| B_UI_LIBRARY
-    B_UI_LIBRARY -->|"Queries status"| C13
-    C13 -->|"Reads job summary"| E_JOB
-    C13 -->|"Delivers status summary"| B_UI_LIBRARY
-    B_UI_LIBRARY -->|"Renders status telemetry"| RESEARCHER
-
-    RESEARCHER -->|"Requests similarity test"| B_UI_DETAIL
-    B_UI_DETAIL -->|"Dispatches query vector"| C12
-    C12 -->|"Executes cosine search"| E_CHUNK
-    C12 -->|"Delivers ranked matches"| B_UI_DETAIL
-    B_UI_DETAIL -->|"Renders search preview"| RESEARCHER
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-03 Robustness Diagram (Native BCE Icons)</b></summary>
 
 ```plantuml
 @startuml
 left to right direction
-skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+note as UC_TEXT
+  <b>UC-03: Document Indexing and Local Embedding</b>
+  <b>Basic Course (Sunny Day):</b>
+  1. UC-02 mengirim document_id ke Indexing Event Boundary -> validasi akses & status extracted.
+  2. Cek fingerprint -> buat IndexingJob & DocumentIndexVersion (queued).
+  3. Worker bersihkan teks -> chunk + metadata -> embed lokal ("passage: ") -> validasi dimensi 768.
+  4. Simpan DocumentChunk ke pgvector -> tandai version = indexed & job = completed.
+  5. Peneliti pantau status (SCR-05), uji similarity search (SCR-06), atau re-index (SCR-07).
+
+  <b>Alternate Courses (Rainy Day):</b>
+  - Alt-1/5/9: Bukan extracted / duplikat fingerprint / akses ditolak -> tolak tanpa side effect.
+  - Alt-3/4/7: Model lokal gagal / dimensi mismatch / batch gagal -> failed (#FFCCCC), tanpa simpan parsial.
+  - Alt-6 (UC-03c): Re-index -> arsipkan versi lama, buat versi baru.
+end note
 
 actor "UC-02 Extraction Event" as UC02
 actor "Peneliti" as Peneliti
 
+boundary "Indexing Trigger API /\nEvent Listener" as B_Event
 boundary "Library View\n(SCR-05)" as B_Library
 boundary "Indexing Detail View\n(SCR-06)" as B_Detail
 boundary "Re-index Confirmation Modal\n(SCR-07)" as B_Confirm
 
-control "IndexingService" as C_IndexSvc
-control "IndexingPipelineWorker" as C_Pipeline
-control "TextCleaningService" as C_Cleaner
-control "ChunkingService" as C_Chunker
-control "LocalEmbeddingProvider" as C_Embedder
+control "Validate Document Access & Status\n[IndexingService]" as C1
+control "Check Duplicate Fingerprint\n[IndexingService]" as C2
+control "Create IndexingJob & Spawn Pipeline\n[IndexingService]" as C3
+control "Load & Clean Extracted Text\n[TextCleaningService]" as C4
+control "Chunk Text & Preserve Metadata\n[ChunkingService]" as C5
+control "Generate Local Embeddings\n[LocalEmbeddingProvider]" as C6
+control "Validate Embedding Dimensions\n[LocalEmbeddingProvider]" as C7
+control "Store Chunks & Index Version\n[IndexingPipelineWorker]" as C8
+control "Update Status & Mark Indexed\n[IndexingService]" as C9
+control "Handle Failure & Log Safe Error\n[IndexingService]" as C10 #FFCCCC
+control "Archive Old Index Version\n[IndexingService]" as C11
+control "Execute Similarity Search\n[IndexingService]" as C12
+control "Query Job Status & Summary\n[IndexingService]" as C13
 
 entity "Document" as E_Doc
 entity "ExtractedText" as E_Text
@@ -324,49 +282,66 @@ entity "DocumentIndexVersion" as E_Version
 entity "DocumentChunk" as E_Chunk
 entity "IndexingJob" as E_Job
 
-UC02 --> C_IndexSvc : trigger_indexing()
-C_IndexSvc --> E_Doc : validate_access_and_status()
-C_IndexSvc --> E_Text : load_extracted_text()
-C_IndexSvc --> E_Version : check_fingerprint_exists()
-C_IndexSvc --> E_Job : create_job_record()
-C_IndexSvc --> E_Version : create_version_record()
-C_IndexSvc --> C_Pipeline : spawn_pipeline()
+UC_TEXT -[hidden]-> UC02
 
-C_Pipeline --> E_Text : read_raw_text()
-C_Pipeline --> C_Cleaner : clean()
-C_Pipeline --> C_Chunker : chunk_text_with_metadata()
-C_Pipeline --> C_Embedder : embed_batch()
-C_Pipeline --> C_Embedder : validate_dimensions()
-C_Pipeline --> E_Chunk : store_chunks_batch()
-C_Pipeline --> E_Version : mark_indexed()
-C_Pipeline --> E_Job : mark_completed()
+UC02 --> B_Event : Trigger event (document_id)
+B_Event --> C1 : Dispatch indexing request
+C1 --> E_Doc : Validate researcher & status
+C1 --> E_Text : Read extracted text
+C1 --> C10 : [Alt-1/9: Invalid status / access]
+C1 --> C2 : [Sunny Day: Valid extracted doc]
 
-Peneliti --> B_Confirm : confirm_reindex()
-B_Confirm --> C_IndexSvc : request_reindex()
-C_IndexSvc --> E_Version : archive_active_version()
-C_IndexSvc --> E_Version : create_new_version()
-C_IndexSvc --> E_Job : create_reindex_job()
+C2 --> E_Version : Check existing fingerprint
+C2 --> C10 : [Alt-5: Duplicate fingerprint]
+C2 --> C3 : [Unique fingerprint]
+C3 --> E_Job : Persist initial job
+C3 --> E_Version : Persist initial version
+C3 --> C4 : Spawn async pipeline
 
-Peneliti --> B_Library : open_library_view()
-B_Library --> C_IndexSvc : get_indexing_summary()
-C_IndexSvc --> E_Job : load_job_telemetry()
-C_IndexSvc --> E_Version : load_version_metadata()
-C_IndexSvc --> B_Library : deliver_summary()
-B_Library --> Peneliti : render_status_badge()
+C4 --> E_Text : Read raw text
+C4 --> C10 : [Alt-2: Empty text]
+C4 --> C5 : Deliver cleaned text
+C5 --> C6 : Deliver chunks & metadata
+C6 --> C10 : [Alt-3/7: Model / batch error]
+C6 --> C7 : Deliver vector embeddings
+C7 --> C10 : [Alt-4: Dimension mismatch]
+C7 --> C8 : [Valid 768-dim vectors]
 
-Peneliti --> B_Detail : request_similarity_test()
-B_Detail --> C_IndexSvc : execute_similarity_search()
-C_IndexSvc --> E_Chunk : cosine_search()
-C_IndexSvc --> B_Detail : deliver_ranked_matches()
-B_Detail --> Peneliti : render_search_preview()
+C8 --> E_Chunk : Persist chunks batch
+C8 --> E_Version : Update version chunks
+C8 --> C9 : Finalize indexing
+C9 --> E_Version : Mark version = indexed
+C9 --> E_Job : Mark job = completed
+
+C10 --> E_Job : Log safe failure reason
+C10 --> E_Version : Mark version = failed
+
+Peneliti --> B_Confirm : Confirm re-index (SCR-07)
+B_Confirm --> C11 : Archive active version
+C11 --> E_Version : Mark old version archived
+C11 --> C3 : Enqueue new version job
+
+Peneliti --> B_Library : Monitor indexing status
+B_Library --> C13 : Query status summary
+C13 --> E_Job : Read job telemetry
+C13 --> E_Version : Read version metadata
+C13 --> B_Library : Deliver status summary
+B_Library --> Peneliti : Render status badge
+
+Peneliti --> B_Detail : Request similarity test
+B_Detail --> C12 : Dispatch query vector
+C12 --> C6 : Embed query ("query: ")
+C12 --> E_Chunk : Execute cosine search
+C12 --> B_Detail : Deliver ranked matches
+B_Detail --> Peneliti : Render search preview
 @enduml
 ```
-</details>
 
 ### BCE Inventory & Method Allocation
 
 | BCE Type | Element | Responsibility → Implementation |
 |---|---|---|
+| **Boundary** | `Indexing Trigger API / Event Listener` | `POST /api/indexing/documents/{document_id}` & ARQ/background event receiver (`indexing/router.py`) |
 | **Boundary** | `Library View (SCR-05)` | `frontend/.../library/page.tsx` |
 | **Boundary** | `Indexing Detail View (SCR-06)` | `frontend/.../IndexingDetailPanel.tsx` |
 | **Boundary** | `Re-index Confirmation Modal (SCR-07)` | `frontend/.../ReindexConfirmModal.tsx` |
@@ -391,11 +366,11 @@ B_Detail --> Peneliti : render_search_preview()
 
 ### BCE Rule Compliance Audit
 
-- [x] **Rule 1**: Peneliti dan UC-02 hanya berinteraksi dengan Boundary (Client UI dan Upstream Event).
-- [x] **Rule 2**: Semua Boundary UI hanya memanggil Controller — tidak menyentuh Entity langsung.
+- [x] **Rule 1**: Peneliti dan UC-02 hanya berinteraksi dengan Boundary (Client UI `SCR-05`–`SCR-07` dan `Indexing Trigger API / Event Listener`), tidak pernah langsung ke Controller.
+- [x] **Rule 2**: Semua Boundary hanya memanggil Controller — tidak menyentuh Entity langsung.
 - [x] **Rule 3**: Entity (`DocumentChunk`, `DocumentIndexVersion`, `IndexingJob`, `Document`, `ExtractedText`) hanya diakses dan dimutasi melalui Controller.
 - [x] **Rule 4**: Controller tidak berinteraksi langsung ke Actor; hasil dikembalikan melalui Boundary ke Actor.
-- [x] **Zero Direct Boundary-to-Entity Links**: Tidak ada link langsung dari UI ke model database.
+- [x] **Zero Direct Boundary-to-Entity Links**: Tidak ada link langsung dari Boundary ke model database.
 
 ---
 
@@ -413,71 +388,21 @@ B_Detail --> Peneliti : render_search_preview()
 ---
 
 ## 5. Detailed Design: Sequence Diagrams
+<!--
+  Rosenberg Phase: Detailed Design (Ch. 8). Canonical PlantUML ONLY (No Mermaid).
+-->
 
-### Sequence Diagram 1: UC-03 Sunny Day — Full Indexing Pipeline
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor UC02 as Actor: UC-02 Extraction Event
-    participant IService as Controller: IndexingService
-    participant Document as Entity: Document
-    participant ExtractedText as Entity: ExtractedText
-    participant IndexVersion as Entity: DocumentIndexVersion
-    participant IndexJob as Entity: IndexingJob
-    participant Pipeline as Controller: IndexingPipelineWorker
-    participant Cleaner as Controller: TextCleaningService
-    participant Chunker as Controller: ChunkingService
-    participant Embedder as Controller: LocalEmbeddingProvider
-    participant ChunkEntity as Entity: DocumentChunk
-
-    UC02->>IService: trigger_indexing(document_id, researcher_id)
-    IService->>Document: validate_access_and_status(document_id, researcher_id)
-    Document-->>IService: document_record
-    IService->>ExtractedText: load_extracted_text(document_id)
-    ExtractedText-->>IService: text_record
-    IService->>IndexVersion: check_fingerprint_exists(fingerprint)
-    IndexVersion-->>IService: none_found
-    IService->>IndexJob: create_job_record(document_id, status_queued)
-    IndexJob-->>IService: job_record
-    IService->>IndexVersion: create_version_record(document_id, fingerprint, status_queued)
-    IndexVersion-->>IService: version_record
-    IService->>Pipeline: spawn_pipeline(job_id, version_id, document_id)
-    IService-->>UC02: acknowledge_acceptance(job_id, version_id)
-
-    Note over Pipeline: Async In-Process Execution
-    Pipeline->>IndexJob: update_stage(status_cleaning)
-    Pipeline->>Cleaner: clean(text_content)
-    Cleaner-->>Pipeline: cleaned_text
-
-    Pipeline->>IndexJob: update_stage(status_chunking)
-    Pipeline->>Chunker: chunk_text_with_metadata(cleaned_text, pages)
-    Chunker-->>Pipeline: text_chunks
-
-    Pipeline->>IndexJob: update_stage(status_embedding)
-    Pipeline->>Embedder: embed_batch(text_chunks)
-    Embedder-->>Pipeline: vector_embeddings
-    Pipeline->>Embedder: validate_dimensions(vector_embeddings, expected_dim_768)
-    Embedder-->>Pipeline: dimensions_valid
-
-    Pipeline->>IndexJob: update_stage(status_storing)
-    Pipeline->>ChunkEntity: store_chunks_batch(version_id, text_chunks, vector_embeddings)
-    ChunkEntity-->>Pipeline: chunks_persisted
-    Pipeline->>IndexVersion: mark_indexed(status_indexed, total_chunks)
-    IndexVersion-->>Pipeline: version_indexed
-    Pipeline->>IndexJob: mark_completed(status_completed)
-    IndexJob-->>Pipeline: job_completed
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-03 Sequence Diagram (Sunny Day Pipeline) (Native BCE Lifeline Icons)</b></summary>
+### Sequence Diagram 1: UC-03 Document Indexing Pipeline (Sunny Day & Failure Paths)
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "UC-02 Extraction Event" as UC02
+boundary "Indexing Trigger API /\nEvent Listener" as EventBnd
 control "IndexingService" as IService
 entity "Document" as Document
 entity "ExtractedText" as ExtractedText
@@ -489,75 +414,80 @@ control "ChunkingService" as Chunker
 control "LocalEmbeddingProvider" as Embedder
 entity "DocumentChunk" as ChunkEntity
 
-UC02 -> IService : trigger_indexing(document_id, researcher_id)
+note left of UC02
+  <b>UC-03: Document Indexing and Local Embedding</b>
+  <b>Basic Course:</b>
+  1. Event/trigger masuk melalui EventBnd -> validasi akses & status extracted.
+  2. Cek fingerprint -> buat IndexingJob & DocumentIndexVersion (queued).
+  3. Worker clean -> chunk -> embed lokal -> validate 768 dim -> store chunks batch.
+  4. Mark version = indexed & job = completed.
+
+  <b>Alternate Courses:</b>
+  - Alt-5: Fingerprint sudah ada -> tolak duplikasi tanpa side effect.
+  - Alt-3/4/7: Model gagal / dimensi mismatch -> mark failed tanpa chunk parsial.
+end note
+
+UC02 -> EventBnd : emit_document_extracted(document_id, researcher_id)
+EventBnd -> IService : trigger_indexing(document_id, researcher_id)
 IService -> Document : validate_access_and_status(document_id, researcher_id)
 Document --> IService : document_record
 IService -> ExtractedText : load_extracted_text(document_id)
 ExtractedText --> IService : text_record
 IService -> IndexVersion : check_fingerprint_exists(fingerprint)
-IndexVersion --> IService : none_found
-IService -> IndexJob : create_job_record(document_id, status_queued)
-IndexJob --> IService : job_record
-IService -> IndexVersion : create_version_record(document_id, fingerprint, status_queued)
-IndexVersion --> IService : version_record
-IService -> Pipeline : spawn_pipeline(job_id, version_id, document_id)
-IService --> UC02 : acknowledge_acceptance(job_id, version_id)
 
-note over Pipeline : Async In-Process Execution
-Pipeline -> IndexJob : update_stage(status_cleaning)
-Pipeline -> Cleaner : clean(text_content)
-Cleaner --> Pipeline : cleaned_text
+alt Alt-5: Duplicate Fingerprint Exists
+    IndexVersion --> IService : existing_indexed_version
+    IService --> EventBnd : reject_duplicate(existing_indexed_version)
+    EventBnd --> UC02 : duplicate_acknowledged
+else Sunny Day: Unique Fingerprint
+    IndexVersion --> IService : none_found
+    IService -> IndexJob : create_job_record(document_id, status_queued)
+    IndexJob --> IService : job_record
+    IService -> IndexVersion : create_version_record(document_id, fingerprint, status_queued)
+    IndexVersion --> IService : version_record
+    IService -> Pipeline : spawn_pipeline(job_id, version_id, document_id)
+    IService --> EventBnd : accept_indexing(job_id, version_id)
+    EventBnd --> UC02 : acknowledge_acceptance(job_id, version_id)
 
-Pipeline -> IndexJob : update_stage(status_chunking)
-Pipeline -> Chunker : chunk_text_with_metadata(cleaned_text, pages)
-Chunker --> Pipeline : text_chunks
+    note over Pipeline : Async In-Process Execution
+    Pipeline -> IndexJob : update_stage(status_cleaning)
+    Pipeline -> Cleaner : clean(text_content)
+    Cleaner --> Pipeline : cleaned_text
 
-Pipeline -> IndexJob : update_stage(status_embedding)
-Pipeline -> Embedder : embed_batch(text_chunks)
-Embedder --> Pipeline : vector_embeddings
-Pipeline -> Embedder : validate_dimensions(vector_embeddings, expected_dim_768)
-Embedder --> Pipeline : dimensions_valid
+    Pipeline -> IndexJob : update_stage(status_chunking)
+    Pipeline -> Chunker : chunk_text_with_metadata(cleaned_text, pages)
+    Chunker --> Pipeline : text_chunks
 
-Pipeline -> IndexJob : update_stage(status_storing)
-Pipeline -> ChunkEntity : store_chunks_batch(version_id, text_chunks, vector_embeddings)
-ChunkEntity --> Pipeline : chunks_persisted
-Pipeline -> IndexVersion : mark_indexed(status_indexed, total_chunks)
-IndexVersion --> Pipeline : version_indexed
-Pipeline -> IndexJob : mark_completed(status_completed)
-IndexJob --> Pipeline : job_completed
+    Pipeline -> IndexJob : update_stage(status_embedding)
+    Pipeline -> Embedder : embed_batch(text_chunks)
+    Embedder --> Pipeline : vector_embeddings
+    Pipeline -> Embedder : validate_dimensions(vector_embeddings, expected_dim_768)
+
+    alt Sunny Day: Dimensions Valid
+        Embedder --> Pipeline : dimensions_valid
+        Pipeline -> IndexJob : update_stage(status_storing)
+        Pipeline -> ChunkEntity : store_chunks_batch(version_id, text_chunks, vector_embeddings)
+        ChunkEntity --> Pipeline : chunks_persisted
+        Pipeline -> IndexVersion : mark_indexed(status_indexed, total_chunks)
+        IndexVersion --> Pipeline : version_indexed
+        Pipeline -> IndexJob : mark_completed(status_completed)
+        IndexJob --> Pipeline : job_completed
+    else Alt-3 / Alt-4 / Alt-7: Model Load or Dimension Mismatch Failure
+        Embedder --> Pipeline : raise_embedding_error(reason)
+        Pipeline -> IndexVersion : mark_failed(status_failed, reason)
+        Pipeline -> IndexJob : mark_failed(status_failed, reason)
+    end
+end
 @enduml
 ```
-</details>
 
 ### Sequence Diagram 2: UC-03a — Monitor Status (Polling)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant LibraryUI as Boundary: Library View (SCR-05)
-    participant IService as Controller: IndexingService
-    participant IndexJob as Entity: IndexingJob
-    participant IndexVersion as Entity: DocumentIndexVersion
-
-    loop Periodic Status Refresh
-        Peneliti->>LibraryUI: open_library_view()
-        LibraryUI->>IService: get_indexing_summary(document_id, researcher_id)
-        IService->>IndexJob: load_job_telemetry(document_id)
-        IndexJob-->>IService: job_telemetry
-        IService->>IndexVersion: load_active_version_metadata(document_id)
-        IndexVersion-->>IService: version_metadata
-        IService-->>LibraryUI: deliver_indexing_summary(job_telemetry, version_metadata)
-        LibraryUI-->>Peneliti: render_status_badge_and_progress()
-    end
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-03a Sequence Diagram (Monitor Status)</b></summary>
-
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Peneliti" as Peneliti
@@ -565,6 +495,12 @@ boundary "Library View\n(SCR-05)" as LibraryUI
 control "IndexingService" as IService
 entity "IndexingJob" as IndexJob
 entity "DocumentIndexVersion" as IndexVersion
+
+note left of Peneliti
+  <b>UC-03a: Monitor Indexing Status</b>
+  Peneliti memantau status bertahap & ringkasan
+  chunk/model melalui polling berkala pada SCR-05.
+end note
 
 loop Periodic Status Refresh
     Peneliti -> LibraryUI : open_library_view()
@@ -578,41 +514,14 @@ loop Periodic Status Refresh
 end
 @enduml
 ```
-</details>
 
 ### Sequence Diagram 3: UC-03c — Re-index (Archive + New Pipeline)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant ConfirmModal as Boundary: Re-index Confirmation Modal (SCR-07)
-    participant IService as Controller: IndexingService
-    participant IndexVersion as Entity: DocumentIndexVersion
-    participant IndexJob as Entity: IndexingJob
-    participant Pipeline as Controller: IndexingPipelineWorker
-    participant LibraryUI as Boundary: Library View (SCR-05)
-
-    Peneliti->>ConfirmModal: confirm_reindex(document_id)
-    ConfirmModal->>IService: request_reindex(document_id, researcher_id)
-    IService->>IndexVersion: archive_active_version(document_id)
-    IndexVersion-->>IService: version_archived
-    IService->>IndexVersion: create_new_active_version(document_id, status_queued)
-    IndexVersion-->>IService: new_version_record
-    IService->>IndexJob: create_reindex_job(document_id, status_queued)
-    IndexJob-->>IService: new_job_record
-    IService->>Pipeline: spawn_pipeline(new_job_id, new_version_id, document_id)
-    IService-->>ConfirmModal: confirm_reindex_started(new_job_id)
-    ConfirmModal->>LibraryUI: navigate_to_library()
-    LibraryUI-->>Peneliti: render_queued_status()
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-03c Sequence Diagram (Re-index)</b></summary>
-
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Peneliti" as Peneliti
@@ -622,6 +531,13 @@ entity "DocumentIndexVersion" as IndexVersion
 entity "IndexingJob" as IndexJob
 control "IndexingPipelineWorker" as Pipeline
 boundary "Library View\n(SCR-05)" as LibraryUI
+
+note left of Peneliti
+  <b>UC-03c: Re-index Dokumen</b>
+  1. Peneliti konfirmasi Re-index di SCR-07.
+  2. Versi lama ditandai archived (tetap tersimpan untuk audit).
+  3. Versi & job baru berstatus queued dijalankan di background.
+end note
 
 Peneliti -> ConfirmModal : confirm_reindex(document_id)
 ConfirmModal -> IService : request_reindex(document_id, researcher_id)
@@ -637,7 +553,38 @@ ConfirmModal -> LibraryUI : navigate_to_library()
 LibraryUI --> Peneliti : render_queued_status()
 @enduml
 ```
-</details>
+
+### Sequence Diagram 4: Similarity Search Verification (SCR-06)
+
+```plantuml
+@startuml
+autoactivate off
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Peneliti" as Peneliti
+boundary "Indexing Detail View\n(SCR-06)" as DetailUI
+control "IndexingService" as IService
+control "LocalEmbeddingProvider" as Embedder
+entity "DocumentChunk" as ChunkEntity
+
+note left of Peneliti
+  <b>UC-03 Verification: Similarity Search (SCR-06)</b>
+  Peneliti menguji pencarian semantik dasar ("query: ")
+  terhadap DocumentChunk pada versi indeks aktif.
+end note
+
+Peneliti -> DetailUI : submit_similarity_query(document_id, query_text)
+DetailUI -> IService : similarity_search(query_text, document_id, researcher_id)
+IService -> Embedder : embed_query("query: " + query_text)
+Embedder --> IService : query_vector_768
+IService -> ChunkEntity : cosine_search(query_vector_768, researcher_id, document_id)
+ChunkEntity --> IService : ranked_chunks_with_scores
+IService --> DetailUI : deliver_ranked_matches(ranked_chunks_with_scores)
+DetailUI --> Peneliti : render_search_preview()
+@enduml
+```
 
 
 ---

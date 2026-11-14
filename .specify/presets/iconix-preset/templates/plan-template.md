@@ -17,109 +17,98 @@
 
 ## 2. Updated Domain Model
 <!--
-  Rosenberg Phase: Domain Model Evolution.
-  Reflect entities and relationships refined during analysis.
+  Rosenberg Phase: Domain Model Evolution (Ch. 1 step 2b & Ch. 5, Fig. 5-18/5-19).
+  Refines the Initial Domain Model during Robustness Analysis:
+  - Add missing domain classes discovered while drawing robustness diagrams.
+  - ADD attributes to domain classes (from use cases, UI storyboards, and requirements).
+  - STILL NO operations/methods here (operations are allocated later in Section 6: Static Class Model).
 -->
 
 ```mermaid
 classDiagram
-    class EntityName {
+    class DomainEntity1 {
         +UUID id
         +String name
         +Enum status
         +DateTime created_at
+    }
+    class DomainEntity2 {
+        +UUID id
+        +String title
         +DateTime updated_at
     }
+    DomainEntity1 o-- DomainEntity2 : has-a
 ```
-- **Entities & Types**: [Detail domain models, fields, types, and constraints]
-- **Associations & Multiplicities**: [1..1, 1..*, 0..1 foreign key relationships]
+- **Newly Discovered Entities & Attributes**: [Detail domain classes added/refined and their attributes + constraints]
+- **Associations**: [Refined `has-a` / `is-a` relationships; multiplicities finalized in Static Class Model]
 - **Database Schema Migrations**: [Required Alembic/SQL scripts and indexes]
 
 ---
 
 ## 3. ICONIX Robustness Analysis (Preliminary Design)
 <!--
-  Doug Rosenberg's Four Rules of Robustness Analysis:
+  Doug Rosenberg's Four Rules of Robustness Analysis (Ch. 5):
   1. Actors can only talk to Boundary objects.
   2. Boundary objects can only talk to Controllers and Actors.
   3. Entity objects can only talk to Controllers.
   4. Controller objects can talk to Boundaries, Entities, and other Controllers (NEVER to Actors directly).
-  THE GOLDEN RULE: A Boundary object may NEVER connect directly to an Entity object.
+  THE GOLDEN RULE: A Boundary object may NEVER connect directly to an Entity object (no Noun-Noun links).
+
+  Canonical PlantUML Elements ONLY (No Mermaid):
+  - Use Case text `note` on the left (Basic Course & Alternate Course)
+  - `actor`     : User or external system
+  - `boundary`  : Screens, pages, dialogs, API endpoints (never fine-grained UI widgets like buttons)
+  - `control`   : Logical functions / verbs (not yet final software classes)
+  - `entity`    : Persistent domain objects from the Domain Model
+  - `usecase`   : Optional invoked sub-use-case (`<<invokes>>`)
 -->
 
 ### Robustness Diagram: UC-[ID] [Use Case Title]
-<!--
-  Rosenberg Canonical Robustness Rules:
-  1. Actor interacts ONLY with Boundaries.
-  2. Controllers MUST be named using Verb Phrases (business logic actions, not software classes).
-  3. Boundaries interact ONLY with Controllers and Actors (never direct to Entities).
-  4. Entities represent domain model persistent state (accessed only by Controllers).
-  5. Layout follows the use case narrative flow (Sunny Day main path + Rainy Day branches).
--->
-
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
-
-    ACTOR["Actor: [Actor Name]"]:::actor
-
-    B1[/"Boundary: [Client UI Screen / Page Name]"/]:::boundary
-    B2[/"Boundary: [Confirmation / Result Modal / View]"/]:::boundary
-
-    C1(["Controller: [Verb: Validate Input Request]"]):::controller
-    C2(["Controller: [Verb: Process Business Logic]"]):::controller
-    C3(["Controller: [Verb: Evaluate Authorization / Business Rule]"]):::controller
-
-    E1[("Entity: [Domain Model Entity 1]")]:::entity
-    E2[("Entity: [Domain Model Entity 2]")]:::entity
-
-    ACTOR -->|"1. [Actor Action]"| B1
-    B1 -->|"2. [Dispatches Request]"| C1
-    C1 -->|"3. [Processes Validated Data]"| C2
-    C2 -->|"4. [Mutates / Reads State]"| E1
-    C2 -->|"5. [Checks State / Rules]"| C3
-    C3 -->|"6. [Mutates Associated State]"| E2
-    C3 -->|"Sunny Day: Success"| B2
-    C3 -->|"Rainy Day: Validation / Rule Failure"| B1
-    B2 -->|"7. [Renders Output]"| ACTOR
-```
-
-<details>
-<summary><b>Canonical PlantUML: Robustness Diagram (Native BCE Icons)</b></summary>
 
 ```plantuml
 @startuml
 left to right direction
-skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+note as UC_TEXT
+  <b>UC-[ID]: [Use Case Title]</b>
+  <b>Basic Course:</b>
+  1. [Actor] performs [action] on [Boundary 1].
+  2. System validates [input] and processes [logic].
+  3. System updates [Entity 1] / [Entity 2] and displays [Boundary 2].
+
+  <b>Alternate Course (Rainy Day):</b>
+  - If [rule/validation fails], system displays error on [Boundary 1].
+end note
 
 actor "[Actor Name]" as ACTOR
 boundary "[Client UI Screen / Page Name]" as B1
-boundary "[Confirmation / Result Modal / View]" as B2
+boundary "[Confirmation / Result View]" as B2
 
 control "[Validate Input Request]" as C1
 control "[Process Business Logic]" as C2
-control "[Evaluate Business Rule]" as C3
+control "[Handle Validation Error]" as C3 #FFCCCC
 
-entity "[Domain Model Entity 1]" as E1
-entity "[Domain Model Entity 2]" as E2
+entity "[Domain Entity 1]" as E1
+entity "[Domain Entity 2]" as E2
+
+' Optional: uncomment if this use case invokes another use case
+' usecase "[Invoked Use Case]" as UC_SUB
+
+UC_TEXT -[hidden]-> ACTOR
 
 ACTOR --> B1 : [Actor Action]
-B1 --> C1 : [Dispatches Request]
-C1 --> C2 : [Processes Validated Data]
-C2 --> E1 : [Mutates / Reads State]
-C2 --> C3 : [Checks Rules]
-C3 --> E2 : [Mutates State]
-C3 --> B2 : [Sunny Day: Success]
-C3 --> B1 : [Rainy Day: Rule Failure]
-B2 --> ACTOR : [Renders Output]
+B1 --> C1 : [Submit Request]
+C1 --> C2 : [Sunny Day: Valid]
+C1 --> C3 : [Rainy Day: Invalid]
+C3 --> B1 : [Show Error]
+C2 --> E1 : [Read / Update]
+C2 --> E2 : [Read / Update]
+C2 --> B2 : [Display Result]
+' C2 ..> UC_SUB : <<invokes>>
 @enduml
 ```
-</details>
 
 ### Boundary-Controller-Entity (BCE) Inventory & Method Allocation
 <!-- Controllers represent verbs/behavior that get allocated to class methods during Detailed Design -->
@@ -157,61 +146,60 @@ B2 --> ACTOR : [Renders Output]
 
 ## 5. Detailed Design: Sequence Diagrams (Behavior Allocation)
 <!--
-  Rosenberg Phase: Detailed Design.
-  Sequence diagrams allocate methods to classes discovered in robustness analysis.
-  Participant count & types MUST match Robustness Diagram 1-to-1.
-  Do NOT use technical HTTP CRUD (GET/POST/DELETE) or raw SQL queries; use OO method invocations.
+  Rosenberg Phase: Detailed Design (Ch. 8).
+  - Sequence diagrams allocate operations/methods to classes discovered in robustness analysis.
+  - Actors, Boundaries, Entities, and Controller responsibilities MUST match 1-to-1 with Section 3 Robustness Diagrams (tag Robustness controllers with `[ControllerClass]` for clear traceability).
+  - ~80% of Robustness `control` bubbles become operations/messages on Boundary/Entity/Service classes;
+    keep `control` lifelines ONLY for real controller/service classes (e.g., DomainService).
+  - Include BOTH Basic Course (Sunny Day) and Alternate Course (Rainy Day) using `alt`/`else`.
+  - Keep Use Case text visible on the left margin (`note left`).
+  - Use OO method invocations (not raw HTTP CRUD verbs or raw SQL).
+  - Canonical PlantUML ONLY (No Mermaid).
 -->
 
-### Sequence Diagram: UC-[ID]
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Actor: [Actor Name]
-    participant GUI as Boundary: [Client UI Screen / Modal]
-    participant Service as Controller: [DomainService]
-    participant Entity1 as Entity: [DomainModelEntity1]
-    participant Entity2 as Entity: [DomainModelEntity2]
-    participant ResultGUI as Boundary: [Result / Output Screen]
-
-    User->>GUI: apply_filter(criteria)
-    GUI->>Service: filter_records(criteria)
-    Service->>Entity1: query_matching(budget, categories)
-    Entity1-->>Service: matching_records
-    Service->>Entity2: load_associated_metadata(record_ids)
-    Entity2-->>Service: metadata_records
-    Service->>Service: rank_and_format(matching_records, metadata_records)
-    Service->>ResultGUI: display_results(formatted_results)
-    ResultGUI-->>User: render_results_view()
-```
-
-<details>
-<summary><b>Canonical PlantUML: Sequence Diagram (Native BCE Lifeline Icons)</b></summary>
+### Sequence Diagram: UC-[ID] [Use Case Title]
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "[Actor Name]" as User
-boundary "[Client UI Screen / Modal]" as GUI
+boundary "[Client UI Screen]" as GUI
 control "[DomainService]" as Service
-entity "[DomainModelEntity1]" as Entity1
-entity "[DomainModelEntity2]" as Entity2
-boundary "[Result / Output Screen]" as ResultGUI
+entity "[DomainEntity1]" as Entity1
+entity "[DomainEntity2]" as Entity2
+boundary "[Result View]" as ResultGUI
 
-User -> GUI : apply_filter(criteria)
-GUI -> Service : filter_records(criteria)
-Service -> Entity1 : query_matching(budget, categories)
-Entity1 --> Service : matching_records
-Service -> Entity2 : load_associated_metadata(record_ids)
-Entity2 --> Service : metadata_records
-Service -> Service : rank_and_format(matching_records, metadata_records)
-Service -> ResultGUI : display_results(formatted_results)
-ResultGUI --> User : render_results_view()
+note left of User
+  <b>UC-[ID]: [Use Case Title]</b>
+  <b>Basic Course:</b>
+  1. [Actor] submits [action] on [GUI].
+  2. [Service] validates and updates [Entity1] & [Entity2].
+  3. [ResultGUI] displays result.
+
+  <b>Alternate Course (Rainy Day):</b>
+  - If validation fails, [GUI] displays error message.
+end note
+
+User -> GUI : submit_action(input)
+GUI -> Service : process_action(input)
+
+alt [Sunny Day: Input Valid]
+  Service -> Entity1 : find_or_validate(criteria)
+  Entity1 --> Service : entity1_record
+  Service -> Entity2 : update_state(payload)
+  Entity2 --> Service : updated_record
+  Service -> ResultGUI : render_success(updated_record)
+  ResultGUI --> User : show_result()
+else [Rainy Day: Validation / Business Rule Failure]
+  Service --> GUI : validation_error(reason)
+  GUI --> User : display_error(reason)
+end
 @enduml
 ```
-</details>
 
 ---
 

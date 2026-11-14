@@ -95,6 +95,10 @@ frontend/src/
 ---
 
 ## 3. Updated Domain Model
+<!--
+  Rosenberg Phase: Domain Model Evolution (Ch. 1 step 2b & Ch. 5, Fig. 5-18/5-19).
+  Menambahkan atribut ke entitas domain; BELUM ada operasi/method (dialokasikan di Section 7).
+-->
 
 ```mermaid
 classDiagram
@@ -217,148 +221,271 @@ class SectionStatusEnum(str, Enum):
 ---
 
 ## 4. ICONIX Robustness Analysis
+<!--
+  Doug Rosenberg's Four Rules of Robustness Analysis (Ch. 5):
+  1. Actors can only talk to Boundary objects.
+  2. Boundary objects can only talk to Controllers and Actors.
+  3. Entity objects can only talk to Controllers.
+  4. Controller objects can talk to Boundaries, Entities, and other Controllers (NEVER to Actors directly).
+  THE GOLDEN RULE: Boundary <-> Entity maupun Boundary <-> Boundary secara langsung DILARANG.
+  Canonical PlantUML ONLY (No Mermaid).
+-->
 
 ### UC-04.1: Generate Paper Outline
 
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
+```plantuml
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    ACTOR["Actor: Peneliti"]:::actor
-    B_SCR01[/"Boundary: SCR-01 Workspace Setup & Template Selection"/]:::boundary
-    B_SCR02[/"Boundary: SCR-02 Generation Progress Modal"/]:::boundary
-    B_SCR03[/"Boundary: SCR-03 Academic Outline Editorial Canvas"/]:::boundary
-    B_ERR[/"Boundary: SCR-05 Template Diagnostic Modal"/]:::boundary
+note as UC_TEXT
+  <b>UC-04.1: Generate Paper Outline from Template & Indexed Document</b>
+  <b>Basic Course (Sunny Day):</b>
+  1. Peneliti pilih dokumen Indexed, template iciCos, & bahasa di SCR-01 -> klik Generate.
+  2. Validasi kepemilikan workspace & status Indexed -> buka SCR-02.
+  3. Parse template.docx, template.tex, outline-sections.yaml -> OutlineDefinition.
+  4. Ambil chunk terarah per field -> sintesis 1-2 bullet via LLM (atau [NEEDS INPUT]).
+  5. Validasi struktur outline -> simpan PaperOutline v1 + sections + fields + provenance -> SCR-03.
 
-    C_AUTH(["Controller: Validate Researcher Workspace & Document Ownership"]):::controller
-    C_TMPL(["Controller: Load & Validate Template Files → OutlineDefinition"]):::controller
-    C_RETR(["Controller: Retrieve Targeted Chunks per Section-Field"]):::controller
-    C_LLM(["Controller: Synthesize Section Fields via LLM"]):::controller
-    C_VAL(["Controller: Validate Outline Structure vs OutlineDefinition"]):::controller
-    C_SAVE(["Controller: Persist Draft Outline v1"]):::controller
+  <b>Alternate Courses (Rainy Day):</b>
+  - Alt-1/2: Dokumen belum Indexed / template korup -> SCR-01 / SCR-05 (#FFCCCC).
+  - Alt-6/7: Validasi gagal (retry max 2x) / LLM timeout -> status Failed di SCR-02.
+end note
 
-    E_DOC[("Entity: Document / DocumentIndexVersion")]:::entity
-    E_CHUNK[("Entity: DocumentChunk (pgvector)")]:::entity
-    E_OUTLINE[("Entity: PaperOutline")]:::entity
-    E_SECTION[("Entity: OutlineSection")]:::entity
-    E_FIELD[("Entity: SectionField")]:::entity
-    E_REF[("Entity: SourceReference")]:::entity
+actor "Peneliti" as ACTOR
+boundary "SCR-01 Workspace Setup\n& Template Selection" as B_SCR01
+boundary "SCR-02 Generation\nProgress Modal" as B_SCR02
+boundary "SCR-03 Academic Outline\nEditorial Canvas" as B_SCR03
+boundary "SCR-05 Template\nDiagnostic Modal" as B_ERR
+boundary "OutlineRouter" as B_ROUTER
+boundary "Static Template Store\n(docx / tex / yaml)" as B_TMPL_FS
+boundary "LLM Service API" as B_LLM_API
 
-    ACTOR -->|"1. Select Indexed Doc + Language, Click Generate"| B_SCR01
-    B_SCR01 -->|"2. Dispatch generate request"| C_AUTH
-    C_AUTH -->|"3. Verify ownership & Indexed status"| E_DOC
-    C_AUTH -->|"Sunny Day"| C_TMPL
-    C_AUTH -->|"Alt-1: Doc not Indexed"| B_SCR01
-    C_TMPL -->|"4. Read docx + yaml + tex"| B_SCR02
-    C_TMPL -->|"Alt-2: Missing/corrupt files"| B_ERR
-    C_TMPL -->|"Alt-3: Inconsistency → log + continue"| C_RETR
-    C_RETR -->|"5. Cosine search chunks per field"| E_CHUNK
-    C_RETR -->|"6. Pass chunks + field rules"| C_LLM
-    C_LLM -->|"7. Synthesize 1-2 bullets or [NEEDS INPUT]"| C_VAL
-    C_VAL -->|"Alt-6: Schema mismatch → retry max 2x"| C_LLM
-    C_VAL -->|"Alt-6 final fail → status=Failed"| B_SCR02
-    C_VAL -->|"8. Valid → Save"| C_SAVE
-    C_SAVE -->|"Write PaperOutline v1"| E_OUTLINE
-    C_SAVE -->|"Write sections"| E_SECTION
-    C_SAVE -->|"Write fields"| E_FIELD
-    C_SAVE -->|"Write provenance"| E_REF
-    C_SAVE -->|"Ready for Review"| B_SCR03
+control "Validate Researcher Workspace\n& Document Ownership\n[OutlineService]" as C_AUTH
+control "Load & Validate Template Files\n-> OutlineDefinition\n[TemplateParser]" as C_TMPL
+control "Retrieve Targeted Chunks\nper Section-Field\n[ChunkRetriever]" as C_RETR
+control "Synthesize Section Fields\nvia LLM\n[LLMSynthesizer]" as C_LLM
+control "Validate Outline Structure\nvs OutlineDefinition\n[OutlineService]" as C_VAL
+control "Persist Draft Outline v1\n[OutlineRepository]" as C_SAVE
+control "Handle Generation Failure\n[OutlineService]" as C_FAIL #FFCCCC
+
+entity "DocumentIndexVersion" as E_DOC
+entity "DocumentChunk\n(pgvector)" as E_CHUNK
+entity "PaperOutline" as E_OUTLINE
+entity "OutlineSection" as E_SECTION
+entity "SectionField" as E_FIELD
+entity "SourceReference" as E_REF
+
+UC_TEXT -[hidden]-> ACTOR
+
+ACTOR --> B_SCR01 : 1. Select Indexed Doc + Language,\nClick Generate
+B_SCR01 --> B_ROUTER : 2. Submit generate_outline()
+B_ROUTER --> C_AUTH : Dispatch request
+C_AUTH --> E_DOC : 3. Verify ownership & Indexed status
+C_AUTH --> C_FAIL : [Alt-1: Doc not Indexed]
+C_FAIL --> B_SCR01 : Disable option & explain
+C_AUTH --> E_OUTLINE : Create PaperOutline v1 (preparing)
+C_AUTH --> B_SCR02 : Open progress modal
+C_AUTH --> C_TMPL : [Sunny Day] Start generation
+
+C_TMPL --> B_TMPL_FS : 4. Read docx + yaml + tex
+C_TMPL --> B_SCR02 : Update progress (Reading)
+C_TMPL --> C_FAIL : [Alt-2: Missing/corrupt files]
+C_FAIL --> B_ERR : Show template diagnostic
+C_TMPL --> C_RETR : [Alt-3: Log inconsistency] Continue
+
+C_RETR --> E_CHUNK : 5. Cosine search chunks per field
+C_RETR --> C_LLM : 6. Pass chunks + field rules
+C_LLM --> B_LLM_API : Invoke structured synthesis
+C_LLM --> C_FAIL : [Alt-7: LLM timeout]
+C_LLM --> C_VAL : 7. Synthesize bullets or [NEEDS INPUT]
+
+C_VAL --> C_LLM : [Alt-6: Schema mismatch -> retry max 2x]
+C_VAL --> C_FAIL : [Alt-6: Final fail]
+C_FAIL --> E_OUTLINE : Mark status = Failed
+C_FAIL --> B_SCR02 : Show Failed + Retry action
+
+C_VAL --> C_SAVE : 8. Valid -> Save
+C_SAVE --> E_OUTLINE : Update PaperOutline (ready)
+C_SAVE --> E_SECTION : Write sections
+C_SAVE --> E_FIELD : Write fields
+C_SAVE --> E_REF : Write provenance
+C_SAVE --> B_SCR03 : Ready for Review
+B_SCR03 --> ACTOR : Render Editorial Canvas
+@enduml
 ```
 
 ### UC-04.2: Review & Edit Outline Sections
 
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
+```plantuml
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    ACTOR["Actor: Peneliti"]:::actor
-    B_CANVAS[/"Boundary: SCR-03 Academic Outline Editorial Canvas"/]:::boundary
-    C_LOAD(["Controller: Load Section Content & Provenance"]):::controller
-    C_SAVE_EDIT(["Controller: Save Edited Field → Mark is_edited=True"]):::controller
-    E_FIELD[("Entity: SectionField")]:::entity
-    E_REF[("Entity: SourceReference")]:::entity
+note as UC_TEXT
+  <b>UC-04.2: Review & Edit Outline Sections</b>
+  <b>Basic Course:</b>
+  1. Peneliti pilih seksi pada pohon navigasi SCR-03.
+  2. OutlineRouter teruskan ke OutlineService / OutlineRepository untuk muat isi field & provenance.
+  3. Peneliti sunting teks -> simpan -> status seksi menjadi Edited (terproteksi).
+end note
 
-    ACTOR -->|"1. Click section in tree"| B_CANVAS
-    B_CANVAS -->|"2. Fetch section detail"| C_LOAD
-    C_LOAD -->|"3. Read fields"| E_FIELD
-    C_LOAD -->|"3a. Read provenance"| E_REF
-    C_LOAD -->|"4. Return section + chunks"| B_CANVAS
-    B_CANVAS -->|"5. Peneliti edits textarea"| C_SAVE_EDIT
-    C_SAVE_EDIT -->|"6. Update content, is_edited=True"| E_FIELD
-    C_SAVE_EDIT -->|"7. Confirm save"| B_CANVAS
-    B_CANVAS -->|"8. Show Edited badge"| ACTOR
+actor "Peneliti" as ACTOR
+boundary "SCR-03 Academic Outline\nEditorial Canvas" as B_CANVAS
+boundary "OutlineRouter" as B_ROUTER
+
+control "Load Section Content\n& Provenance\n[OutlineService]" as C_LOAD
+control "Save Edited Field\n-> Mark is_edited=True\n[OutlineService / OutlineRepository]" as C_SAVE_EDIT
+
+entity "OutlineSection" as E_SECTION
+entity "SectionField" as E_FIELD
+entity "SourceReference" as E_REF
+
+UC_TEXT -[hidden]-> ACTOR
+
+ACTOR --> B_CANVAS : 1. Click section in tree
+B_CANVAS --> B_ROUTER : 2. Request section detail
+B_ROUTER --> C_LOAD : Delegate fetch
+C_LOAD --> E_SECTION : Verify section metadata
+C_LOAD --> E_FIELD : 3. Read fields
+C_LOAD --> E_REF : 3a. Read provenance
+C_LOAD --> B_ROUTER : Return section + chunks
+B_ROUTER --> B_CANVAS : 4. Deliver detail
+B_CANVAS --> ACTOR : Display section & provenance
+
+ACTOR --> B_CANVAS : 5. Edit textarea content
+B_CANVAS --> B_ROUTER : Submit field edit
+B_ROUTER --> C_SAVE_EDIT : Dispatch edit update
+C_SAVE_EDIT --> E_FIELD : 6. Update content, is_edited=True
+C_SAVE_EDIT --> E_SECTION : Update section status = Edited
+C_SAVE_EDIT --> B_ROUTER : 7. Confirm save
+B_ROUTER --> B_CANVAS : Deliver updated field
+B_CANVAS --> ACTOR : 8. Show Edited badge
+@enduml
 ```
 
 ### UC-04.3: Regenerate Outline or Single Section
 
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
+```plantuml
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    ACTOR["Actor: Peneliti"]:::actor
-    B_CANVAS[/"Boundary: SCR-03 Editorial Canvas"/]:::boundary
-    B_MODAL[/"Boundary: Regeneration Confirm Modal"/]:::boundary
-    C_GUARD(["Controller: Check Concurrent Request Guard"]):::controller
-    C_FORK(["Controller: Fork New Outline Version vX+1"]):::controller
-    C_PRESERVE(["Controller: Copy Edited Sections to New Version"]):::controller
-    C_REGEN(["Controller: Re-run Retrieval + LLM Synthesis"]):::controller
-    C_SAVE_R(["Controller: Persist New Outline Version"]):::controller
-    E_OUTLINE[("Entity: PaperOutline")]:::entity
-    E_SECTION[("Entity: OutlineSection")]:::entity
+note as UC_TEXT
+  <b>UC-04.3: Regenerate Outline or Single Section</b>
+  <b>Basic Course:</b>
+  1. Peneliti klik Regenerate Entire Outline di SCR-03 -> buka modal konfirmasi.
+  2. Peneliti pilih pertahankan seksi Edited (default) atau Reset All Sections.
+  3. Cek concurrent guard -> fork versi vX+1 -> salin Edited -> sintesis non-edited via LLM.
 
-    ACTOR -->|"1. Click Regenerate Entire Outline"| B_CANVAS
-    B_CANVAS -->|"2. Show confirm modal"| B_MODAL
-    ACTOR -->|"3. Confirm (with/without Reset All)"| B_MODAL
-    B_MODAL -->|"4. Dispatch regen"| C_GUARD
-    C_GUARD -->|"Alt-8: Concurrent job → 409"| B_CANVAS
-    C_GUARD -->|"OK"| C_FORK
-    C_FORK -->|"5. Create PaperOutline vX+1"| E_OUTLINE
-    C_FORK -->|"6. If not Reset All"| C_PRESERVE
-    C_PRESERVE -->|"Clone Edited sections"| E_SECTION
-    C_FORK -->|"7. Trigger regen for non-edited"| C_REGEN
-    C_REGEN -->|"Same pipeline as UC-04.1"| C_SAVE_R
-    C_SAVE_R -->|"8. Persist new version"| E_SECTION
-    C_SAVE_R -->|"Done"| B_CANVAS
+  <b>Alternate Course:</b>
+  - Alt-8: Concurrent request pada workspace yang sama -> tolak 409 (#FFCCCC).
+end note
+
+actor "Peneliti" as ACTOR
+boundary "SCR-03 Editorial Canvas" as B_CANVAS
+boundary "Regeneration Confirm Modal" as B_MODAL
+boundary "OutlineRouter" as B_ROUTER
+boundary "LLM Service API" as B_LLM_API
+
+control "Prepare Regeneration\nOptions Summary\n[OutlineService]" as C_PREP
+control "Check Concurrent\nRequest Guard\n[OutlineService]" as C_GUARD
+control "Reject Concurrent Request\n[OutlineRouter]" as C_CONFLICT #FFCCCC
+control "Fork New Outline\nVersion vX+1\n[OutlineService]" as C_FORK
+control "Copy Edited Sections\nto New Version\n[OutlineRepository]" as C_PRESERVE
+control "Re-run Retrieval\n+ LLM Synthesis\n[ChunkRetriever / LLMSynthesizer]" as C_REGEN
+control "Persist New Outline Version\n[OutlineRepository]" as C_SAVE_R
+
+entity "DocumentChunk\n(pgvector)" as E_CHUNK
+entity "PaperOutline" as E_OUTLINE
+entity "OutlineSection" as E_SECTION
+
+UC_TEXT -[hidden]-> ACTOR
+
+ACTOR --> B_CANVAS : 1. Click Regenerate Entire Outline
+B_CANVAS --> C_PREP : Inspect Edited vs non-edited sections
+C_PREP --> E_SECTION : Read section edited flags
+C_PREP --> B_MODAL : 2. Present confirm modal
+B_MODAL --> ACTOR : Display preservation summary
+
+ACTOR --> B_MODAL : 3. Confirm (with/without Reset All)
+B_MODAL --> B_ROUTER : 4. Submit regenerate request
+B_ROUTER --> C_GUARD : Dispatch regen
+C_GUARD --> C_CONFLICT : [Alt-8: Active job exists]
+C_CONFLICT --> B_CANVAS : Show 409 conflict notice
+C_GUARD --> C_FORK : [OK] No active job
+
+C_FORK --> E_OUTLINE : 5. Create PaperOutline vX+1
+C_FORK --> C_PRESERVE : 6. If not Reset All
+C_PRESERVE --> E_SECTION : Clone Edited sections
+C_FORK --> C_REGEN : 7. Trigger regen for non-edited
+C_REGEN --> E_CHUNK : Retrieve chunks
+C_REGEN --> B_LLM_API : Synthesize non-edited fields
+C_REGEN --> C_SAVE_R : Validate & prepare new sections
+C_SAVE_R --> E_SECTION : 8. Persist new version
+C_SAVE_R --> B_CANVAS : Display new draft version
+B_CANVAS --> ACTOR : Render updated outline
+@enduml
 ```
 
 ### UC-04.4: Approve & Version Paper Outline
 
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
+```plantuml
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    ACTOR["Actor: Peneliti"]:::actor
-    B_CANVAS[/"Boundary: SCR-03 Editorial Canvas"/]:::boundary
-    B_CONFIRM[/"Boundary: Approve Confirm Dialog"/]:::boundary
-    C_CHECK(["Controller: Check NEEDS INPUT Presence"]):::controller
-    C_LOCK(["Controller: Set Outline Status to Approved + Timestamp"]):::controller
-    C_FORK_EDIT(["Controller: Fork New Draft vX+1 on Post-Approval Edit Attempt"]):::controller
-    E_OUTLINE[("Entity: PaperOutline")]:::entity
+note as UC_TEXT
+  <b>UC-04.4: Approve & Version Paper Outline</b>
+  <b>Basic Course:</b>
+  1. Peneliti klik Approve Outline di SCR-03 -> cek sisa [NEEDS INPUT].
+  2. Tampilkan dialog konfirmasi -> set approval_status = Approved + approved_at.
 
-    ACTOR -->|"1. Click Approve Outline"| B_CANVAS
-    B_CANVAS -->|"2. Trigger approval check"| C_CHECK
-    C_CHECK -->|"3a. Unresolved NEEDS INPUT → warning"| B_CONFIRM
-    C_CHECK -->|"3b. All clear → confirm"| B_CONFIRM
-    ACTOR -->|"4. Confirm approval"| B_CONFIRM
-    B_CONFIRM -->|"5. Lock"| C_LOCK
-    C_LOCK -->|"6. approval_status=approved, approved_at=now()"| E_OUTLINE
-    C_LOCK -->|"7. Show Approved badge"| B_CANVAS
-    ACTOR -->|"Alt-1: Try to edit Approved outline"| B_CANVAS
-    B_CANVAS -->|"Fork check"| C_FORK_EDIT
-    C_FORK_EDIT -->|"Create vX+1 Draft"| E_OUTLINE
-    C_FORK_EDIT -->|"Open new draft in canvas"| B_CANVAS
+  <b>Alternate Course:</b>
+  - Alt-1: Edit outline berstatus Approved -> kunci read-only & fork versi Draft vX+1.
+end note
+
+actor "Peneliti" as ACTOR
+boundary "SCR-03 Editorial Canvas" as B_CANVAS
+boundary "Approve Confirm Dialog" as B_CONFIRM
+boundary "OutlineRouter" as B_ROUTER
+
+control "Check NEEDS INPUT Presence\n[OutlineService]" as C_CHECK
+control "Set Outline Status to Approved\n+ Timestamp\n[OutlineService]" as C_LOCK
+control "Fork New Draft vX+1 on\nPost-Approval Edit Attempt\n[OutlineService]" as C_FORK_EDIT #FFCCCC
+
+entity "PaperOutline" as E_OUTLINE
+
+UC_TEXT -[hidden]-> ACTOR
+
+ACTOR --> B_CANVAS : 1. Click Approve Outline
+B_CANVAS --> B_ROUTER : 2. Request NEEDS INPUT check
+B_ROUTER --> C_CHECK : Trigger approval check
+C_CHECK --> E_OUTLINE : Count remaining [NEEDS INPUT]
+C_CHECK --> B_ROUTER : Return warning / ok status
+B_ROUTER --> B_CONFIRM : 3a/3b. Present warning or confirm
+B_CONFIRM --> ACTOR : Ask explicit confirmation
+
+ACTOR --> B_CONFIRM : 4. Confirm approval
+B_CONFIRM --> B_ROUTER : Submit approve_outline()
+B_ROUTER --> C_LOCK : 5. Lock approved version
+C_LOCK --> E_OUTLINE : 6. approval_status=approved,\napproved_at=now()
+C_LOCK --> B_ROUTER : Return approval result
+B_ROUTER --> B_CANVAS : 7. Show Approved badge
+B_CANVAS --> ACTOR : Render Approved badge
+
+ACTOR --> B_CANVAS : [Alt-1] Try to edit Approved outline
+B_CANVAS --> B_ROUTER : Request edit on Approved outline
+B_ROUTER --> C_FORK_EDIT : Dispatch post-approval edit guard
+C_FORK_EDIT --> E_OUTLINE : Create vX+1 Draft (immutable vX)
+C_FORK_EDIT --> B_ROUTER : Return forked outline ID
+B_ROUTER --> B_CANVAS : Open new draft in canvas
+B_CANVAS --> ACTOR : Render vX+1 editable draft
+@enduml
 ```
 
 ### BCE Inventory & Method Allocation
@@ -370,15 +497,21 @@ flowchart TD
 | **Boundary** | SCR-03 Academic Outline Editorial Canvas | `frontend/src/app/workspace/outline/[outlineId]/page.tsx` + `OutlineEditorCanvas.tsx` |
 | **Boundary** | SCR-04 Version History Drawer | `frontend/src/components/features/outline/VersionHistoryDrawer.tsx` |
 | **Boundary** | SCR-05 Template Diagnostic Modal | `frontend/src/components/features/outline/TemplateDiagnosticModal.tsx` |
+| **Boundary** | `OutlineRouter` (FastAPI API Boundary) | `backend/src/outlines/router.py` |
+| **Boundary** | Static Template Store (`docx/tex/yaml`) | `backend/src/templates/<template_id>/` filesystem boundary |
+| **Boundary** | LLM Service API | `LLMSynthesizer` external Gemini API gateway |
 | **Controller** | Validate Researcher Workspace & Document Ownership | `OutlineService.validate_generate_request()` |
 | **Controller** | Load & Validate Template Files → OutlineDefinition | `TemplateParser.parse_template()` |
 | **Controller** | Retrieve Targeted Chunks per Section-Field | `ChunkRetriever.retrieve_for_field()` |
 | **Controller** | Synthesize Section Fields via LLM | `LLMSynthesizer.synthesize_field()` |
 | **Controller** | Validate Outline Structure vs OutlineDefinition | `OutlineService.validate_outline_structure()` |
 | **Controller** | Persist Draft Outline v1 | `OutlineRepository.create_outline_with_sections()` |
+| **Controller** | Handle Generation Failure | `OutlineService.mark_generation_failed()` |
 | **Controller** | Load Section Content & Provenance | `OutlineService.get_section_detail()` |
 | **Controller** | Save Edited Section Field → Mark Edited | `OutlineService.update_field_content()` |
+| **Controller** | Prepare Regeneration Options Summary | `OutlineService.get_regeneration_preview()` |
 | **Controller** | Check Concurrent Request Guard | `OutlineService.assert_no_active_generation()` |
+| **Controller** | Reject Concurrent Request | `OutlineRouter` / `HTTP 409 Conflict` handler |
 | **Controller** | Fork New Outline Version vX+1 | `OutlineService.fork_outline_version()` |
 | **Controller** | Copy Edited Sections to New Version | `OutlineRepository.clone_edited_sections()` |
 | **Controller** | Check NEEDS INPUT Presence | `OutlineService.check_needs_input()` |
@@ -414,91 +547,298 @@ flowchart TD
 ---
 
 ## 6. Detailed Design: Sequence Diagrams
+<!--
+  Rosenberg Phase: Detailed Design (Ch. 8). Canonical PlantUML ONLY (No Mermaid).
+  Menggunakan OO method invocations (bukan HTTP verbs mentah).
+-->
 
 ### UC-04.1: Generate Paper Outline (Sunny Day + Async Worker)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant SCR01 as Boundary: SCR-01 Workspace Setup
-    participant SCR02 as Boundary: SCR-02 Progress Modal
-    participant SCR03 as Boundary: SCR-03 Editorial Canvas
-    participant Router as Boundary: POST /api/outlines/generate
-    participant Svc as Controller: OutlineService
-    participant Parser as Controller: TemplateParser
-    participant Retr as Controller: ChunkRetriever
-    participant LLM as Controller: LLMSynthesizer
-    participant Repo as Controller: OutlineRepository
-    participant ChunkE as Entity: DocumentChunk
-    participant OutlineE as Entity: PaperOutline
-    participant FieldE as Entity: SectionField
-    participant RefE as Entity: SourceReference
+```plantuml
+@startuml
+autoactivate off
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    Peneliti->>SCR01: select_document(), select_language(), click_generate()
-    SCR01->>Router: POST /api/outlines/generate
-    Router->>Svc: generate_outline(researcher_id, doc_id, template_id, language)
-    Svc->>Svc: validate_generate_request()
-    Svc->>Svc: assert_no_active_generation()
-    Svc->>OutlineE: create(status=preparing, version=1)
-    Svc-->>Router: outline_id
-    Router-->>SCR01: 202 Accepted {outline_id}
-    SCR01->>SCR02: open_progress_modal(outline_id)
+actor "Peneliti" as Peneliti
+boundary "SCR-01 Workspace Setup" as SCR01
+boundary "SCR-02 Progress Modal" as SCR02
+boundary "SCR-03 Editorial Canvas" as SCR03
+boundary "SCR-05 Diagnostic Modal" as SCR05
+boundary "OutlineRouter" as Router
+boundary "Static Template Store\n(docx / tex / yaml)" as TmplFS
+boundary "LLM Service API" as LLMAPI
+control "OutlineService" as Svc
+control "TemplateParser" as Parser
+control "ChunkRetriever" as Retr
+control "LLMSynthesizer" as LLM
+control "OutlineRepository" as Repo
+entity "DocumentIndexVersion" as DocIdxE
+entity "DocumentChunk" as ChunkE
+entity "PaperOutline" as OutlineE
+entity "OutlineSection" as SectionE
+entity "SectionField" as FieldE
+entity "SourceReference" as RefE
 
-    Note over Svc,LLM: Background Worker
-    Svc->>Parser: parse_template("icicos")
-    Parser-->>Svc: OutlineDefinition
-    Svc->>OutlineE: update(status=reading)
+note left of Peneliti
+  <b>UC-04.1: Generate Paper Outline</b>
+  <b>Basic Course:</b>
+  1. Peneliti pilih dokumen Indexed, template & bahasa -> klik Generate.
+  2. OutlineRouter delegasikan ke OutlineService -> verifikasi DocumentIndexVersion -> buat PaperOutline v1 (preparing).
+  3. Worker baca Static Template Store -> retrieve DocumentChunk per field -> panggil LLM Service API.
+  4. Validasi struktur -> simpan OutlineSection/SectionField/SourceReference -> redirect ke SCR-03.
+
+  <b>Alternate Courses:</b>
+  - Alt-2: Template hilang/korup -> status=failed + buka SCR-05.
+  - Alt-6: Struktur LLM invalid (setelah 2x retry) -> status=failed di SCR-02.
+end note
+
+Peneliti -> SCR01 : select_document_and_language(doc_id, language)
+SCR01 -> Router : generate_outline(doc_id, template_id, language)
+Router -> Svc : generate_outline(researcher_id, doc_id, template_id, language)
+Svc -> DocIdxE : verify_ownership_and_indexed(researcher_id, doc_id)
+DocIdxE --> Svc : active_index_version
+Svc -> Svc : assert_no_active_generation()
+Svc -> OutlineE : create(status_preparing, version_1)
+Svc --> Router : outline_id
+Router --> SCR01 : accept_generation(outline_id)
+SCR01 -> SCR02 : open_progress_modal(outline_id)
+
+note over Svc, LLM : Async Background Execution
+Svc -> Parser : parse_template("icicos")
+Parser -> TmplFS : read_docx_tex_yaml("icicos")
+
+alt Alt-2: Template Files Missing or Corrupt
+    TmplFS --> Parser : file_missing_or_corrupt_error
+    Parser --> Svc : raise_template_diagnostic_error(details)
+    Svc -> OutlineE : update_status(status_failed)
+    SCR02 -> SCR05 : open_template_diagnostic_modal(details)
+    SCR05 --> Peneliti : render_template_error()
+else Sunny Day: Normalized OutlineDefinition Ready
+    TmplFS --> Parser : raw_template_files
+    Parser --> Svc : outline_definition
+    Svc -> OutlineE : update_status(status_reading)
 
     loop For each section.field in OutlineDefinition
-        Svc->>Retr: retrieve_for_field(field_key, index_version_id)
-        Retr->>ChunkE: cosine_search(field_embedding, top_k=5)
-        ChunkE-->>Retr: List~Chunk~
-        Retr-->>Svc: List~ChunkContext~
-        Svc->>OutlineE: update(status=generating)
-        Svc->>LLM: synthesize_field(field_rule, chunk_contexts, language)
-        LLM-->>Svc: FieldResult
+        Svc -> Retr : retrieve_for_field(field_key, index_version_id)
+        Retr -> ChunkE : cosine_search(field_embedding, top_k=5)
+        ChunkE --> Retr : chunk_list
+        Retr --> Svc : chunk_context_list
+        Svc -> OutlineE : update_status(status_generating)
+        Svc -> LLM : synthesize_field(field_rule, chunk_contexts, language)
+        LLM -> LLMAPI : invoke_structured_completion(prompt)
+        LLMAPI --> LLM : structured_json_response
+        LLM --> Svc : field_result
     end
 
-    Svc->>Svc: validate_outline_structure(draft, OutlineDefinition)
-    Svc->>OutlineE: update(status=validating)
-    Svc->>Repo: create_outline_with_sections(outline_id, sections, fields, refs)
-    Repo->>FieldE: bulk_insert(fields)
-    Repo->>RefE: bulk_insert(refs)
-    Svc->>OutlineE: update(status=ready)
-    SCR02-->>SCR03: redirect on status=ready
-    SCR03-->>Peneliti: render_editorial_canvas()
+    Svc -> OutlineE : update_status(status_validating)
+    Svc -> Svc : validate_outline_structure(draft, outline_definition)
+
+    alt Sunny Day: Structure Valid
+        Svc -> Repo : create_outline_with_sections(outline_id, sections, fields, refs)
+        Repo -> SectionE : bulk_insert(sections)
+        Repo -> FieldE : bulk_insert(fields)
+        Repo -> RefE : bulk_insert(refs)
+        Svc -> OutlineE : update_status(status_ready)
+        SCR02 --> SCR03 : redirect_on_ready(outline_id)
+        SCR03 --> Peneliti : render_editorial_canvas()
+    else Alt-6: Validation Failed After Max 2 Retries
+        Svc -> OutlineE : update_status(status_failed)
+        SCR02 --> Peneliti : show_validation_failure_with_retry()
+    end
+end
+@enduml
 ```
 
-### UC-04.4: Approve Outline
+### UC-04.2: Review & Edit Outline Sections
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Peneliti as Actor: Peneliti
-    participant SCR03 as Boundary: SCR-03 Editorial Canvas
-    participant Dialog as Boundary: Approve Confirm Dialog
-    participant Router as Boundary: POST /api/outlines/{id}/approve
-    participant Svc as Controller: OutlineService
-    participant OutlineE as Entity: PaperOutline
+```plantuml
+@startuml
+autoactivate off
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
 
-    Peneliti->>SCR03: click_approve_outline()
-    SCR03->>Svc: check_needs_input(outline_id)
-    Svc->>OutlineE: count required fields with is_needs_input=True
-    alt Unresolved NEEDS INPUT found
-        Svc-->>SCR03: warning response
-        SCR03->>Dialog: show_warning_dialog()
-        Peneliti->>Dialog: confirm_anyway()
-    else No unresolved fields
-        SCR03->>Dialog: show_confirm_dialog()
-        Peneliti->>Dialog: confirm()
+actor "Peneliti" as Peneliti
+boundary "SCR-03 Academic Outline\nEditorial Canvas" as SCR03
+boundary "OutlineRouter" as Router
+control "OutlineService" as Svc
+control "OutlineRepository" as Repo
+entity "OutlineSection" as SectionE
+entity "SectionField" as FieldE
+entity "SourceReference" as RefE
+
+note left of Peneliti
+  <b>UC-04.2: Review & Edit Outline Sections</b>
+  1. Peneliti klik seksi pada SCR-03 -> muat OutlineSection, SectionField, & SourceReference.
+  2. Peneliti sunting konten -> OutlineService & OutlineRepository simpan & tandai Edited.
+end note
+
+Peneliti -> SCR03 : select_section(section_id)
+SCR03 -> Router : get_section_detail(outline_id, section_id)
+Router -> Svc : get_section_detail(outline_id, section_id, researcher_id)
+Svc -> Repo : load_section_with_provenance(section_id)
+Repo -> SectionE : get_section(section_id)
+SectionE --> Repo : section_record
+Repo -> FieldE : get_fields_by_section(section_id)
+FieldE --> Repo : fields_list
+Repo -> RefE : get_references_by_fields(field_ids)
+RefE --> Repo : provenance_list
+Repo --> Svc : section_detail_dto
+Svc --> Router : section_detail_dto
+Router --> SCR03 : deliver_section_detail()
+SCR03 --> Peneliti : render_section_and_provenance()
+
+Peneliti -> SCR03 : edit_field_content(field_id, new_content)
+SCR03 -> Router : update_section_field(outline_id, field_id, new_content)
+Router -> Svc : update_field_content(outline_id, field_id, new_content, researcher_id)
+Svc -> Repo : update_field_content(field_id, new_content)
+Repo -> FieldE : set_content_and_edited(new_content, is_edited_true)
+FieldE --> Repo : updated_field
+Repo -> SectionE : update_section_status(status_edited)
+SectionE --> Repo : updated_section
+Repo --> Svc : section_field_response
+Svc --> Router : section_field_response
+Router --> SCR03 : confirm_saved_edited()
+SCR03 --> Peneliti : show_edited_badge()
+@enduml
+```
+
+### UC-04.3: Regenerate Outline or Single Section
+
+```plantuml
+@startuml
+autoactivate off
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Peneliti" as Peneliti
+boundary "SCR-03 Editorial Canvas" as SCR03
+boundary "Regeneration Confirm Modal" as Modal
+boundary "OutlineRouter" as Router
+boundary "LLM Service API" as LLMAPI
+control "OutlineService" as Svc
+control "OutlineRepository" as Repo
+control "ChunkRetriever" as Retr
+control "LLMSynthesizer" as LLM
+entity "PaperOutline" as OutlineE
+entity "OutlineSection" as SectionE
+entity "DocumentChunk" as ChunkE
+
+note left of Peneliti
+  <b>UC-04.3: Regenerate Outline or Single Section</b>
+  1. Peneliti klik Regenerate -> inspect seksi Edited -> tampilkan modal konfirmasi.
+  2. Cek concurrent guard (Alt-8: tolak 409 jika aktif).
+  3. Fork versi vX+1 -> salin Edited (kecuali Reset All) -> sintesis seksi non-edited.
+end note
+
+Peneliti -> SCR03 : click_regenerate_outline()
+SCR03 -> Router : get_regeneration_preview(outline_id)
+Router -> Svc : get_regeneration_preview(outline_id, researcher_id)
+Svc -> Repo : list_sections_status(outline_id)
+Repo -> SectionE : find_edited_vs_unedited(outline_id)
+SectionE --> Repo : preview_summary
+Repo --> Svc : preview_summary
+Svc --> Modal : present_confirm_modal(preview_summary)
+Modal --> Peneliti : display_preservation_options()
+
+Peneliti -> Modal : confirm_regenerate(reset_all_flag)
+Modal -> Router : regenerate_outline(outline_id, reset_all_flag)
+Router -> Svc : assert_no_active_generation(doc_id)
+
+alt Alt-8: Active Generation Job Exists
+    Svc --> Router : raise_conflict_409()
+    Router --> SCR03 : show_conflict_notice()
+    SCR03 --> Peneliti : render_concurrent_warning()
+else Sunny Day: Safe to Regenerate
+    Svc -> Repo : create_forked_outline(outline_id, version_vX_plus_1)
+    Repo -> OutlineE : insert_version(version_vX_plus_1, status_draft)
+    opt reset_all_flag == false
+        Svc -> Repo : clone_edited_sections(source_id, target_id)
+        Repo -> SectionE : copy_edited_sections()
     end
-    Dialog->>Router: POST /api/outlines/{id}/approve
-    Router->>Svc: approve_outline(outline_id, researcher_id)
-    Svc->>OutlineE: update(approval_status=approved, approved_at=now())
-    Svc-->>Router: approved
-    Router-->>SCR03: 200 OK
-    SCR03-->>Peneliti: show_approved_badge()
+    Svc -> Retr : retrieve_for_field(field_key, index_version_id)
+    Retr -> ChunkE : cosine_search(field_embedding, top_k=5)
+    ChunkE --> Retr : chunks
+    Retr --> Svc : chunk_contexts
+    Svc -> LLM : synthesize_field(field_rule, chunk_contexts, language)
+    LLM -> LLMAPI : invoke_structured_completion(prompt)
+    LLMAPI --> LLM : structured_json
+    LLM --> Svc : synthesized_fields
+    Svc -> Repo : persist_regenerated_sections(target_id, synthesized_fields)
+    Repo -> SectionE : save_new_sections()
+    Svc --> SCR03 : open_new_draft_version(target_id)
+    SCR03 --> Peneliti : render_updated_outline()
+end
+@enduml
+```
+
+### UC-04.4: Approve & Version Paper Outline
+
+```plantuml
+@startuml
+autoactivate off
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Peneliti" as Peneliti
+boundary "SCR-03 Editorial Canvas" as SCR03
+boundary "Approve Confirm Dialog" as Dialog
+boundary "OutlineRouter" as Router
+control "OutlineService" as Svc
+entity "PaperOutline" as OutlineE
+
+note left of Peneliti
+  <b>UC-04.4: Approve & Version Paper Outline</b>
+  <b>Basic Course:</b>
+  1. Peneliti klik Approve Outline di SCR-03 -> cek [NEEDS INPUT].
+  2. Konfirmasi approval -> set approval_status=approved + approved_at.
+
+  <b>Alternate Course:</b>
+  - Alt-1: Upaya edit setelah Approved -> fork versi Draft vX+1 (immutable vX).
+end note
+
+Peneliti -> SCR03 : click_approve_outline()
+SCR03 -> Router : check_needs_input(outline_id)
+Router -> Svc : check_needs_input(outline_id)
+Svc -> OutlineE : count_unresolved_needs_input(outline_id)
+
+alt Unresolved [NEEDS INPUT] Found
+    OutlineE --> Svc : unresolved_count
+    Svc --> Router : needs_input_warning(unresolved_count)
+    Router --> SCR03 : warning_response
+    SCR03 -> Dialog : show_warning_dialog(unresolved_count)
+    Peneliti -> Dialog : confirm_anyway()
+else No Unresolved Fields
+    OutlineE --> Svc : zero_unresolved
+    Svc --> Router : ready_to_approve
+    Router --> SCR03 : ok_response
+    SCR03 -> Dialog : show_confirm_dialog()
+    Peneliti -> Dialog : confirm()
+end
+
+Dialog -> Router : approve_outline(outline_id, researcher_id)
+Router -> Svc : approve_outline(outline_id, researcher_id)
+Svc -> OutlineE : mark_approved(approval_status_approved, approved_at)
+OutlineE --> Svc : updated_outline
+Svc --> Router : approved_result
+Router --> SCR03 : approval_confirmed()
+SCR03 --> Peneliti : show_approved_badge()
+
+alt Alt-1: Post-Approval Edit Attempt
+    Peneliti -> SCR03 : attempt_edit_field(outline_id, field_id)
+    SCR03 -> Router : fork_on_edit_attempt(outline_id, researcher_id)
+    Router -> Svc : fork_on_edit_attempt(outline_id, researcher_id)
+    Svc -> OutlineE : clone_as_new_draft(version_vX_plus_1)
+    OutlineE --> Svc : new_draft_outline
+    Svc --> Router : forked_outline_id
+    Router --> SCR03 : open_draft_version(forked_outline_id)
+    SCR03 --> Peneliti : render_new_editable_draft()
+end
+@enduml
 ```
 
 ---

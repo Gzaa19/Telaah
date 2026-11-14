@@ -5,7 +5,7 @@ description: "Task list template for ICONIX feature implementation with Git vers
 # Tasks: [FEATURE NAME] – ICONIX Implementation Plan
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
-**Prerequisites**: `plan.md` (PDR & CDR Approved), `spec.md`, `research.md`, `data-model.md`
+**Prerequisites**: `plan.md` (PDR & CDR Approved), `spec.md`, `research.md`, `data-model.md`, and `/speckit-analyze` consistency check prior to `/speckit-implement`
 **Methodology Reference**: Doug Rosenberg's ICONIX Process (BCE Architecture: Tests → Entity → Controller → Boundary)
 
 ---
@@ -43,16 +43,16 @@ description: "Task list template for ICONIX feature implementation with Git vers
 
 ---
 
-## Phase 3: Use Case 1 (UC-1) – [Title] (Priority: P1) [MVP]
+## Phase 3: Sub-Use Case 1 (UC-[XX].1) – [Title] (Priority: P1) [MVP]
 
 **Goal**: [Describe primary actor goal and sunny day deliverable]
-**Independent Test**: [Command to run tests verifying UC-1 independently]
+**Independent Test**: [Command to run tests verifying UC-[XX].1 independently]
 
 ### Step 3.1: Unit & Integration Tests (TDD - Write First)
-- [ ] T010 [P] [UC1] Write unit tests for Controller (Service business logic) in `backend/tests/[feature]/test_service.py`
-- [ ] T011 [P] [UC1] Write contract/integration tests for Boundary (FastAPI Router) in `backend/tests/[feature]/test_router.py`
-- [ ] T012 [UC1] Verify tests FAIL prior to implementation (Red stage)
-- [ ] T013 [UC1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC1): add failing test suite for [Title]"`
+- [ ] T010 [P] [UC-[XX].1] Write unit tests for Controller (Service business logic) in `backend/tests/[feature]/test_service.py`
+- [ ] T011 [P] [UC-[XX].1] Write contract/integration tests for Boundary (FastAPI Router) in `backend/tests/[feature]/test_router.py`
+- [ ] T012 [UC-[XX].1] Verify tests FAIL prior to implementation (Red stage)
+- [ ] T013 [UC-[XX].1] **Git Commit (Tests)**: `git add backend/tests/ && git commit -m "test(UC-[XX].1): add failing test suite for [Title]"`
 
 ### Step 3.2: Controller Layer (Business Logic & Validation)
 - [ ] T014 [P] [UC1] Implement request and response Pydantic DTOs in `backend/src/[feature]/schemas.py`

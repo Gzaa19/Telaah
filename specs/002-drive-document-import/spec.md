@@ -186,53 +186,27 @@ flowchart LR
 ---
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
+<!--
+  Rosenberg Rule (Ch. 2, Fig. 2-2): Initial Domain Model hanya berisi nama class domain dan
+  relasi dasar has-a (o--) / is-a (<|--). Belum ada atribut, operasi/method, maupun multiplicity.
+  Atribut baru ditambahkan pada Updated Domain Model (plan.md Section 2).
+-->
 
 ```mermaid
 classDiagram
-    class Document {
-        +documentId: UUID
-        +googleDriveId: String
-        +fileName: String
-        +fileType: Enum[PDF, DOCX]
-        +fileSizeBytes: Integer
-        +driveModifiedAt: DateTime
-        +driveMd5Checksum: String
-        +importStatus: Enum[importing, extracting, extracted, failed]
-        +failureReason: String
-        +importedAt: DateTime
-        +extractedAt: DateTime
-        +researcherId: UUID
-    }
+    class ResearcherAccount
+    class Document
+    class ExtractedText
+    class ExtractedPage
 
-    class ExtractedText {
-        +extractedTextId: UUID
-        +documentId: UUID
-        +fullText: Text
-        +totalPages: Integer
-        +extractedAt: DateTime
-    }
-
-    class ExtractedPage {
-        +extractedPageId: UUID
-        +extractedTextId: UUID
-        +pageNumber: Integer
-        +content: Text
-    }
-
-    class ResearcherAccount {
-        +researcherId: UUID
-        +fullName: String
-        +email: String
-    }
-
-    ResearcherAccount "1" --> "*" Document : imports
-    Document "1" --> "1" ExtractedText : yields
-    ExtractedText "1" --> "*" ExtractedPage : contains
+    ResearcherAccount o-- Document : has-a
+    Document o-- ExtractedText : has-a
+    ExtractedText o-- ExtractedPage : has-a
 ```
 
-- **Document**: Representasi berkas literatur ilmiah yang diimpor dari Google Drive. Menyimpan identitas Drive (`googleDriveId`), metadata berkas, hash konten (`driveMd5Checksum`), dan status pipeline import (`importStatus`). `googleDriveId` berfungsi sebagai kunci unik per peneliti untuk pencegahan duplikasi.
-- **ExtractedText**: Konten teks lengkap hasil ekstraksi dari berkas, terpisah dari metadata dokumen untuk fleksibilitas re-ekstraksi. Menjadi input langsung untuk pipeline indexing UC-03.
-- **ExtractedPage**: Potongan teks per halaman (PDF) atau per seksi (DOCX), menyimpan `pageNumber` untuk keterlacakan sitasi ilmiah pada UC-03.
+- **Document**: Representasi berkas literatur ilmiah yang diimpor dari Google Drive beserta identitas Drive, metadata berkas, dan status pipeline import.
+- **ExtractedText**: Konten teks lengkap hasil ekstraksi dari berkas yang menjadi input langsung untuk pipeline indexing UC-03.
+- **ExtractedPage**: Potongan teks per halaman (PDF) atau per seksi (DOCX) untuk menjaga keterlacakan sitasi ilmiah pada UC-03.
 - **ResearcherAccount**: Pengguna sistem yang memiliki hak eksklusif atas dokumen yang diimpor.
 
 ---

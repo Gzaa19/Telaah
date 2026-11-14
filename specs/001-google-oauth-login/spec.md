@@ -117,42 +117,25 @@ flowchart LR
 ---
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
+<!--
+  Rosenberg Rule (Ch. 2, Fig. 2-2): Initial Domain Model hanya berisi nama class domain dan
+  relasi dasar has-a (o--) / is-a (<|--). Belum ada atribut, operasi/method, maupun multiplicity.
+  Atribut baru ditambahkan pada Updated Domain Model (plan.md Section 2).
+-->
 
 ```mermaid
 classDiagram
-    class ResearcherAccount {
-        +UUID researcher_id
-        +String email
-        +String full_name
-        +String avatar_url
-        +DateTime created_at
-        +DateTime last_login_at
-    }
+    class ResearcherAccount
+    class UserSession
+    class OAuthCredential
 
-    class UserSession {
-        +UUID session_id
-        +UUID researcher_id
-        +DateTime session_expires_at
-        +Boolean is_active
-    }
-
-    class OAuthCredential {
-        +UUID credential_id
-        +UUID researcher_id
-        +String provider
-        +String encrypted_access_token
-        +String encrypted_refresh_token
-        +DateTime token_expires_at
-        +Boolean is_drive_granted
-    }
-
-    ResearcherAccount "1" --> "1..*" UserSession : maintains
-    ResearcherAccount "1" --> "1" OAuthCredential : owns
+    ResearcherAccount o-- UserSession : has-a
+    ResearcherAccount o-- OAuthCredential : has-a
 ```
 
 - **ResearcherAccount**: Entitas bisnis utama yang merepresentasikan Peneliti pengguna aplikasi Paper Generator.
 - **UserSession**: Entitas yang mencatat status keaktifan sesi Peneliti pada peramban/aplikasi.
-- **OAuthCredential**: Kredensial terenkripsi hasil otorisasi Google OAuth, menyimpan token dan status hak akses Drive.
+- **OAuthCredential**: Kredensial hasil otorisasi Google OAuth yang menyimpan otoritas token dan hak akses Drive.
 
 ---
 

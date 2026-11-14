@@ -288,66 +288,23 @@ flowchart LR
 ---
 
 ## 4. Initial Domain Model (Noun-Phrase Extraction)
+<!--
+  Rosenberg Rule (Ch. 2, Fig. 2-2): Initial Domain Model hanya berisi nama class domain dan
+  relasi dasar has-a (o--) / is-a (<|--). Belum ada atribut, operasi/method, maupun multiplicity.
+  Atribut baru ditambahkan pada Updated Domain Model (plan.md Section 2).
+-->
 
 ```mermaid
 classDiagram
-    class IndexingRecord {
-        +indexingId: UUID
-        +documentId: UUID
-        +researcherId: UUID
-        +indexingStatus: Enum
-        +failureReason: String
-        +totalChunks: Integer
-        +embeddingModel: String
-        +embeddingModelVersion: String
-        +embeddingDimension: Integer
-        +chunkSize: Integer
-        +chunkOverlap: Integer
-        +sourceChecksum: String
-        +startedAt: DateTime
-        +completedAt: DateTime
-    }
+    class ResearcherAccount
+    class Document
+    class IndexingRecord
+    class DocumentChunk
 
-    class DocumentChunk {
-        +chunkId: UUID
-        +indexingRecordId: UUID
-        +documentId: UUID
-        +researcherId: UUID
-        +chunkIndex: Integer
-        +chunkText: Text
-        +embedding: Vector
-        +pageNumber: Integer
-        +sectionName: String
-        +documentTitle: String
-        +authors: String
-        +publicationYear: Integer
-        +sourceGoogleDriveId: String
-        +sourceChecksum: String
-        +embeddingModel: String
-        +embeddingModelVersion: String
-        +embeddingDimension: Integer
-        +chunkSize: Integer
-        +chunkOverlap: Integer
-        +indexedAt: DateTime
-    }
-
-    class Document {
-        +documentId: UUID
-        +googleDriveId: String
-        +fileName: String
-        +importStatus: Enum
-        +researcherId: UUID
-    }
-
-    class ResearcherAccount {
-        +researcherId: UUID
-        +email: String
-    }
-
-    ResearcherAccount "1" --> "*" Document : owns
-    Document "1" --> "0..*" IndexingRecord : tracked_by
-    IndexingRecord "1" --> "*" DocumentChunk : produces
-    Document "1" --> "*" DocumentChunk : sourced_from
+    ResearcherAccount o-- Document : has-a
+    Document o-- IndexingRecord : has-a
+    IndexingRecord o-- DocumentChunk : has-a
+    Document o-- DocumentChunk : has-a
 ```
 
 - **IndexingRecord**: Rekam jejak satu siklus indexing untuk satu dokumen. Satu dokumen dapat memiliki lebih dari satu `IndexingRecord` (multi-version) — satu berstatus `active`/`indexed`, sisanya berstatus `archived`. Menyimpan konfigurasi yang digunakan (model, dimensi, chunk size, overlap, checksum), status bertahap, dan waktu eksekusi. Memungkinkan deteksi perubahan untuk re-indexing.

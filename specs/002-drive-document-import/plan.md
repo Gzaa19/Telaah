@@ -24,6 +24,10 @@
 ---
 
 ## 2. Updated Domain Model
+<!--
+  Rosenberg Phase: Domain Model Evolution (Ch. 1 step 2b & Ch. 5, Fig. 5-18/5-19).
+  Menambahkan atribut ke entitas domain; BELUM ada operasi/method (dialokasikan di Section 6).
+-->
 
 ```mermaid
 classDiagram
@@ -89,121 +93,102 @@ classDiagram
 ---
 
 ## 3. ICONIX Robustness Analysis (Preliminary Design)
+<!--
+  Doug Rosenberg's Four Rules of Robustness Analysis (Ch. 5):
+  1. Actors can only talk to Boundary objects.
+  2. Boundary objects can only talk to Controllers and Actors.
+  3. Entity objects can only talk to Controllers.
+  4. Controller objects can talk to Boundaries, Entities, and other Controllers (NEVER to Actors directly).
+  THE GOLDEN RULE: Boundary <-> Entity secara langsung DILARANG (no Noun-Noun links).
+  Canonical PlantUML ONLY (No Mermaid).
+-->
 
-### Robustness Diagram: UC-02: Google Drive Connection and Document Import
-
-```mermaid
-flowchart TD
-    classDef actor fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#f8fafc
-    classDef boundary fill:#0c4a6e,stroke:#0284c7,stroke-width:2px,color:#f0f9ff
-    classDef controller fill:#451a03,stroke:#d97706,stroke-width:2px,color:#fef3c7
-    classDef entity fill:#064e3b,stroke:#059669,stroke-width:2px,color:#ecfdf5
-
-    RESEARCHER["Actor: Researcher"]:::actor
-
-    B_BROWSER[/"Boundary: Drive File Browser (SCR-02)"/]:::boundary
-    B_CONFIRM[/"Boundary: Import Confirmation Modal (SCR-03)"/]:::boundary
-    B_PROGRESS[/"Boundary: Import Progress View (SCR-04)"/]:::boundary
-
-    C_REFRESH_TOKEN(["Controller: Validate & Refresh Drive Token"]):::controller
-    C_LIST_FILES(["Controller: Fetch Drive File Listing"]):::controller
-    C_CHECK_DUPLICATE(["Controller: Check Duplicate by Drive ID"]):::controller
-    C_ENQUEUE_IMPORT(["Controller: Enqueue Import Job"]):::controller
-    C_DOWNLOAD(["Controller: Download File from Drive"]):::controller
-    C_EXTRACT_TEXT(["Controller: Extract Text from File"]):::controller
-    C_SAVE_RESULT(["Controller: Save Extracted Text & Update Status"]):::controller
-    C_TRIGGER_UC03(["Controller: Trigger Indexing Job"]):::controller
-    C_GET_STATUS(["Controller: Query Document Import Status"]):::controller
-
-    E_DOC[("Entity: Document")]:::entity
-    E_TEXT[("Entity: ExtractedText")]:::entity
-    E_PAGE[("Entity: ExtractedPage")]:::entity
-    E_CRED[("Entity: OAuthCredential")]:::entity
-
-    RESEARCHER -->|"1. Opens file browser"| B_BROWSER
-    B_BROWSER -->|"2. Requests Drive files"| C_LIST_FILES
-    C_LIST_FILES -->|"3. Validates access token"| C_REFRESH_TOKEN
-    C_REFRESH_TOKEN -->|"Loads & updates credentials"| E_CRED
-    C_REFRESH_TOKEN -->|"Returns valid token"| C_LIST_FILES
-    C_LIST_FILES -->|"Returns file listing"| B_BROWSER
-    B_BROWSER -->|"4. Renders file listing"| RESEARCHER
-
-    RESEARCHER -->|"5. Selects file & requests import"| B_CONFIRM
-    B_CONFIRM -->|"6. Dispatches import request"| C_CHECK_DUPLICATE
-    C_CHECK_DUPLICATE -->|"Checks existing drive ID"| E_DOC
-    C_CHECK_DUPLICATE -->|"Confirmed unique or override"| C_ENQUEUE_IMPORT
-    C_ENQUEUE_IMPORT -->|"Creates initial record"| E_DOC
-    C_ENQUEUE_IMPORT -->|"Enqueues background task"| C_DOWNLOAD
-    C_ENQUEUE_IMPORT -->|"Returns import ticket"| B_PROGRESS
-    B_PROGRESS -->|"7. Renders import progress"| RESEARCHER
-
-    B_PROGRESS -->|"8. Polls import state"| C_GET_STATUS
-    C_GET_STATUS -->|"Reads import status"| E_DOC
-    C_GET_STATUS -->|"Returns status update"| B_PROGRESS
-
-    C_DOWNLOAD -->|"Validates token"| C_REFRESH_TOKEN
-    C_DOWNLOAD -->|"Streams file bytes"| C_EXTRACT_TEXT
-    C_EXTRACT_TEXT -->|"Extracts text pages"| C_SAVE_RESULT
-    C_SAVE_RESULT -->|"Persists full text"| E_TEXT
-    C_SAVE_RESULT -->|"Persists text pages"| E_PAGE
-    C_SAVE_RESULT -->|"Updates document state"| E_DOC
-    C_SAVE_RESULT -->|"Triggers indexing"| C_TRIGGER_UC03
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02 Robustness Diagram (Native BCE Icons)</b></summary>
+### Robustness Diagram: UC-02 Google Drive Connection and Document Import
 
 ```plantuml
 @startuml
 left to right direction
-skinparam handwritten false
-skinparam monochrome false
 skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+note as UC_TEXT
+  <b>UC-02: Google Drive Connection and Document Import</b>
+  <b>Basic Course (Sunny Day):</b>
+  1. Peneliti buka Drive Browser (SCR-02) -> ambil daftar file/folder PDF/DOCX.
+  2. Peneliti pilih file -> Konfirmasi Import (SCR-03) -> cek duplikasi & enqueue job.
+  3. Worker refresh token -> unduh file -> ekstrak teks -> simpan Document/Text/Page (extracted).
+  4. Sistem trigger UC-03 (Document Indexing) dengan document_id & perbarui SCR-04.
+
+  <b>Alternate Courses (Rainy Day):</b>
+  - Alt-1: Token expired -> auto refresh; jika dicabut -> minta re-auth.
+  - Alt-3: Duplicate Drive ID -> tawarkan Import Ulang / Batal.
+  - Alt-4/5/6: Gagal unduh / PDF terenkripsi-scan / file hilang -> status failed (#FFCCCC) + Retry.
+end note
 
 actor "Researcher" as Researcher
 boundary "Drive File Browser\n(SCR-02)" as B_Browser
 boundary "Import Confirmation Modal\n(SCR-03)" as B_Confirm
 boundary "Import Progress View\n(SCR-04)" as B_Progress
+boundary "Google Drive API\n(External Read-Only)" as B_GDrive
 
-control "DriveService" as C_ListFiles
-control "DriveTokenService" as C_RefreshToken
-control "DocumentService" as C_DocSvc
-control "ImportWorkerTask" as C_Download
-control "TextExtractor" as C_ExtractText
+control "Fetch Drive File Listing\n[DriveService]" as C_ListFiles
+control "Validate & Refresh Drive Token\n[DriveTokenService]" as C_RefreshToken
+control "Check Duplicate by Drive ID\n[DocumentService]" as C_CheckDup
+control "Enqueue Import Job\n[DocumentService]" as C_Enqueue
+control "Download File from Drive\n[ImportWorkerTask]" as C_Download
+control "Extract Text from File\n[TextExtractor]" as C_Extract
+control "Save Extracted Text & Update Status\n[ImportWorkerTask]" as C_SaveResult
+control "Trigger Indexing Job\n[ImportWorkerTask]" as C_TriggerUC03
+control "Query Document Import Status\n[DocumentService]" as C_GetStatus
+control "Handle Import / Extraction Failure\n[ImportWorkerTask]" as C_Fail #FFCCCC
 
 entity "Document" as E_Doc
 entity "ExtractedText" as E_Text
 entity "ExtractedPage" as E_Page
 entity "OAuthCredential" as E_Cred
 
-Researcher --> B_Browser : opens_browser()
-B_Browser --> C_ListFiles : request_drive_files()
-C_ListFiles --> C_RefreshToken : validate_access_token()
-C_RefreshToken --> E_Cred : load_and_update_credentials()
-C_RefreshToken --> C_ListFiles : valid_token
-C_ListFiles --> B_Browser : file_listing
-B_Browser --> Researcher : render_file_listing()
+usecase "UC-03: Document Indexing\nand Local Embedding" as UC03
 
-Researcher --> B_Confirm : confirm_import()
-B_Confirm --> C_DocSvc : import_document()
-C_DocSvc --> E_Doc : check_duplicate_drive_id()
-C_DocSvc --> E_Doc : create_initial_document()
-C_DocSvc --> C_Download : dispatch_import_job()
-C_DocSvc --> B_Progress : return_import_ticket()
-B_Progress --> Researcher : render_progress()
+UC_TEXT -[hidden]-> Researcher
 
-B_Progress --> C_DocSvc : query_status()
-C_DocSvc --> E_Doc : read_import_status()
-C_DocSvc --> B_Progress : deliver_status_update()
+Researcher --> B_Browser : 1. Open file browser / search
+B_Browser --> C_ListFiles : Request Drive files
+C_ListFiles --> C_RefreshToken : Validate access token
+C_RefreshToken --> E_Cred : Load & refresh credentials
+C_ListFiles --> B_GDrive : List files & metadata
+C_ListFiles --> B_Browser : Return PDF/DOCX listing
+B_Browser --> Researcher : Render listing
 
-C_Download --> C_RefreshToken : validate_token()
-C_Download --> C_ExtractText : extract_text_pages()
-C_ExtractText --> E_Text : persist_full_text()
-C_ExtractText --> E_Page : persist_pages()
-C_Download --> E_Doc : mark_extracted()
+Researcher --> B_Confirm : 2. Select file & confirm import
+B_Confirm --> C_CheckDup : Dispatch import request
+C_CheckDup --> E_Doc : Check existing Drive ID
+C_CheckDup --> B_Confirm : [Alt-3: Duplicate found]
+C_CheckDup --> C_Enqueue : [Sunny Day: Unique / Override]
+C_Enqueue --> E_Doc : Create importing record
+C_Enqueue --> C_Download : Enqueue background task
+C_Enqueue --> B_Progress : Return import ticket
+B_Progress --> Researcher : Render progress
+
+B_Progress --> C_GetStatus : Poll import state
+C_GetStatus --> E_Doc : Read import status
+C_GetStatus --> B_Progress : Deliver status update
+
+C_Download --> C_RefreshToken : Ensure valid token
+C_Download --> B_GDrive : Download file stream
+C_Download --> C_Fail : [Alt-4/6: Download fail / Not found]
+C_Download --> C_Extract : Extract PDF/DOCX text
+C_Extract --> C_Fail : [Alt-5: Scanned / Corrupt]
+C_Extract --> C_SaveResult : Extracted pages & text
+C_SaveResult --> E_Text : Persist full text
+C_SaveResult --> E_Page : Persist text pages
+C_SaveResult --> E_Doc : Mark status = extracted
+C_SaveResult --> C_TriggerUC03 : Dispatch document_id
+C_TriggerUC03 ..> UC03 : <<invokes>>
+
+C_Fail --> E_Doc : Mark failed & save reason
+C_Fail --> B_Progress : Show error + Retry option
 @enduml
 ```
-</details>
 
 ### Boundary-Controller-Entity (BCE) Inventory & Method Allocation
 
@@ -250,211 +235,149 @@ C_Download --> E_Doc : mark_extracted()
 ---
 
 ## 5. Detailed Design: Sequence Diagrams (Behavior Allocation)
+<!--
+  Rosenberg Phase: Detailed Design (Ch. 8). Canonical PlantUML ONLY (No Mermaid).
+-->
 
-### Sequence Diagram: UC-02a: Browse and Search Drive Files
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Researcher as Actor: Researcher
-    participant Browser as Boundary: Drive File Browser (SCR-02)
-    participant DriveSvc as Controller: DriveService
-    participant TokenSvc as Controller: DriveTokenService
-    participant Credential as Entity: OAuthCredential
-
-    Researcher->>Browser: search_files(folder_id, search_query)
-    Browser->>DriveSvc: list_files(researcher_id, folder_id, search_query)
-    DriveSvc->>TokenSvc: get_valid_access_token(researcher_id)
-    TokenSvc->>Credential: load_credentials(researcher_id)
-    Credential-->>TokenSvc: credential_record
-    alt Token expired
-        TokenSvc->>TokenSvc: refresh_access_token(refresh_token)
-        TokenSvc->>Credential: update_token_expiration(new_token, expiry)
-        Credential-->>TokenSvc: updated
-    end
-    TokenSvc-->>DriveSvc: valid_access_token
-    DriveSvc->>DriveSvc: fetch_drive_api(valid_access_token, query)
-    DriveSvc-->>Browser: deliver_file_list(files, next_page_token)
-    Browser-->>Researcher: render_file_browser(files, breadcrumbs)
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02a Sequence Diagram (Native BCE Lifeline Icons)</b></summary>
+### Sequence Diagram 1: UC-02a Browse and Search Drive Files
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Researcher" as Researcher
 boundary "Drive File Browser\n(SCR-02)" as Browser
+boundary "Google Drive API\n(External Read-Only)" as GDriveAPI
 control "DriveService" as DriveSvc
 control "DriveTokenService" as TokenSvc
 entity "OAuthCredential" as Credential
+
+note left of Researcher
+  <b>UC-02a: Browse and Search Drive Files</b>
+  1. Researcher buka SCR-02 atau cari file.
+  2. DriveTokenService validasi & auto-refresh token bila expired.
+  3. DriveService ambil daftar file PDF/DOCX dari Google Drive API.
+  4. Alt-1: Jika refresh token dicabut -> tampilkan prompt re-auth.
+end note
 
 Researcher -> Browser : search_files(folder_id, search_query)
 Browser -> DriveSvc : list_files(researcher_id, folder_id, search_query)
 DriveSvc -> TokenSvc : get_valid_access_token(researcher_id)
 TokenSvc -> Credential : load_credentials(researcher_id)
 Credential --> TokenSvc : credential_record
-alt Token expired
+
+alt Alt-1: Token Expired & Refreshable
     TokenSvc -> TokenSvc : refresh_access_token(refresh_token)
     TokenSvc -> Credential : update_token_expiration(new_token, expiry)
     Credential --> TokenSvc : updated
+    TokenSvc --> DriveSvc : valid_access_token
+    DriveSvc -> GDriveAPI : fetch_drive_files(valid_access_token, query)
+    GDriveAPI --> DriveSvc : drive_file_list
+    DriveSvc --> Browser : deliver_file_list(files, next_page_token)
+    Browser --> Researcher : render_file_browser(files, breadcrumbs)
+else Alt-1 Error: Token Revoked
+    TokenSvc --> DriveSvc : raise_token_revoked_error()
+    DriveSvc --> Browser : auth_required_error()
+    Browser --> Researcher : show_drive_reconnect_prompt()
+else Sunny Day: Token Still Valid
+    TokenSvc --> DriveSvc : valid_access_token
+    DriveSvc -> GDriveAPI : fetch_drive_files(valid_access_token, query)
+    GDriveAPI --> DriveSvc : drive_file_list
+    DriveSvc --> Browser : deliver_file_list(files, next_page_token)
+    Browser --> Researcher : render_file_browser(files, breadcrumbs)
 end
-TokenSvc --> DriveSvc : valid_access_token
-DriveSvc -> DriveSvc : fetch_drive_api(valid_access_token, query)
-DriveSvc --> Browser : deliver_file_list(files, next_page_token)
-Browser --> Researcher : render_file_browser(files, breadcrumbs)
 @enduml
 ```
-</details>
 
-### Sequence Diagram: UC-02: Import and Extract Document (Happy Path)
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Researcher as Actor: Researcher
-    participant ConfirmUI as Boundary: Import Confirmation Modal (SCR-03)
-    participant DocSvc as Controller: DocumentService
-    participant Document as Entity: Document
-    participant Worker as Controller: ImportWorkerTask
-    participant TokenSvc as Controller: DriveTokenService
-    participant Credential as Entity: OAuthCredential
-    participant Extractor as Controller: TextExtractor
-    participant ExtractedText as Entity: ExtractedText
-    participant ExtractedPage as Entity: ExtractedPage
-    participant ProgressUI as Boundary: Import Progress View (SCR-04)
-
-    Researcher->>ConfirmUI: confirm_import(drive_file_id, file_name, file_type)
-    ConfirmUI->>DocSvc: import_document(drive_file_id, researcher_id)
-    DocSvc->>Document: find_by_drive_id(drive_file_id, researcher_id)
-    Document-->>DocSvc: none_found
-    DocSvc->>Document: create_document_record(drive_file_id, status_importing)
-    Document-->>DocSvc: document_record
-    DocSvc->>Worker: dispatch_import_job(document_id)
-    DocSvc-->>ConfirmUI: return_import_ticket(document_id)
-    ConfirmUI->>ProgressUI: display_import_progress(document_id)
-    ProgressUI-->>Researcher: render_progress_view()
-
-    Note over Worker: Background Execution
-    Worker->>TokenSvc: get_valid_access_token(researcher_id)
-    TokenSvc->>Credential: load_credentials(researcher_id)
-    Credential-->>TokenSvc: credential_record
-    TokenSvc-->>Worker: access_token
-    Worker->>Document: update_status(status_downloading)
-    Worker->>Worker: download_file_stream(access_token, drive_file_id)
-    Worker->>Document: update_status(status_extracting)
-    Worker->>Extractor: extract_text(file_bytes, file_type)
-    Extractor-->>Worker: extraction_result(pages, full_text)
-    Worker->>ExtractedText: persist_extracted_text(document_id, full_text)
-    ExtractedText-->>Worker: text_record
-    Worker->>ExtractedPage: persist_pages(text_record_id, pages)
-    ExtractedPage-->>Worker: pages_recorded
-    Worker->>Document: mark_extracted(status_extracted, checksum)
-    Worker->>Worker: notify_indexing_pipeline(document_id)
-
-    ProgressUI->>DocSvc: query_status(document_id)
-    DocSvc->>Document: get_current_status(document_id)
-    Document-->>DocSvc: document_status
-    DocSvc-->>ProgressUI: update_progress_state(status_extracted)
-    ProgressUI-->>Researcher: render_extraction_completed()
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02 Sequence Diagram (Happy Path) (Native BCE Lifeline Icons)</b></summary>
+### Sequence Diagram 2: UC-02 Import and Extract Document
 
 ```plantuml
 @startuml
+autoactivate off
 autonumber
+skinparam shadowing false
 skinparam responseMessageBelowArrow true
 
 actor "Researcher" as Researcher
 boundary "Import Confirmation Modal\n(SCR-03)" as ConfirmUI
+boundary "Import Progress View\n(SCR-04)" as ProgressUI
+boundary "Google Drive API\n(External Read-Only)" as GDriveAPI
 control "DocumentService" as DocSvc
-entity "Document" as Document
 control "ImportWorkerTask" as Worker
 control "DriveTokenService" as TokenSvc
-entity "OAuthCredential" as Credential
 control "TextExtractor" as Extractor
+entity "Document" as Document
+entity "OAuthCredential" as Credential
 entity "ExtractedText" as ExtractedText
 entity "ExtractedPage" as ExtractedPage
-boundary "Import Progress View\n(SCR-04)" as ProgressUI
+
+note left of Researcher
+  <b>UC-02: Import & Extract Document</b>
+  <b>Basic Course:</b>
+  1. Konfirmasi import -> cek duplikasi -> enqueue worker.
+  2. Worker refresh token -> download -> extract text.
+  3. Simpan ExtractedText & ExtractedPage -> mark extracted.
+  4. Trigger UC-03 indexing job.
+
+  <b>Alternate Courses:</b>
+  - Alt-3: Duplicate Drive ID -> minta konfirmasi Import Ulang.
+  - Alt-4/5: Gagal unduh / Scanned PDF -> mark_failed + tombol Retry.
+end note
 
 Researcher -> ConfirmUI : confirm_import(drive_file_id, file_name, file_type)
 ConfirmUI -> DocSvc : import_document(drive_file_id, researcher_id)
 DocSvc -> Document : find_by_drive_id(drive_file_id, researcher_id)
-Document --> DocSvc : none_found
-DocSvc -> Document : create_document_record(drive_file_id, status_importing)
-Document --> DocSvc : document_record
-DocSvc -> Worker : dispatch_import_job(document_id)
-DocSvc --> ConfirmUI : return_import_ticket(document_id)
-ConfirmUI -> ProgressUI : display_import_progress(document_id)
-ProgressUI --> Researcher : render_progress_view()
 
-note over Worker : Background Execution
-Worker -> TokenSvc : get_valid_access_token(researcher_id)
-TokenSvc -> Credential : load_credentials(researcher_id)
-Credential --> TokenSvc : credential_record
-TokenSvc --> Worker : access_token
-Worker -> Document : update_status(status_downloading)
-Worker -> Worker : download_file_stream(access_token, drive_file_id)
-Worker -> Document : update_status(status_extracting)
-Worker -> Extractor : extract_text(file_bytes, file_type)
-Extractor --> Worker : extraction_result(pages, full_text)
-Worker -> ExtractedText : persist_extracted_text(document_id, full_text)
-ExtractedText --> Worker : text_record
-Worker -> ExtractedPage : persist_pages(text_record_id, pages)
-ExtractedPage --> Worker : pages_recorded
-Worker -> Document : mark_extracted(status_extracted, checksum)
-Worker -> Worker : notify_indexing_pipeline(document_id)
+alt Alt-3: Duplicate Document Found (Without Override)
+    Document --> DocSvc : existing_document
+    DocSvc --> ConfirmUI : duplicate_warning(existing_status)
+    ConfirmUI --> Researcher : show_duplicate_override_prompt()
+else Sunny Day: New Document or Override Confirmed
+    Document --> DocSvc : none_found
+    DocSvc -> Document : create_document_record(drive_file_id, status_importing)
+    Document --> DocSvc : document_record
+    DocSvc -> Worker : dispatch_import_job(document_id)
+    DocSvc --> ProgressUI : display_import_progress(document_id)
+    ProgressUI --> Researcher : render_progress_view()
 
-ProgressUI -> DocSvc : query_status(document_id)
-DocSvc -> Document : get_current_status(document_id)
-Document --> DocSvc : document_status
-DocSvc --> ProgressUI : update_progress_state(status_extracted)
-ProgressUI --> Researcher : render_extraction_completed()
+    note over Worker : Background ARQ Execution
+    Worker -> TokenSvc : get_valid_access_token(researcher_id)
+    TokenSvc -> Credential : load_credentials(researcher_id)
+    Credential --> TokenSvc : credential_record
+    TokenSvc --> Worker : access_token
+    Worker -> Document : update_status(status_downloading)
+    Worker -> GDriveAPI : download_file_stream(access_token, drive_file_id)
+    GDriveAPI --> Worker : file_bytes_stream
+    Worker -> Document : update_status(status_extracting)
+    Worker -> Extractor : extract_text(file_bytes, file_type)
+
+    alt Sunny Day: Text Extracted Successfully
+        Extractor --> Worker : extraction_result(pages, full_text)
+        Worker -> ExtractedText : persist_extracted_text(document_id, full_text)
+        ExtractedText --> Worker : text_record
+        Worker -> ExtractedPage : persist_pages(text_record_id, pages)
+        ExtractedPage --> Worker : pages_recorded
+        Worker -> Document : mark_extracted(status_extracted, checksum)
+        Worker -> Worker : notify_indexing_pipeline(document_id)
+        ProgressUI -> DocSvc : query_status(document_id)
+        DocSvc -> Document : get_current_status(document_id)
+        Document --> DocSvc : status_extracted
+        DocSvc --> ProgressUI : update_progress_state(status_extracted)
+        ProgressUI --> Researcher : render_extraction_completed()
+    else Alt-4 / Alt-5: Download or Extraction Failure (e.g. Scanned PDF)
+        Extractor --> Worker : raise_scanned_pdf_error("No extractable text")
+        Worker -> Document : mark_failed(status_failed, error_message)
+        Document --> Worker : status_failed
+        ProgressUI -> DocSvc : query_status(document_id)
+        DocSvc --> ProgressUI : update_progress_state(status_failed, error_message)
+        ProgressUI --> Researcher : render_failure_with_retry()
+    end
+end
 @enduml
 ```
-</details>
-
-### Sequence Diagram: UC-02 — Import Failure (Scanned PDF)
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Worker as Controller: ImportWorkerTask
-    participant Extractor as Controller: TextExtractor
-    participant Document as Entity: Document
-
-    Worker->>Extractor: extract_text(file_bytes, "pdf")
-    Extractor->>Extractor: verify_text_content(file_bytes)
-    Extractor-->>Worker: raise_scanned_pdf_error("PDF contains no extractable text")
-    Worker->>Document: mark_failed(status_failed, error_message)
-    Document-->>Worker: status_updated
-```
-
-<details>
-<summary><b>Canonical PlantUML: UC-02 Sequence Diagram (Failure Path)</b></summary>
-
-```plantuml
-@startuml
-autonumber
-skinparam responseMessageBelowArrow true
-
-control "ImportWorkerTask" as Worker
-control "TextExtractor" as Extractor
-entity "Document" as Document
-
-Worker -> Extractor : extract_text(file_bytes, "pdf")
-Extractor -> Extractor : verify_text_content(file_bytes)
-Extractor --> Worker : raise_scanned_pdf_error("PDF contains no extractable text")
-Worker -> Document : mark_failed(status_failed, error_message)
-Document --> Worker : status_updated
-@enduml
-```
-</details>
 
 ---
 
